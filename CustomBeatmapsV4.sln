@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomBeatmapsV4", "CustomBeatmapsV4.csproj", "{45A44295-BDE4-49C0-8EF0-B419F0259915}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45A44295-BDE4-49C0-8EF0-B419F0259915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45A44295-BDE4-49C0-8EF0-B419F0259915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45A44295-BDE4-49C0-8EF0-B419F0259915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45A44295-BDE4-49C0-8EF0-B419F0259915}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5C0B3E4D-D1A1-4B50-BC08-4516E6F535C8}
+	EndGlobalSection
+EndGlobal
