@@ -12,6 +12,7 @@ using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 using static Rhythm.BeatmapIndex;
+using RewiredConsts;
 
 namespace CustomBeatmaps.Patches
 {
@@ -24,13 +25,9 @@ namespace CustomBeatmaps.Patches
         {
             if (key.StartsWith("CUSTOM__"))
             {
-
+                
                 BeatmapIndex.defaultIndex.TryGetSong(key, out Song songTest);
-                if (songTest is CustomSongInfo realSong)
-                {
-                    key = realSong.audioPath;
-                }
-
+                key = ((CustomSongInfo)songTest).audioPath;
 
                 if (File.Exists(key))
                 {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,6 +14,7 @@ using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using CustomBeatmaps.CustomPackages;
 
 namespace CustomBeatmaps.Patches
 {
@@ -42,30 +42,8 @@ namespace CustomBeatmaps.Patches
             // Load in songs
             CustomBeatmaps.Log.LogMessage("Loading DB...");
             CustomBeatmaps.Log.LogDebug("Currently " + test.SongNames.Count() + " songs exist!");
-            doNothing();
+            Util.ArcadeHelper.AddCustomSongs();
             CustomBeatmaps.Log.LogDebug("Now " + test.SongNames.Count() + " songs exist!");
-        }
-
-        // very temp thing
-        public static void doNothing()
-        {
-            List<Song> songList = new List<Song>();
-            string[] files = Directory.GetFiles(Util.PackageHelper.GetLocalBeatmapDirectory(), "*.osu", SearchOption.AllDirectories);
-            foreach (string file in files)
-            {
-                Util.ArcadeHelper.SongSmuggle(file, 7, ref songList);
-            }
-            files = Directory.GetFiles(Util.PackageHelper.GetWhiteLabelBeatmapDirectory() + "CustomBeatmapsV3-Data/SERVER_PACKAGES", "*.osu", SearchOption.AllDirectories);
-            foreach (string file in files)
-            {
-                Util.ArcadeHelper.SongSmuggle(file, 8, ref songList);
-            }
-            files = Directory.GetFiles(Util.PackageHelper.GetWhiteLabelBeatmapDirectory() + "USER_PACKAGES", "*.osu", SearchOption.AllDirectories);
-            foreach (string file in files)
-            {
-                Util.ArcadeHelper.SongSmuggle(file, 8, ref songList);
-            }
-            songList.Clear();
         }
 
         [HarmonyPatch(typeof(BeatmapIndex), "GetVisibleCategories")]

@@ -10,19 +10,19 @@ namespace CustomBeatmaps.Util
         public static string GetLocalBeatmapDirectory()
         {
             // Path of the game exe
-            string dataDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
+            var dataDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
             // Get the directory of the custom songs
-            string songDir = dataDir + "/CustomSongs";
+            var songDir = dataDir + "/CustomSongs";
             return songDir;
         }
 
         public static string GetWhiteLabelBeatmapDirectory()
         {
             // Path of the game exe
-            string test = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
-            string dataDir = test.Substring(0, test.LastIndexOf('/'));
+            var test = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
+            var dataDir = test.Substring(0, test.LastIndexOf('/'));
             // Get the directory of the custom songs
-            string songDir = dataDir + "/UNBEATABLE [white label]/";
+            var songDir = dataDir + "/UNBEATABLE [white label]/";
             return songDir;
         }
     }

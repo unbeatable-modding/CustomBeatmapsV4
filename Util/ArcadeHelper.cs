@@ -14,6 +14,8 @@ using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 using CustomBeatmaps.CustomPackages;
+using Arcade.UI.SongSelect;
+using static Arcade.UI.SongSelect.ArcadeSongDatabase;
 
 namespace CustomBeatmaps.Util
 {
@@ -23,6 +25,13 @@ namespace CustomBeatmaps.Util
             new Category("LOCAL", "Local songs", 7),
             new Category("[white label]", "from that other game", 8)
             };
+
+
+        private static Traverse traverse = Traverse.Create(BeatmapIndex.defaultIndex);
+        private static List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
+        private static List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
+        private static Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
+        private static List<Song> songList = new();
 
         public static Category GetCustomCategory(int index)
         {
@@ -36,62 +45,71 @@ namespace CustomBeatmaps.Util
 
         public static void TryAddCustomCategory()
         {
-            foreach (Category customCategory in customCategories)
+            foreach (var customCategory in customCategories)
             {
-                BeatmapIndex beatmapIndex = BeatmapIndex.defaultIndex;
-
-                Traverse beatmapIndexTraverse = Traverse.Create(beatmapIndex);
-
-                var beatmapIndexCategories = beatmapIndexTraverse.Field("categories").GetValue<List<Category>>();
-
+                
+                var categories = traverse.Field("categories").GetValue<List<Category>>();
+                var categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
 
                 // Check if the custom category already exists
-                if (!beatmapIndexCategories.Contains(customCategory))
+                if (!categories.Contains(customCategory))
                 {
-                    //customCategories.Add(customCategory);
                     // If not, add it to the list
-
-                    beatmapIndexCategories.Add(customCategory);
-                    beatmapIndexTraverse.Field("categories").SetValue(beatmapIndexCategories);
-
-                    CustomBeatmaps.Log.LogDebug("Added category " + customCategory.Name);
-
-
-                    /*var categoriesByName = beatmapIndexTraverse.Field("CategoriesByName").GetValue<Dictionary<string, Category>>();
-                    Core.GetLogger().Msg("DEBUG");
-                    categoriesByName.TryAdd(customCategory.Name, customCategory);
-                    Core.GetLogger().Msg("DEBUG");
-                    beatmapIndexTraverse.Field("CategoriesByName").SetValue(categoriesByName);*/
-
-
-                    var categorySongs = beatmapIndexTraverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
+                    categories.Add(customCategory);
                     categorySongs.TryAdd(customCategory, new List<Song>());
-                    beatmapIndexTraverse.Field("_categorySongs").SetValue(categorySongs);
+
+                    CustomBeatmaps.Log.LogDebug($"Added category {customCategory.Name}");
+                    
                 }
             }
         }
 
+        public static void AddCustomSongs()
+        {
+            CleanSongs();
+            songList.Clear();
+            var files = Directory.GetFiles(PackageHelper.GetLocalBeatmapDirectory(), "*.osu", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                SongSmuggle(file, 7);
+            }
+            files = Directory.GetFiles(PackageHelper.GetWhiteLabelBeatmapDirectory() + "CustomBeatmapsV3-Data/SERVER_PACKAGES", "*.osu", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                SongSmuggle(file, 8);
+            }
+            files = Directory.GetFiles(PackageHelper.GetWhiteLabelBeatmapDirectory() + "USER_PACKAGES", "*.osu", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                SongSmuggle(file, 8);
+            }
+        }
+
         // Put a song into the BeatmapIndex
-        public static void SongSmuggle(string beatmapPath, int category, ref List<Song> songList)
+        public static void SongSmuggle(string beatmapPath, int category)
         {
             CustomBeatmaps.Log.LogDebug("Loading a song...");
-            Traverse traverse = Traverse.Create(BeatmapIndex.defaultIndex);
-            
-            
 
-            List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
-            List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
-            Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
-            Song toLoad = new CustomSongInfo(beatmapPath, category);
-            
-            while (songList.Where((Song s) => s.name == toLoad.name && s.Difficulties.Contains(toLoad.Difficulties.Single())).Any())
+            //Traverse traverse = Traverse.Create(BeatmapIndex.defaultIndex);
+            //List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
+            //List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
+            //Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
+
+            var toLoad = new CustomSongInfo(beatmapPath, category);
+            var dupeInt = 0;
+            var startingName = toLoad.name;
+            while (songList.Where((Song s) => 
+                s.name == toLoad.name && ( ((CustomSongInfo)s).directoryPath != toLoad.directoryPath || s.Difficulties.Contains(toLoad.Difficulties.Single()) ) ).Any())
             {
-                toLoad.name = toLoad.name + "1";
+                toLoad.name = startingName + dupeInt;
+                dupeInt++;
             }
             
+
             if (!_songs.ContainsKey(toLoad.name))
             {
-                CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS NOT loaded");
+                // Song we just created has never existed
+                CustomBeatmaps.Log.LogDebug($"Loading in Song: {toLoad.name}");
                 songs.Add(toLoad);
                 _songs.Add(toLoad.name, toLoad);
                 songNames.Add(toLoad.name);
@@ -100,12 +118,14 @@ namespace CustomBeatmaps.Util
             }
             else if (songList.Where((Song s) => s.name == toLoad.name).Any())
             {
-                Song mergeSong = songList.Where((Song s) => s.name == toLoad.name).Single();
-                CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS PARTIALLY loaded");
-                traverse = Traverse.Create(mergeSong);
-                List<string> _difficulties; _difficulties = traverse.Field("_difficulties").GetValue<List<string>>();
-                List<BeatmapInfo> beatmaps = traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
-                Dictionary<string, BeatmapInfo> _beatmaps = traverse.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
+                // Song we just created has multiple difficulties
+                var mergeSong = songList.Where((Song s) => s.name == toLoad.name).Single();
+                CustomBeatmaps.Log.LogDebug($"Adding to Song: {toLoad.name}");
+
+                var traverseSong = Traverse.Create(mergeSong);
+                var _difficulties = traverseSong.Field("_difficulties").GetValue<List<string>>();
+                var beatmaps = traverseSong.Field("beatmaps").GetValue<List<BeatmapInfo>>();
+                var _beatmaps = traverseSong.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
 
                 beatmaps.Add(toLoad.Beatmaps.Values.ToArray()[0]);
                 _beatmaps.Add(toLoad.Difficulties[0], toLoad.Beatmaps.Values.ToArray()[0]);
@@ -115,14 +135,29 @@ namespace CustomBeatmaps.Util
             }
             else
             {
-                // Replace the song with itself incase of any updates to any stored values
-                CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS loaded");
-                songs.Where((Song self) => self.name == toLoad.name);
-                _songs[toLoad.name] = toLoad;
-                songList.Add(toLoad);
+                // This should never happen
+                CustomBeatmaps.Log.LogDebug($"Song {toLoad.name} never got cleaned??? Things are going to break");
+
+                //CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS loaded");
+                //songs.DoIf((Song self) => self.name == toLoad.name, (Song self) => self = toLoad);
+                //_songs[toLoad.name] = toLoad;
+                //songList.Add(toLoad);
             }
 
-            
+
+        }
+
+        // Remove all modded songs for when we want to reload the database
+        public static void CleanSongs()
+        {
+            var killList = new List<string>();
+
+            songs.DoIf((Song s) => s is CustomSongInfo, (Song s) => killList.Add(s.name));
+
+            //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
+            killList.ForEach((string k) => songs.Remove(_songs[k]));
+            killList.ForEach((string k) => _songs.Remove(k));
+            killList.ForEach((string k) => songNames.Remove(k));
         }
 
         public static Category CategoryLoader()
@@ -137,8 +172,7 @@ namespace CustomBeatmaps.Util
             {
                 return match.Groups[1].Value;
             }
-            //throw new BeatmapException($"{prop} property not found.", beatmapPath);
-            return null;
+            throw new BeatmapException($"{prop} property not found.", beatmapPath);
         }
     }
 }
