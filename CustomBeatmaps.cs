@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Logging;
 using CustomBeatmaps.Patches;
@@ -16,12 +15,17 @@ namespace CustomBeatmaps
 
         internal static new ManualLogSource Log;
 
-        //private readonly Harmony harmony = new Harmony(modGUID);
+        public static ModConfig ModConfig { get; private set; }
+        //public static BackendConfig BackendConfig { get; private set; }
+        //public static LocalPackageManager LocalUserPackages { get; private set; }
+
+        private static readonly Harmony Harmony = new Harmony(modGUID);
 
 
         void Awake()
         {
             Logger.LogInfo("CustomBeatmapsV4: Awake?");
+            UnityEngine.Object.DontDestroyOnLoad(this);
             Log = base.Logger;
 
             // At a regular interval, reload changed configs.
@@ -62,8 +66,7 @@ namespace CustomBeatmaps
                 }
             }
 
-
         }
-
+        
     }
 }

@@ -13,6 +13,7 @@ using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using CustomBeatmaps.CustomPackages;
 
 namespace CustomBeatmaps.Util
 {
@@ -81,14 +82,36 @@ namespace CustomBeatmaps.Util
             List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
             List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
             Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
-            Song toLoad = SongLoader(ref songList, beatmapPath, category);
-
+            Song toLoad = new CustomSongInfo(beatmapPath, category);
+            
+            while (songList.Where((Song s) => s.name == toLoad.name && s.Difficulties.Contains(toLoad.Difficulties.Single())).Any())
+            {
+                toLoad.name = toLoad.name + "1";
+            }
+            
             if (!_songs.ContainsKey(toLoad.name))
             {
                 CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS NOT loaded");
                 songs.Add(toLoad);
                 _songs.Add(toLoad.name, toLoad);
                 songNames.Add(toLoad.name);
+
+                songList.Add(toLoad);
+            }
+            else if (songList.Where((Song s) => s.name == toLoad.name).Any())
+            {
+                Song mergeSong = songList.Where((Song s) => s.name == toLoad.name).Single();
+                CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS PARTIALLY loaded");
+                traverse = Traverse.Create(mergeSong);
+                List<string> _difficulties; _difficulties = traverse.Field("_difficulties").GetValue<List<string>>();
+                List<BeatmapInfo> beatmaps = traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
+                Dictionary<string, BeatmapInfo> _beatmaps = traverse.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
+
+                beatmaps.Add(toLoad.Beatmaps.Values.ToArray()[0]);
+                _beatmaps.Add(toLoad.Difficulties[0], toLoad.Beatmaps.Values.ToArray()[0]);
+                _difficulties.Add(toLoad.Difficulties[0]);
+                _songs[toLoad.name] = mergeSong;
+
             }
             else
             {
@@ -96,89 +119,10 @@ namespace CustomBeatmaps.Util
                 CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS loaded");
                 songs.Where((Song self) => self.name == toLoad.name);
                 _songs[toLoad.name] = toLoad;
+                songList.Add(toLoad);
             }
 
-        }
-
-        // Take a beatmap file and set/make song accordingly
-        public static Song SongLoader(ref List<Song> songList, string bmapPath, int category)
-        {
-            CustomBeatmaps.Log.LogDebug("Starting load");
-            BeatmapIndex beatmapIndex = BeatmapIndex.defaultIndex;
-            string text = File.ReadAllText(bmapPath);
-            int mapChannel = 0; // This is to handle duplicate stuff
-            string songName = Encoder.EncodeSongName(mapChannel.ToString(), Path.GetDirectoryName(bmapPath)+ "/" + GetBeatmapProp(text, "AudioFilename", bmapPath));
-
-            // Difficulty Logic
-            string difficulty = "Star";
-            string bmapVer = GetBeatmapProp(text, "Version", bmapPath);
-            // Difficulties are not what they seem, welcome to devhell
-            Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
-            {
-                {"beginner", "Beginner"},
-                {"easy", "Easy"}, // easy is a lie shove the song into normal
-                {"normal", "Easy"},
-                {"hard", "Normal"},
-                {"expert", "Hard"},
-                {"beatable", "Hard"}, // A lot of maps like using this idk
-                {"unbeatable", "UNBEATABLE"}
-            };
-            // Check if the difficulty is in the default list
-            // If not, set it to one that can be found in the game
-            foreach (string i in difficultyIndex.Keys.ToArray())
-            {
-                // Check if the start of the version field matches a difficulty and then set accordingly
-                // This is so songs that have (UNBEATABLE + 4k) get put in the UNBEATABLE difficulty
-                if (bmapVer.ToLower().StartsWith(i))
-                {
-                    difficultyIndex.TryGetValue(i, out difficulty);
-                    break;
-                }
-            }
-
-            while (songList.Where((Song s) => s.name == songName && s.Difficulties.Contains(difficulty)).Any())
-            {
-                //CustomBeatmaps.Log.LogDebug("Duplicate found");
-                mapChannel++;
-                songName = Encoder.EncodeSongName(mapChannel.ToString(), Path.GetDirectoryName(bmapPath) + "/" + GetBeatmapProp(text, "AudioFilename", bmapPath));
-            }
-
-            Song customSong;
-            Traverse traverse;
-            List<string> _difficulties;
-            Dictionary<string, BeatmapInfo> _beatmapinfo;
-            if (!songList.Where((Song s) => s.name == songName).Any())
-            {
-                customSong = new Song(songName);
-                traverse = Traverse.Create(customSong);
-                traverse.Field("visibleInArcade").SetValue(true);
-                traverse.Field("_category").SetValue(BeatmapIndex.defaultIndex.Categories[category]);
-                traverse.Field("category").SetValue(category);
-                _difficulties = new List<string>();
-                _beatmapinfo = new Dictionary<string, BeatmapInfo>();
-            }
-            else
-            {
-                customSong = songList.First((Song s) => s.name == songName);
-                traverse = Traverse.Create(customSong);
-                _difficulties = traverse.Field("_difficulties").GetValue<List<string>>();
-                _beatmapinfo = traverse.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
-
-            }
-
-            BeatmapInfo map = new BeatmapInfo(new TextAsset(text), difficulty);
-            List<BeatmapInfo> beatmapinfo = traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
-            beatmapinfo.Add(map);
-
-            _beatmapinfo.Add(difficulty, map);
-            traverse.Field("_beatmaps").SetValue(_beatmapinfo);
-
-            _difficulties.Add(difficulty);
-            traverse.Field("_difficulties").SetValue(_difficulties);
-
-            customSong.stageScene = "TrainStationRhythm";
-            songList.Add(customSong);
-            return customSong;
+            
         }
 
         public static Category CategoryLoader()

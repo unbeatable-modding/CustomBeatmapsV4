@@ -45,12 +45,16 @@
       <Reference Include="UnityEngine.JSONSerializeModule">
         <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule">
+        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\UNBEATABLE Demo\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll</HintPath>
+      </Reference>
       <Reference Include="UnityEngine.UI">
         <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.UI.dll</HintPath>
       </Reference>
   </ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="Pri.LongPath" Version="2.0.53" />
 	</ItemGroup>
 </Project>

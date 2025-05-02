@@ -7,7 +7,11 @@ using HarmonyLib;
 using Rhythm;
 using CustomBeatmaps;
 
-using Encoder = CustomBeatmaps.Util.Encoder;
+using CustomBeatmaps.CustomPackages;
+using File = Pri.LongPath.File;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
+using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.Patches
 {
@@ -18,11 +22,14 @@ namespace CustomBeatmaps.Patches
         [HarmonyPrefix]
         public static bool RhythmTrackerPreparePatch(EventInstance instance, ref PlaySource source, ref string key)
         {
-            if (key.StartsWith("CUSTOM__") && key.Contains("."))
+            if (key.StartsWith("CUSTOM__"))
             {
 
-                //key = "C:/Program Files (x86)/Steam/steamapps/common/UNBEATABLE Demo/CustomSongs/Rick Astley - Never Gonna Give You Up (Official Music Video)/audio.mp3";
-                key = Encoder.DecodeAudioName(key);
+                BeatmapIndex.defaultIndex.TryGetSong(key, out Song songTest);
+                if (songTest is CustomSongInfo realSong)
+                {
+                    key = realSong.audioPath;
+                }
 
 
                 if (File.Exists(key))
