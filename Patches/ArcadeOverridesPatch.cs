@@ -75,13 +75,12 @@ namespace CustomBeatmaps.Patches
             // Actually put the categories in the game
             Util.ArcadeHelper.TryAddCustomCategory();
             // Make all the default categories visible because we can
-            foreach (Category category in BeatmapIndex.defaultIndex.Categories)
+            Category loadHiddenCategory = BeatmapIndex.defaultIndex.Categories[3];
+            if (!__result.Contains(loadHiddenCategory))
             {
-                if (!__result.Contains(category))
-                {
-                    __result.Add(category);
-                }
+                __result.Add(loadHiddenCategory);
             }
+
             // Add the custom categories to the list of visible categories
             foreach (Category category in Util.ArcadeHelper.customCategories)
             {

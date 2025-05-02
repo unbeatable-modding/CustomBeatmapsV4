@@ -21,8 +21,7 @@ namespace CustomBeatmaps.CustomPackages
             CustomBeatmaps.Log.LogDebug("Generating song...");
             string text = File.ReadAllText(bmapPath);
             name = "CUSTOM__" + BeatmapIndex.defaultIndex.Categories[category] + "__" + Util.ArcadeHelper.GetBeatmapProp(text, "Title", bmapPath);
-            //name = "CUSTOM__" + Util.ArcadeHelper.GetBeatmapProp(text, "TitleUnicode", bmapPath);
-            audioPath = Path.GetDirectoryName(bmapPath) + "/" + Util.ArcadeHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
+            audioPath = Path.GetDirectoryName(bmapPath) + "\\" + Util.ArcadeHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
 
             // Difficulty Logic
             string difficulty = "Star";
