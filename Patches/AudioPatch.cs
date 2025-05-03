@@ -12,7 +12,6 @@ using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 using static Rhythm.BeatmapIndex;
-using RewiredConsts;
 
 namespace CustomBeatmaps.Patches
 {

@@ -21,11 +21,10 @@ namespace CustomBeatmaps.Util
 {
     public class ArcadeHelper
     {
-        public static Category[] customCategories = {
+        public static readonly Category[] customCategories = {
             new Category("LOCAL", "Local songs", 7),
             new Category("[white label]", "from that other game", 8)
             };
-
 
         private static Traverse traverse = Traverse.Create(BeatmapIndex.defaultIndex);
         private static List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
@@ -38,9 +37,15 @@ namespace CustomBeatmaps.Util
             return customCategories[index];
         }
 
-        public void ReloadArcadeList()
+        public static void ReloadArcadeList()
         {
-
+            LoadCustomSongs();
+            var currentArcade = ArcadeSongDatabase.Instance;
+            var arcade = Traverse.Create(currentArcade);
+            var _songDatabase = arcade.Field("_songDatabase").GetValue<Dictionary<string, BeatmapItem>>();
+            _songDatabase.Clear();
+            arcade.Method("LoadDatabase").GetValue();
+            arcade.Method("RefreshSongList").GetValue();
         }
 
         public static void TryAddCustomCategory()
@@ -64,36 +69,32 @@ namespace CustomBeatmaps.Util
             }
         }
 
-        public static void AddCustomSongs()
+        public static void LoadCustomSongs()
         {
             CleanSongs();
             songList.Clear();
-            var files = Directory.GetFiles(PackageHelper.GetLocalBeatmapDirectory(), "*.osu", SearchOption.AllDirectories);
-            foreach (var file in files)
+            TryAddCustomSongs(PackageHelper.GetLocalBeatmapDirectory(), 7);
+            TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}CustomBeatmapsV3-Data/SERVER_PACKAGES", 8);
+            TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}USER_PACKAGES", 8);
+            
+        }
+
+        private static void TryAddCustomSongs(string directory, int category)
+        {
+            if (Directory.Exists(directory))
             {
-                SongSmuggle(file, 7);
-            }
-            files = Directory.GetFiles(PackageHelper.GetWhiteLabelBeatmapDirectory() + "CustomBeatmapsV3-Data/SERVER_PACKAGES", "*.osu", SearchOption.AllDirectories);
-            foreach (var file in files)
-            {
-                SongSmuggle(file, 8);
-            }
-            files = Directory.GetFiles(PackageHelper.GetWhiteLabelBeatmapDirectory() + "USER_PACKAGES", "*.osu", SearchOption.AllDirectories);
-            foreach (var file in files)
-            {
-                SongSmuggle(file, 8);
+                var files = Directory.GetFiles(directory, "*.osu", SearchOption.AllDirectories);
+                foreach (var file in files)
+                {
+                    SongSmuggle(file, category);
+                }
             }
         }
 
         // Put a song into the BeatmapIndex
-        public static void SongSmuggle(string beatmapPath, int category)
+        private static void SongSmuggle(string beatmapPath, int category)
         {
             CustomBeatmaps.Log.LogDebug("Loading a song...");
-
-            //Traverse traverse = Traverse.Create(BeatmapIndex.defaultIndex);
-            //List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
-            //List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
-            //Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
 
             var toLoad = new CustomSongInfo(beatmapPath, category);
             var dupeInt = 0;
@@ -136,7 +137,7 @@ namespace CustomBeatmaps.Util
             else
             {
                 // This should never happen
-                CustomBeatmaps.Log.LogDebug($"Song {toLoad.name} never got cleaned??? Things are going to break");
+                CustomBeatmaps.Log.LogDebug($"Song {toLoad.name} never got cleaned???");
 
                 //CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS loaded");
                 //songs.DoIf((Song self) => self.name == toLoad.name, (Song self) => self = toLoad);
@@ -148,21 +149,16 @@ namespace CustomBeatmaps.Util
         }
 
         // Remove all modded songs for when we want to reload the database
-        public static void CleanSongs()
+        private static void CleanSongs()
         {
             var killList = new List<string>();
 
-            songs.DoIf((Song s) => s is CustomSongInfo, (Song s) => killList.Add(s.name));
+            songs.DoIf((Song s) => s is CustomSongInfo, s => killList.Add(s.name));
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
             killList.ForEach((string k) => songs.Remove(_songs[k]));
             killList.ForEach((string k) => _songs.Remove(k));
             killList.ForEach((string k) => songNames.Remove(k));
-        }
-
-        public static Category CategoryLoader()
-        {
-            return null;
         }
 
         public static string GetBeatmapProp(string beatmapText, string prop, string beatmapPath)

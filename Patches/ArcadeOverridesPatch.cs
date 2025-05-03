@@ -37,13 +37,13 @@ namespace CustomBeatmaps.Patches
         public static void LoadDatabasePatch(ArcadeSongDatabase __instance)
         {
 
-            BeatmapIndex test = BeatmapIndex.defaultIndex;
+            var test = BeatmapIndex.defaultIndex;
 
             // Load in songs
             CustomBeatmaps.Log.LogMessage("Loading DB...");
-            CustomBeatmaps.Log.LogDebug("Currently " + test.SongNames.Count() + " songs exist!");
-            Util.ArcadeHelper.AddCustomSongs();
-            CustomBeatmaps.Log.LogDebug("Now " + test.SongNames.Count() + " songs exist!");
+            CustomBeatmaps.Log.LogDebug($"Currently {test.SongNames.Count()} songs exist!");
+            Util.ArcadeHelper.LoadCustomSongs();
+            CustomBeatmaps.Log.LogDebug($"Now {test.SongNames.Count()} songs exist!");
         }
 
         [HarmonyPatch(typeof(BeatmapIndex), "GetVisibleCategories")]
@@ -53,14 +53,14 @@ namespace CustomBeatmaps.Patches
             // Actually put the categories in the game
             Util.ArcadeHelper.TryAddCustomCategory();
             // Make all the default categories visible because we can
-            Category loadHiddenCategory = BeatmapIndex.defaultIndex.Categories[3];
+            var loadHiddenCategory = BeatmapIndex.defaultIndex.Categories[3];
             if (!__result.Contains(loadHiddenCategory))
             {
                 __result.Add(loadHiddenCategory);
             }
 
             // Add the custom categories to the list of visible categories
-            foreach (Category category in Util.ArcadeHelper.customCategories)
+            foreach (var category in Util.ArcadeHelper.customCategories)
             {
                 if (!__result.Contains(category))
                 {

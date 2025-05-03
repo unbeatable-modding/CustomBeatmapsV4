@@ -6,11 +6,12 @@
 	<PackageId>CustomBeatmaps</PackageId>
 	<RootNamespace>CustomBeatmaps</RootNamespace>
 	<LangVersion>latest</LangVersion>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
 	  <!-- Edit this path to point to your game path -->
 	  <GamePath>C:\Program Files (x86)\Steam\steamapps\common\UNBEATABLE Demo</GamePath>
 	  
-	  <ManagedPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\</ManagedPath>
+	  <ManagedPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed</ManagedPath>
 	  <PostBuildEvent>copy CustomBeatmapsV4.dll "$(GamePath)\BepInEx\plugins\CustomBeatmapsV4\CustomBeatmapsV4.dll"</PostBuildEvent>
   </PropertyGroup>
 
@@ -19,34 +20,46 @@
         <HintPath>$(GamePath)\BepInEx\core\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="Assembly-CSharp">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\Assembly-CSharp.dll</HintPath>
+        <HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath>
       </Reference>
       <Reference Include="BepInEx">
         <HintPath>$(GamePath)\BepInEx\core\BepInEx.dll</HintPath>
       </Reference>
       <Reference Include="FMODUnity">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\FMODUnity.dll</HintPath>
+        <HintPath>$(ManagedPath)\FMODUnity.dll</HintPath>
       </Reference>
       <Reference Include="Rewired_Core">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\Rewired_Core.dll</HintPath>
+        <HintPath>$(ManagedPath)\Rewired_Core.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.dll</HintPath>
+        <HintPath>$(ManagedPath)\UnityEngine.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.CoreModule">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        <HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>$(ManagedPath)\UnityEngine.IMGUIModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.InputLegacyModule">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+        <HintPath>$(ManagedPath)\UnityEngine.InputLegacyModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.InputModule">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.InputModule.dll</HintPath>
+        <HintPath>$(ManagedPath)\UnityEngine.InputModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.JSONSerializeModule">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+        <HintPath>$(ManagedPath)\UnityEngine.JSONSerializeModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.TextCoreFontEngineModule">
+        <HintPath>$(ManagedPath)\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.TextCoreTextEngineModule">
+        <HintPath>$(ManagedPath)\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.TextRenderingModule">
+        <HintPath>$(ManagedPath)\UnityEngine.TextRenderingModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.UI">
-        <HintPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed\UnityEngine.UI.dll</HintPath>
+        <HintPath>$(ManagedPath)\UnityEngine.UI.dll</HintPath>
       </Reference>
   </ItemGroup>
 

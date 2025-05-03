@@ -17,7 +17,6 @@ namespace CustomBeatmaps.Patches
         {
             //if (CustomBeatmapsUIBehaviour.Opened || HighScoreUIBehaviour.Opened)
             //{
-            //CustomBeatmaps.Log.LogDebug("HELLO JEFF");
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
             //}

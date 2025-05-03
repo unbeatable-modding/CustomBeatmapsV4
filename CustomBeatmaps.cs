@@ -2,6 +2,7 @@
 using BepInEx;
 using BepInEx.Logging;
 using CustomBeatmaps.Patches;
+using CustomBeatmaps.UI;
 using HarmonyLib;
 
 namespace CustomBeatmaps
@@ -67,6 +68,15 @@ namespace CustomBeatmaps
             }
 
         }
-        
+
+
+        public TestUI songHackUI = new TestUI();
+
+        public void OnGUI()
+        {
+            songHackUI.DrawUI();
+        }
+
+
     }
 }
