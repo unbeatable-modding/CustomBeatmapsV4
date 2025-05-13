@@ -18,18 +18,19 @@ namespace CustomBeatmaps.CustomPackages
         public string audioPath;
         public string filePath;
         public string directoryPath;
+        public string trueName;
 
         public CustomSongInfo(string bmapPath, int category) : base(null)
         {
             var text = File.ReadAllText(bmapPath);
             filePath = bmapPath;
             directoryPath = Path.GetDirectoryName(bmapPath);
-            name = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[category]}__{Util.ArcadeHelper.GetBeatmapProp(text, "Title", bmapPath)}";
-            audioPath = $"{directoryPath}\\{Util.ArcadeHelper.GetBeatmapProp(text, "AudioFilename", bmapPath)}";
-
+            name = $"CUSTOM__{CustomBeatmaps.DefaultBeatmapIndex.Categories[category]}__{CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath)}";
+            trueName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
+            audioPath = $"{directoryPath}\\{CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath)}";
             // Difficulty Logic
             var difficulty = "Star";
-            var bmapVer = Util.ArcadeHelper.GetBeatmapProp(text, "Version", bmapPath);
+            var bmapVer = CustomPackageHelper.GetBeatmapProp(text, "Version", bmapPath);
             Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
             {
                 {"beginner", "Beginner"},
@@ -52,10 +53,11 @@ namespace CustomBeatmaps.CustomPackages
                     break;
                 }
             }
-
+            
             var traverse = Traverse.Create(this);
+            
             traverse.Field("visibleInArcade").SetValue(true);
-            traverse.Field("_category").SetValue(BeatmapIndex.defaultIndex.Categories[category]);
+            traverse.Field("_category").SetValue(CustomBeatmaps.DefaultBeatmapIndex.Categories[category]);
             traverse.Field("category").SetValue(category);
             var _difficulties = new List<string>();
             var _beatmapinfo = new Dictionary<string, BeatmapInfo>();
@@ -72,6 +74,29 @@ namespace CustomBeatmaps.CustomPackages
             _difficulties.Add(difficulty);
             traverse.Field("_difficulties").SetValue(_difficulties);
             stageScene = "TrainStationRhythm";
+
+            return;
+            
+            
+            
+            
+        }
+
+        // Custom Images Stuff
+        // Note: this code is very bad and slow
+        public void GetTexture()
+        {
+            var traverse = Traverse.Create(this);
+            var text = File.ReadAllText(filePath);
+
+            if (CustomPackageHelper.GetBeatmapImage(text, filePath) != null && File.Exists($"{directoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, filePath)}"))
+            {
+                var texture = new Texture2D(2, 2);
+                var bytes = File.ReadAllBytes($"{directoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, filePath)}");
+                ImageConversion.LoadImage(texture, bytes);
+                var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                traverse.Field("coverArt").SetValue(sprite);
+            }
         }
 
     }

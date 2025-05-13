@@ -31,11 +31,17 @@
       <Reference Include="Rewired_Core">
         <HintPath>$(ManagedPath)\Rewired_Core.dll</HintPath>
       </Reference>
+      <Reference Include="Unity.TextMeshPro">
+        <HintPath>$(ManagedPath)\Unity.TextMeshPro.dll</HintPath>
+      </Reference>
       <Reference Include="UnityEngine">
         <HintPath>$(ManagedPath)\UnityEngine.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.CoreModule">
         <HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.ImageConversionModule">
+        <HintPath>$(ManagedPath)\UnityEngine.ImageConversionModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.IMGUIModule">
         <HintPath>$(ManagedPath)\UnityEngine.IMGUIModule.dll</HintPath>

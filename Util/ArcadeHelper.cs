@@ -30,6 +30,7 @@ namespace CustomBeatmaps.Util
         private static List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
         private static List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
         private static Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
+        private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
         private static List<Song> songList = new();
 
         public static Category GetCustomCategory(int index)
@@ -61,7 +62,7 @@ namespace CustomBeatmaps.Util
                 {
                     // If not, add it to the list
                     categories.Add(customCategory);
-                    categorySongs.TryAdd(customCategory, new List<Song>());
+                    categorySongs.TryAdd(customCategory, new List<Song>([new Song("LoadBearingSongDoNotDeleteThisSeriously")]));
 
                     CustomBeatmaps.Log.LogDebug($"Added category {customCategory.Name}");
                     
@@ -73,9 +74,10 @@ namespace CustomBeatmaps.Util
         {
             CleanSongs();
             songList.Clear();
-            TryAddCustomSongs(PackageHelper.GetLocalBeatmapDirectory(), 7);
-            TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}CustomBeatmapsV3-Data/SERVER_PACKAGES", 8);
-            TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}USER_PACKAGES", 8);
+            //TryAddCustomSongs(PackageHelper.GetLocalBeatmapDirectory(), 7);
+            TryAddSongList();
+            //TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}CustomBeatmapsV3-Data/SERVER_PACKAGES", 8);
+            //TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}USER_PACKAGES", 8);
             
         }
 
@@ -89,6 +91,33 @@ namespace CustomBeatmaps.Util
                     SongSmuggle(file, category);
                 }
             }
+        }
+
+        private static void TryAddSongList()
+        {
+            var pkglist = new List<CustomLocalPackage>();
+            CustomBeatmaps.LocalUserPackages.ForEach( (LocalPackageManager pkg) => pkglist.AddRange(pkg.Packages) );
+            pkglist.AddRange(CustomBeatmaps.LocalWhiteLabelPackages.Packages);
+            pkglist.AddRange(CustomBeatmaps.OSUSongManager.Packages);
+
+            var songl = new List<Song>();
+            pkglist.ForEach((CustomLocalPackage p) => songl.AddRange(p.PkgSongs));
+            //songl.AddRange(CustomBeatmaps.OSUSongManager.OsuSongs);
+
+            foreach (Song s in songl)
+            {
+                CustomBeatmaps.Log.LogDebug($"{s.name}");
+
+                if (!_songs.ContainsKey(s.name))
+                {
+                    songs.Add(s);
+                    _songs.Add(s.name, s);
+                    songNames.Add(s.name);
+                    songList.Add(s);
+                    _categorySongs[s.Category].Add(s);
+                }
+            }
+
         }
 
         // Put a song into the BeatmapIndex
@@ -169,6 +198,17 @@ namespace CustomBeatmaps.Util
                 return match.Groups[1].Value;
             }
             throw new BeatmapException($"{prop} property not found.", beatmapPath);
+        }
+
+        public static string GetBeatmapImage(string beatmapText, string beatmapPath)
+        {
+            var match = Regex.Match(beatmapText, $"Background and Video events\r?\n.*\"(.+?)\"");
+            if (match.Groups.Count > 1)
+            {
+                return match.Groups[1].Value;
+            }
+            return null;
+            //throw new BeatmapException($"Image property not found.", beatmapPath);
         }
     }
 }

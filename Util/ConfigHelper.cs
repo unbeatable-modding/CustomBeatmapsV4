@@ -21,13 +21,13 @@ namespace CustomBeatmaps.Util
             };
             LoadedConfigs.Add(Path.GetFullPath(filePath), reload);
             // Listen for file changes
-            //FileWatchHelper.WatchFileForModifications(filePath, () =>
-            //{
-            //    lock (FilesChanged)
-            //    {
-            //        FilesChanged.Add(Path.GetFullPath(filePath));
-            //    }
-            //});
+            FileWatchHelper.WatchFileForModifications(filePath, () =>
+            {
+                lock (FilesChanged)
+                {
+                    FilesChanged.Add(Path.GetFullPath(filePath));
+                }
+            });
             reload.Invoke();
         }
 
@@ -72,7 +72,7 @@ namespace CustomBeatmaps.Util
             }
             catch (Exception e)
             {
-                //ScheduleHelper.SafeLog($"FAILED CONFIG: {e}");
+                ScheduleHelper.SafeLog($"FAILED CONFIG: {e}");
                 T defaultConfig = getDefaultConfig();
                 SerializeHelper.SaveJSON(filePath, defaultConfig);
                 return defaultConfig;

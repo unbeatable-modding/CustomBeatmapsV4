@@ -12,7 +12,7 @@ namespace CustomBeatmaps.Util
             // Path of the game exe
             var dataDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
             // Get the directory of the custom songs
-            var songDir = dataDir + "/CustomSongs";
+            var songDir = $"{dataDir}/{Config.Mod.UserPackagesDir}";
             return songDir;
         }
 
@@ -22,7 +22,7 @@ namespace CustomBeatmaps.Util
             var test = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
             var dataDir = test.Substring(0, test.LastIndexOf('/'));
             // Get the directory of the custom songs
-            var songDir = dataDir + "/UNBEATABLE [white label]/";
+            var songDir = $"{dataDir}/UNBEATABLE [white label]/";
             return songDir;
         }
     }
