@@ -175,17 +175,7 @@ namespace CustomBeatmaps
         public void Start()
         {
             // Add images to songs at later timing because the game will crash if loaded any earlier
-            var pkglist = new List<CustomLocalPackage>();
-            CustomBeatmaps.LocalUserPackages.ForEach((LocalPackageManager pkg) => pkglist.AddRange(pkg.Packages));
-            pkglist.AddRange(CustomBeatmaps.LocalWhiteLabelPackages.Packages);
-            pkglist.AddRange(CustomBeatmaps.OSUSongManager.Packages);
-
-            var songl = new List<Song>();
-            pkglist.ForEach((CustomLocalPackage p) => songl.AddRange(p.PkgSongs));
-            //songl.AddRange(CustomBeatmaps.OSUSongManager.OsuBeatmaps);
-
-            songl.ForEach((Song s) => ((CustomSongInfo)s).GetTexture() );
-
+            CustomPackageHelper.GetAllCustomSongs.ForEach((Song s) => ((CustomSongInfo)s).GetTexture() );
             ArcadeHelper.LoadCustomSongs();
         }
 

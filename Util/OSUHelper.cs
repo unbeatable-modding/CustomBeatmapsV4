@@ -15,13 +15,13 @@ namespace CustomBeatmaps.Util
 {
     public static class OSUHelper
     {
-        public static CustomSongInfo[] LoadOsuBeatmaps(string path, int category, out string failMessage)
+        public static Song[] LoadOsuBeatmaps(string path, int category, out string failMessage)
         {
             failMessage = "";
             path = GetOsuPath(path);
             if (Directory.Exists(path))
             {
-                List<CustomSongInfo> songs = new List<CustomSongInfo>();
+                List<Song> songs = new List<Song>();
                 foreach (string osuProjectDir in Directory.EnumerateDirectories(path))
                 {
                     foreach (string file in Directory.EnumerateFiles(osuProjectDir, "*.*", SearchOption.AllDirectories))
@@ -31,49 +31,7 @@ namespace CustomBeatmaps.Util
                             try
                             {
                                 var toLoad = new CustomSongInfo(file, category);
-
-                                if (songs.Any())
-                                {
-                                    var dupeInt = 0;
-                                    var startingName = toLoad.name;
-                                    while (songs.Where((Song s) =>
-                            s.name == toLoad.name && (((CustomSongInfo)s).directoryPath != toLoad.directoryPath || s.Difficulties.Contains(toLoad.Difficulties.Single()))).Any())
-                                    {
-                                        toLoad.name = startingName + dupeInt;
-                                        dupeInt++;
-                                    }
-                                }
-
-
-
-                                if (!songs.Any())
-                                {
-                                    //ScheduleHelper.SafeLog($"not null");
-                                    songs.Add(toLoad);
-                                    //song = new Song("test");
-                                }
-                                else if (songs.Where((Song s) => s.name == toLoad.name).Any())
-                                {
-                                    // Song we just created has multiple difficulties
-
-                                    //CustomBeatmaps.Log.LogDebug($"Adding to Song: {toLoad.name}");
-                                    var currentSong = songs.Where((Song s) => s.name == toLoad.name).Single();
-                                    var traverseSong = Traverse.Create(currentSong);
-                                    var _difficulties = traverseSong.Field("_difficulties").GetValue<List<string>>();
-                                    var beatmaps = traverseSong.Field("beatmaps").GetValue<List<BeatmapInfo>>();
-                                    var _beatmaps = traverseSong.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
-
-                                    beatmaps.Add(toLoad.Beatmaps.Values.ToArray()[0]);
-                                    _beatmaps.Add(toLoad.Difficulties[0], toLoad.Beatmaps.Values.ToArray()[0]);
-                                    _difficulties.Add(toLoad.Difficulties[0]);
-                                }
-                                else
-                                {
-                                    songs.Add(toLoad);
-                                }
-
-                                //var b = CustomPackageHelper.LoadLocalBeatmap(file);
-                                //beatmaps.Add(b);
+                                CustomPackageHelper.AddSongToList(toLoad, ref songs);
                             }
                             catch (Exception e)
                             {
@@ -90,7 +48,7 @@ namespace CustomBeatmaps.Util
 
                 // Sort by newest access
                 //beatmaps.Sort((left, right) => Math.Sign(TimeSinceLastWrite(left.OsuPath) - TimeSinceLastWrite(right.OsuPath)));
-                ScheduleHelper.SafeInvoke(() => songs.ForEach((CustomSongInfo s) => s.GetTexture()) );
+                ScheduleHelper.SafeInvoke(() => songs.ForEach((Song s) => ((CustomSongInfo)s).GetTexture()) );
                 return songs.ToArray();
             }
             return null;

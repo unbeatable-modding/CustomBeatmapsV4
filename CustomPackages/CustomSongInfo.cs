@@ -25,7 +25,7 @@ namespace CustomBeatmaps.CustomPackages
             var text = File.ReadAllText(bmapPath);
             filePath = bmapPath;
             directoryPath = Path.GetDirectoryName(bmapPath);
-            name = $"CUSTOM__{CustomBeatmaps.DefaultBeatmapIndex.Categories[category]}__{CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath)}";
+            name = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[category]}__{CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath)}";
             trueName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
             audioPath = $"{directoryPath}\\{CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath)}";
             // Difficulty Logic
@@ -57,7 +57,7 @@ namespace CustomBeatmaps.CustomPackages
             var traverse = Traverse.Create(this);
             
             traverse.Field("visibleInArcade").SetValue(true);
-            traverse.Field("_category").SetValue(CustomBeatmaps.DefaultBeatmapIndex.Categories[category]);
+            traverse.Field("_category").SetValue(BeatmapIndex.defaultIndex.Categories[category]);
             traverse.Field("category").SetValue(category);
             var _difficulties = new List<string>();
             var _beatmapinfo = new Dictionary<string, BeatmapInfo>();

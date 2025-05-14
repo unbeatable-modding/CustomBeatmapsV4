@@ -6,14 +6,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using CustomBeatmaps.CustomPackages;
 using UnityEngine;
+using HarmonyLib;
+using Rhythm;
+using System.Linq;
 
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
-using HarmonyLib;
-using Rhythm;
+
 using static Rhythm.BeatmapIndex;
-using System.Linq;
+
 
 namespace CustomBeatmaps.Util
 {
@@ -24,6 +26,10 @@ namespace CustomBeatmaps.Util
             new Category("[white label]", "from that other game", 8),
             new Category("osu", "click the circle", 9)
             };
+
+        public static List<Song> _tmpSongs = new();
+        private static List<CustomLocalPackage> result = new List<CustomLocalPackage>();
+        //private static List<CustomLocalPackage> result { get; set; }
 
         public static string GetBeatmapProp(string beatmapText, string prop, string beatmapPath)
         {
@@ -52,7 +58,7 @@ namespace CustomBeatmaps.Util
         }
 
         public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomLocalPackage package, int category, bool recursive = false,
-            Action<BeatmapException> onBeatmapFail = null)
+            Action<BeatmapException> onBeatmapFail = null, List<CustomLocalPackage> tmpPkg = null)
         {
             packageFolder = Path.GetFullPath(packageFolder);
             outerFolderPath = Path.GetFullPath(outerFolderPath);
@@ -64,8 +70,6 @@ namespace CustomBeatmaps.Util
             package.FolderName = rootSubFolder;
             ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
-
-            //List<CustomBeatmapInfo> bmaps = new List<CustomBeatmapInfo>();
             var songs = new List<Song>();
 
             foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
@@ -75,49 +79,8 @@ namespace CustomBeatmaps.Util
                 {
                     try
                     {
-                        
                         var toLoad = new CustomSongInfo(packageSubFile, category);
-
-                        if (songs.Any())
-                        {
-                            var dupeInt = 0;
-                            var startingName = toLoad.name;
-                            while (songs.Where((Song s) =>
-                    s.name == toLoad.name && (((CustomSongInfo)s).directoryPath != toLoad.directoryPath || s.Difficulties.Contains(toLoad.Difficulties.Single()))).Any())
-                            {
-                                toLoad.name = startingName + dupeInt;
-                                dupeInt++;
-                            }
-                        }
-
-
-
-                        if (!songs.Any())
-                        {
-                            //ScheduleHelper.SafeLog($"not null");
-                            songs.Add(toLoad);
-                            //song = new Song("test");
-                        }
-                        else if (songs.Where((Song s) => s.name == toLoad.name).Any())
-                        {
-                            // Song we just created has multiple difficulties
-
-                            //CustomBeatmaps.Log.LogDebug($"Adding to Song: {toLoad.name}");
-                            var currentSong = songs.Where((Song s) => s.name == toLoad.name).Single();
-                            var traverseSong = Traverse.Create(currentSong);
-                            var _difficulties = traverseSong.Field("_difficulties").GetValue<List<string>>();
-                            var beatmaps = traverseSong.Field("beatmaps").GetValue<List<BeatmapInfo>>();
-                            var _beatmaps = traverseSong.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
-
-                            beatmaps.Add(toLoad.Beatmaps.Values.ToArray()[0]);
-                            _beatmaps.Add(toLoad.Difficulties[0], toLoad.Beatmaps.Values.ToArray()[0]);
-                            _difficulties.Add(toLoad.Difficulties[0]);
-                        } 
-                        else
-                        {
-                            songs.Add(toLoad);
-                        }
-                        //bmaps.Add(customBmap);
+                        AddSongToList(toLoad, ref songs, tmpPkg);
                         //ScheduleHelper.SafeLog("          (OSU!)");
                     }
                     catch (BeatmapException e)
@@ -152,11 +115,10 @@ namespace CustomBeatmaps.Util
 
         public static CustomLocalPackage[] LoadLocalPackages(string folderPath, int category, Action<CustomLocalPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
-            //return null;
-
             folderPath = Path.GetFullPath(folderPath);
 
             List<CustomLocalPackage> result = new List<CustomLocalPackage>();
+            //result = new List<CustomLocalPackage>();
 
             ScheduleHelper.SafeLog("step A");
 
@@ -164,7 +126,7 @@ namespace CustomBeatmaps.Util
             foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
             {
                 CustomLocalPackage potentialNewPackage;
-                if (TryLoadLocalPackage(subDir, folderPath, out potentialNewPackage, category, false, onBeatmapFail))
+                if (TryLoadLocalPackage(subDir, folderPath, out potentialNewPackage, category, false, onBeatmapFail, result))
                 {
                     onLoadPackage?.Invoke(potentialNewPackage);
                     result.Add(potentialNewPackage);
@@ -195,7 +157,7 @@ namespace CustomBeatmaps.Util
             }
 
             ScheduleHelper.SafeLog($"LOADED {result.Count} PACKAGES");
-            ScheduleHelper.SafeLog($"####### FULL PACKAGES LIST: #######\n{result.Join(delimiter:"\n")}");
+            ScheduleHelper.SafeLog($"####### FULL PACKAGES LIST: #######\n{result.Join(delimiter: "\n")}");
 
             return result.ToArray();
         }
@@ -299,6 +261,9 @@ namespace CustomBeatmaps.Util
             await DownloadPackageInner(downloadURL, tempSubmissionFolder);
         }
 
+        /// <summary>
+        /// Adds Custom Categories into the game
+        /// </summary>
         public static void TryAddCustomCategory()
         {
             foreach (var customCategory in customCategories)
@@ -313,13 +278,102 @@ namespace CustomBeatmaps.Util
                 {
                     // If not, add it to the list
                     categories.Add(customCategory);
-                    //categorySongs.TryAdd(customCategory, new List<Song>([new Song("LoadBearingSongDoNotDeleteThisSeriously")]));
-                    categorySongs.TryAdd(customCategory, new List<Song>());
+                    categorySongs.TryAdd(customCategory, new List<Song>([new Song("LoadBearingSongDoNotDeleteThisSeriously")]));
+                    //categorySongs.TryAdd(customCategory, new List<Song>());
 
                     ScheduleHelper.SafeLog($"Added category {customCategory.Name}");
 
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Add a Custom Song to a list with logic
+        /// </summary>
+        /// <param name="toLoad"> Song to be added to List  </param>
+        /// <param name="songs"> List the Song will be added to </param>
+        public static void AddSongToList(CustomSongInfo toLoad, ref List<Song> songs, List<CustomLocalPackage> tmpPkg = null)
+        {
+            //List<Song>[] toCheck = [songs, SongsFromPkg(tmpPkg)];
+            List<Song>[] toCheck = [songs, GetAllCustomSongs, SongsFromPkg(tmpPkg)];
+            foreach (List<Song> list in toCheck)
+            {
+                if (DupeSongChecker(ref toLoad, list))
+                    break;
+            }
+
+            if (!songs.Any())
+            {
+                //ScheduleHelper.SafeLog($"not null");
+                songs.Add(toLoad);
+            }
+            else if (songs.Where((Song s) => s.name == toLoad.name).Any())
+            {
+                // Song we just created has multiple difficulties
+                //CustomBeatmaps.Log.LogDebug($"Adding to Song: {toLoad.name}");
+                var currentSong = songs.Where((Song s) => s.name == toLoad.name).Single();
+                var traverseSong = Traverse.Create(currentSong);
+                var _difficulties = traverseSong.Field("_difficulties").GetValue<List<string>>();
+                var beatmaps = traverseSong.Field("beatmaps").GetValue<List<BeatmapInfo>>();
+                var _beatmaps = traverseSong.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
+
+                beatmaps.Add(toLoad.Beatmaps.Values.ToArray()[0]);
+                _beatmaps.Add(toLoad.Difficulties[0], toLoad.Beatmaps.Values.ToArray()[0]);
+                _difficulties.Add(toLoad.Difficulties[0]);
+            }
+            else
+            {
+                songs.Add(toLoad);
+            }
+        }
+
+        /// <summary>
+        /// Return a list of all Custom Songs
+        /// </summary>
+        public static List<Song> GetAllCustomSongs
+        {
+            get
+            {
+                var songl = new List<Song>();
+                songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Packages).SelectMany(p => p.PkgSongs));
+                songl.AddRange(CustomBeatmaps.LocalWhiteLabelPackages.Packages.SelectMany(p => p.PkgSongs));
+                songl.AddRange(CustomBeatmaps.OSUSongManager.Packages.SelectMany(p => p.PkgSongs));
+                return songl;
+            }
+        }
+
+        private static bool DupeSongChecker(ref CustomSongInfo toLoad, List<Song> songs)
+        {
+            if (songs == null)
+                return false;
+            var returnSong = toLoad;
+            var isDupe = false;
+            if (songs.Any())
+            {
+                var dupeInt = 0;
+                var startingName = returnSong.name;
+                while (songs.Where((Song s) =>
+                    s.name == returnSong.name && (((CustomSongInfo)s).directoryPath != returnSong.directoryPath || s.Difficulties.Contains(returnSong.Difficulties.Single()))).Any())
+                {
+                    returnSong.name = startingName + dupeInt;
+                    isDupe = true;
+                    dupeInt++;
+                }
+
+                if (isDupe)
+                    toLoad = returnSong;
+            }
+            return isDupe;
+        }
+
+        private static List<Song> SongsFromPkg(List<CustomLocalPackage> pkgs)
+        {
+            if (pkgs == null)
+                return null;
+            var songl = new List<Song>();
+            pkgs.ForEach((CustomLocalPackage p) => songl.AddRange(p.PkgSongs));
+            return songl;
         }
 
     }

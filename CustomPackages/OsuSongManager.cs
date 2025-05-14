@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using CustomBeatmaps.Util;
 using UnityEngine.SceneManagement;
+using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.CustomPackages
 {
     public class OSUSongManager
     {
-        private readonly List<CustomSongInfo> _beatmaps = new List<CustomSongInfo>();
+        private readonly List<Song> _beatmaps = new List<Song>();
         private string _folderOverride;
         private int _category;
         private string _config { get; set; }
@@ -17,7 +18,7 @@ namespace CustomBeatmaps.CustomPackages
 
         private FileSystemWatcher _watcher;
 
-        public CustomSongInfo[] OsuSongs
+        public Song[] OsuSongs
         {
             get
             {

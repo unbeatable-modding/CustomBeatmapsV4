@@ -11,6 +11,7 @@ using Directory = Pri.LongPath.Directory;
 using System.Linq;
 using static Rhythm.BeatmapIndex;
 using UnityEngine.SceneManagement;
+using System.Security.Cryptography;
 
 namespace CustomBeatmaps.CustomPackages
 {
@@ -81,6 +82,11 @@ namespace CustomBeatmaps.CustomPackages
 
         private void UpdatePackage(string folderPath)
         {
+            // Remove old package if there was one and update
+            int toRemove = _packages.FindIndex(check => check.FolderName == folderPath);
+            if (toRemove != -1)
+                _packages.RemoveAt(toRemove);
+
             if (CustomPackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
                     _onLoadException))
             {
@@ -89,9 +95,9 @@ namespace CustomBeatmaps.CustomPackages
                 lock (_packages)
                 {
                     // Remove old package if there was one and update
-                    int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
-                    if (toRemove != -1)
-                        _packages.RemoveAt(toRemove);
+                    //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
+                    //if (toRemove != -1)
+                    //    _packages.RemoveAt(toRemove);
                     _packages.Add(package);
                     lock (_downloadedFolders)
                     {
@@ -102,7 +108,7 @@ namespace CustomBeatmaps.CustomPackages
             }
             else
             {
-                ScheduleHelper.SafeLog($"CANNOT find package: {folderPath}");
+                ScheduleHelper.SafeLog($"CANNOT find package: {folderPath} + {_category}");
             }
         }
 
@@ -175,7 +181,7 @@ namespace CustomBeatmaps.CustomPackages
                 if (samePackage)
                 {
                     foundPackage = true;
-                    foreach (var cbinfo in package.PkgSongs)//.Beatmaps)
+                    foreach (CustomSongInfo cbinfo in package.PkgSongs)//.Beatmaps)
                     {
                         //string fullOSUPath = Path.GetFullPath(cbinfo.directoryPath);
                         //string relativeOSUPath = fullOSUPath.Substring(targetPackageFullPath.Length + 1);
@@ -237,7 +243,7 @@ namespace CustomBeatmaps.CustomPackages
                 return;
             }
 
-            ScheduleHelper.SafeLog($"Local Package Change: {evt.ChangeType}: {basePackageFolder} ");
+            
 
             lock (_loadQueue)
             {
@@ -245,6 +251,7 @@ namespace CustomBeatmaps.CustomPackages
                 bool isFirst = _loadQueue.Count == 0;
                 if (!_loadQueue.Contains(basePackageFolder))
                 {
+                    ScheduleHelper.SafeLog($"adding {basePackageFolder} to queue");
                     _loadQueue.Enqueue(basePackageFolder);
                 }
 
@@ -255,14 +262,15 @@ namespace CustomBeatmaps.CustomPackages
                     {
                         await Task.Delay(400);
                         RefreshQueuedPackages();
-                    });
+                        
+                    }).ContinueWith(task => ScheduleHelper.SafeInvoke(() => {
+                        _loadQueue.Clear();
+                        ArcadeHelper.ReloadArcadeList();
+                    }));
+                    
                 }
             }
-
-            if (SceneManager.GetActiveScene().name == "ArcadeModeMenu")
-            {
-                ScheduleHelper.SafeInvoke(() => ArcadeHelper.ReloadArcadeList());
-            }
+            
         }
 
         private void RefreshQueuedPackages()

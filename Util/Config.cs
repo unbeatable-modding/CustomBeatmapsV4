@@ -8,6 +8,6 @@
     public static class Config
     {
         public static ModConfig Mod => CustomBeatmaps.ModConfig;
-        //public static BackendConfig Backend => CustomBeatmaps.BackendConfig;
+        public static BackendConfig Backend => CustomBeatmaps.BackendConfig;
     }
 }

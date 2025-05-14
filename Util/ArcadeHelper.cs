@@ -16,15 +16,12 @@ using Directory = Pri.LongPath.Directory;
 using CustomBeatmaps.CustomPackages;
 using Arcade.UI.SongSelect;
 using static Arcade.UI.SongSelect.ArcadeSongDatabase;
+using UnityEngine.SceneManagement;
 
 namespace CustomBeatmaps.Util
 {
     public class ArcadeHelper
     {
-        public static readonly Category[] customCategories = {
-            new Category("LOCAL", "Local songs", 7),
-            new Category("[white label]", "from that other game", 8)
-            };
 
         private static Traverse traverse = Traverse.Create(BeatmapIndex.defaultIndex);
         private static List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
@@ -33,52 +30,40 @@ namespace CustomBeatmaps.Util
         private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
         private static List<Song> songList = new();
 
-        public static Category GetCustomCategory(int index)
-        {
-            return customCategories[index];
-        }
-
         public static void ReloadArcadeList()
         {
             LoadCustomSongs();
+            if (SceneManager.GetActiveScene().name != "ArcadeModeMenu")
+                return;
             var currentArcade = ArcadeSongDatabase.Instance;
             var arcade = Traverse.Create(currentArcade);
             var _songDatabase = arcade.Field("_songDatabase").GetValue<Dictionary<string, BeatmapItem>>();
+            //var allCategory = arcade.Field("allCategory").GetValue<BeatmapIndex.Category>();
+            //var SelectableCategories = arcade.Field("allCategory").GetValue<List<BeatmapIndex.Category>>();
+            //SelectableCategories = BeatmapIndex.defaultIndex.GetVisibleCategories().Prepend(allCategory).ToList();
             _songDatabase.Clear();
             arcade.Method("LoadDatabase").GetValue();
             arcade.Method("RefreshSongList").GetValue();
         }
 
-        public static void TryAddCustomCategory()
-        {
-            foreach (var customCategory in customCategories)
-            {
-                
-                var categories = traverse.Field("categories").GetValue<List<Category>>();
-                var categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
-
-                // Check if the custom category already exists
-                if (!categories.Contains(customCategory))
-                {
-                    // If not, add it to the list
-                    categories.Add(customCategory);
-                    categorySongs.TryAdd(customCategory, new List<Song>([new Song("LoadBearingSongDoNotDeleteThisSeriously")]));
-
-                    CustomBeatmaps.Log.LogDebug($"Added category {customCategory.Name}");
-                    
-                }
-            }
-        }
-
         public static void LoadCustomSongs()
         {
             CleanSongs();
-            songList.Clear();
-            //TryAddCustomSongs(PackageHelper.GetLocalBeatmapDirectory(), 7);
-            TryAddSongList();
-            //TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}CustomBeatmapsV3-Data/SERVER_PACKAGES", 8);
-            //TryAddCustomSongs($"{PackageHelper.GetWhiteLabelBeatmapDirectory()}USER_PACKAGES", 8);
-            
+
+            foreach (Song s in CustomPackageHelper.GetAllCustomSongs)
+            {
+                //CustomBeatmaps.Log.LogDebug($"{s.name}");
+
+                if (!_songs.ContainsKey(s.name))
+                {
+                    songs.Add(s);
+                    _songs.Add(s.name, s);
+                    songNames.Add(s.name);
+                    songList.Add(s);
+                    _categorySongs[s.Category].Add(s);
+                }
+            }
+
         }
 
         private static void TryAddCustomSongs(string directory, int category)
@@ -91,33 +76,6 @@ namespace CustomBeatmaps.Util
                     SongSmuggle(file, category);
                 }
             }
-        }
-
-        private static void TryAddSongList()
-        {
-            var pkglist = new List<CustomLocalPackage>();
-            CustomBeatmaps.LocalUserPackages.ForEach( (LocalPackageManager pkg) => pkglist.AddRange(pkg.Packages) );
-            pkglist.AddRange(CustomBeatmaps.LocalWhiteLabelPackages.Packages);
-            pkglist.AddRange(CustomBeatmaps.OSUSongManager.Packages);
-
-            var songl = new List<Song>();
-            pkglist.ForEach((CustomLocalPackage p) => songl.AddRange(p.PkgSongs));
-            //songl.AddRange(CustomBeatmaps.OSUSongManager.OsuSongs);
-
-            foreach (Song s in songl)
-            {
-                CustomBeatmaps.Log.LogDebug($"{s.name}");
-
-                if (!_songs.ContainsKey(s.name))
-                {
-                    songs.Add(s);
-                    _songs.Add(s.name, s);
-                    songNames.Add(s.name);
-                    songList.Add(s);
-                    _categorySongs[s.Category].Add(s);
-                }
-            }
-
         }
 
         // Put a song into the BeatmapIndex
@@ -188,28 +146,14 @@ namespace CustomBeatmaps.Util
             killList.ForEach((string k) => songs.Remove(_songs[k]));
             killList.ForEach((string k) => _songs.Remove(k));
             killList.ForEach((string k) => songNames.Remove(k));
+            return;
+            foreach (Category c in CustomPackageHelper.customCategories)
+            {
+                _categorySongs.Keys.Where(k => k.Name == c.Name).ToList().ForEach(k => _categorySongs[k].Clear());
+                //_categorySongs[c].Clear();
+            }
         }
 
-        public static string GetBeatmapProp(string beatmapText, string prop, string beatmapPath)
-        {
-            var match = Regex.Match(beatmapText, $"{prop}: *(.+?)\r?\n");
-            if (match.Groups.Count > 1)
-            {
-                return match.Groups[1].Value;
-            }
-            throw new BeatmapException($"{prop} property not found.", beatmapPath);
-        }
-
-        public static string GetBeatmapImage(string beatmapText, string beatmapPath)
-        {
-            var match = Regex.Match(beatmapText, $"Background and Video events\r?\n.*\"(.+?)\"");
-            if (match.Groups.Count > 1)
-            {
-                return match.Groups[1].Value;
-            }
-            return null;
-            //throw new BeatmapException($"Image property not found.", beatmapPath);
-        }
     }
 }
 
