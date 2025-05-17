@@ -17,6 +17,9 @@ using CustomBeatmaps.CustomPackages;
 using Arcade.UI.SongSelect;
 using static Arcade.UI.SongSelect.ArcadeSongDatabase;
 using UnityEngine.SceneManagement;
+using Arcade.UI;
+using FMODUnity;
+using CustomBeatmaps.Patches;
 
 namespace CustomBeatmaps.Util
 {
@@ -30,6 +33,32 @@ namespace CustomBeatmaps.Util
         private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
         private static List<Song> songList = new();
 
+        public static readonly CustomBeatmapRoom[] Rooms = {
+            new CustomBeatmapRoom("Default", "TrainStationRhythm"),
+            new CustomBeatmapRoom("NSR", "NSR_Stage"),
+            new CustomBeatmapRoom("Stage", "Stage"),
+            // I am not re-implementing these just yet
+            //new CustomBeatmapRoom("Practice Room", "PracticeRoomRhythm"),
+            //new CustomBeatmapRoom("Tutorial", "Tutorial"),
+            // This one would be interesting but we already have the tutorial screen
+            //new CustomBeatmapRoom("Offset Wizard", "OffsetWizard")
+        };
+
+        private static readonly string DefaultBeatmapScene = "TrainStationRhythm";
+
+        public static string GetSceneNameByIndex(int index)
+        {
+            if (index < 0 || index >= Rooms.Length)
+            {
+                return DefaultBeatmapScene;
+            }
+
+            return Rooms[index].SceneName;
+        }
+
+        /// <summary>
+        /// Forcefully reload the arcade
+        /// </summary>
         public static void ReloadArcadeList()
         {
             LoadCustomSongs();
@@ -60,78 +89,9 @@ namespace CustomBeatmaps.Util
                     _songs.Add(s.name, s);
                     songNames.Add(s.name);
                     songList.Add(s);
-                    _categorySongs[s.Category].Add(s);
+                    //_categorySongs[s.Category].Add(s);
                 }
             }
-
-        }
-
-        private static void TryAddCustomSongs(string directory, int category)
-        {
-            if (Directory.Exists(directory))
-            {
-                var files = Directory.GetFiles(directory, "*.osu", SearchOption.AllDirectories);
-                foreach (var file in files)
-                {
-                    SongSmuggle(file, category);
-                }
-            }
-        }
-
-        // Put a song into the BeatmapIndex
-        private static void SongSmuggle(string beatmapPath, int category)
-        {
-            CustomBeatmaps.Log.LogDebug("Loading a song...");
-
-            var toLoad = new CustomSongInfo(beatmapPath, category);
-            var dupeInt = 0;
-            var startingName = toLoad.name;
-            while (songList.Where((Song s) => 
-                s.name == toLoad.name && ( ((CustomSongInfo)s).directoryPath != toLoad.directoryPath || s.Difficulties.Contains(toLoad.Difficulties.Single()) ) ).Any())
-            {
-                toLoad.name = startingName + dupeInt;
-                dupeInt++;
-            }
-            
-
-            if (!_songs.ContainsKey(toLoad.name))
-            {
-                // Song we just created has never existed
-                CustomBeatmaps.Log.LogDebug($"Loading in Song: {toLoad.name}");
-                songs.Add(toLoad);
-                _songs.Add(toLoad.name, toLoad);
-                songNames.Add(toLoad.name);
-
-                songList.Add(toLoad);
-            }
-            else if (songList.Where((Song s) => s.name == toLoad.name).Any())
-            {
-                // Song we just created has multiple difficulties
-                var mergeSong = songList.Where((Song s) => s.name == toLoad.name).Single();
-                CustomBeatmaps.Log.LogDebug($"Adding to Song: {toLoad.name}");
-
-                var traverseSong = Traverse.Create(mergeSong);
-                var _difficulties = traverseSong.Field("_difficulties").GetValue<List<string>>();
-                var beatmaps = traverseSong.Field("beatmaps").GetValue<List<BeatmapInfo>>();
-                var _beatmaps = traverseSong.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
-
-                beatmaps.Add(toLoad.Beatmaps.Values.ToArray()[0]);
-                _beatmaps.Add(toLoad.Difficulties[0], toLoad.Beatmaps.Values.ToArray()[0]);
-                _difficulties.Add(toLoad.Difficulties[0]);
-                _songs[toLoad.name] = mergeSong;
-
-            }
-            else
-            {
-                // This should never happen
-                CustomBeatmaps.Log.LogDebug($"Song {toLoad.name} never got cleaned???");
-
-                //CustomBeatmaps.Log.LogDebug("Song " + toLoad.name + " IS loaded");
-                //songs.DoIf((Song self) => self.name == toLoad.name, (Song self) => self = toLoad);
-                //_songs[toLoad.name] = toLoad;
-                //songList.Add(toLoad);
-            }
-
 
         }
 
@@ -154,6 +114,115 @@ namespace CustomBeatmaps.Util
             }
         }
 
+        public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;
+        public static ArcadeSongList SongList => ArcadeSongList.Instance;
+        public static ArcadeBGMManager BGM => ArcadeBGMManager.Instance;
+        private static BeatmapIndex BeatmapIndex => BeatmapIndex.defaultIndex;
+
+        public static void SetArcadeBGM()
+        {
+            
+        }
+
+        public static void ForceSelectSong(CustomBeatmapInfo customBeatmapInfo)
+        {
+            SongDatabase.SetCategory(customBeatmapInfo.Category);
+            SongDatabase.SetDifficulty(customBeatmapInfo.difficulty);
+            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == customBeatmapInfo.Path));
+        }
+
+        public static void PlaySong(CustomBeatmapInfo customBeatmapInfo)
+        {
+            PlaySong(customBeatmapInfo, GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom));
+        }
+        public static void PlaySong(CustomBeatmapInfo customBeatmapInfo, string scene)
+        {
+            ForceSelectSong(customBeatmapInfo);
+            var onSongPlaySound = Traverse.Create(SongDatabase).Field("onSongPlaySound").GetValue<EventReference>();
+
+            if (customBeatmapInfo != null)
+            {
+                if (!onSongPlaySound.IsNull)
+                {
+                    RuntimeManager.PlayOneShot(onSongPlaySound);
+                }
+
+                JeffBezosController.instance.DisableUIInputs();
+                JeffBezosController.returnFromArcade = true;
+                LoadArcadeLevel(customBeatmapInfo.Path, scene );
+            }
+        }
+
+        public static void PlaySongEdit(CustomBeatmapInfo beatmap, bool enableCountdown = false)
+        {
+            OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.OsuPath, beatmap.Path);
+            PlaySong(beatmap, DefaultBeatmapScene);
+        }
+
+        public static void LoadArcadeLevel(string beatmapPath, string stageScene = "TrainStationRhythm", int spawn = 0, bool transition = true)
+        {
+            ArcadeProgression arcadeProgression = new ArcadeProgression(beatmapPath, RhythmGameType.ArcadeMode);
+            JeffBezosController.rhythmGameType = RhythmGameType.ArcadeMode;
+            JeffBezosController.rhythmProgression = arcadeProgression;
+            LevelManager.LoadLevel(stageScene, spawn, transition);
+        }
+
+        // CUSTOMBEATMAPS V3 STUFF TO CHANGE LATER BELOW
+
+
+        public static HighScoreList LoadArcadeHighscores()
+        {
+            return HighScoreScreen.LoadHighScores(RhythmGameType.ArcadeMode);
+        }
+
+        /// <returns> whether <code>potentialSongPath</code> is in the format "[UNBEATABLE Song]/[DIFFICULTY] </returns>
+        public static bool IsValidUnbeatableSongPath(string potentialSongPath)
+        {
+            var whiteLabelSongs = BeatmapIndex.SongNames;
+
+            int lastDashIndex = potentialSongPath.LastIndexOf("/", StringComparison.Ordinal);
+            if (lastDashIndex != -1)
+            {
+                // Also check to make sure it's a valid UNBEATABLE song
+                string songName = potentialSongPath.Substring(0, lastDashIndex);
+                return whiteLabelSongs.Contains(songName);
+            }
+
+            return false;
+        }
+
+        public static float GetSongSpeed(int songSpeedIndex)
+        {
+            switch (songSpeedIndex)
+            {
+                case 0:
+                    return 1f;
+                case 1:
+                    return 0.5f;
+                case 2:
+                    return 2f;
+                default:
+                    throw new InvalidOperationException($"Invalid song speed index: {songSpeedIndex}");
+            }
+        }
+
+        public static bool UsingHighScoreProhibitedAssists()
+        {
+            // We include flip mode because _potentially_ it might be used to make high notes easier to hit?
+            return (JeffBezosController.GetAssistMode() == 1) || GetSongSpeed(JeffBezosController.GetSongSpeed()) < 1 || (JeffBezosController.GetNoFail() == 1) || CustomBeatmaps.Memory.FlipMode;
+        }
+
+        public struct CustomBeatmapRoom
+        {
+            public string Name;
+            public string SceneName;
+
+            public CustomBeatmapRoom(string name, string sceneName)
+            {
+                Name = name;
+                SceneName = sceneName;
+            }
+        }
     }
 }
 

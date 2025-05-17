@@ -18,6 +18,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 using static Rhythm.BeatmapIndex;
+using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace CustomBeatmaps
 {
@@ -26,24 +28,22 @@ namespace CustomBeatmaps
     {
         private const string modGUID = "gold-me.unbeatable.custombeatmaps";
         private const string modName = "Custom Beatmaps V4";
-        private const string modVer = "0.1.0";
+        private const string modVer = "1.0.0";
 
         internal static new ManualLogSource Log;
 
         public static ModConfig ModConfig { get; private set; }
         public static BackendConfig BackendConfig { get; private set; }
 
-        //public static UserSession UserSession { get; private set; }
+        public static UserSession UserSession { get; private set; }
 
         public static List<LocalPackageManager> LocalUserPackages { get; private set; }
-        public static LocalPackageManager LocalWhiteLabelPackages { get; private set; }
-        //public static LocalPackageManager LocalServerPackages { get; private set; }
-        //public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
-        //public static OSUSongManager OSUSongManager { get; private set; }
+        public static LocalPackageManager LocalServerPackages { get; private set; }
+        public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
         public static LocalPackageManager OSUSongManager { get; private set; }
-        //public static PlayedPackageManager PlayedPackageManager { get; private set; }
-        //public static ServerHighScoreManager ServerHighScoreManager { get; private set; }
-        //public static BeatmapDownloader Downloader { get; private set; }
+        public static PlayedPackageManager PlayedPackageManager { get; private set; }
+        public static ServerHighScoreManager ServerHighScoreManager { get; private set; }
+        public static BeatmapDownloader Downloader { get; private set; }
         public static Rhythm.BeatmapIndex DefaultBeatmapIndex { get; private set; }
         public static GameMemory Memory { get; private set; }
 
@@ -65,14 +65,11 @@ namespace CustomBeatmaps
             CustomPackageHelper.TryAddCustomCategory();
 
             // Anything with Static access should be ALWAYS present.
-            DefaultBeatmapIndex = Rhythm.BeatmapIndex.defaultIndex;
-            //LocalUserPackages = new LocalPackageManager(OnError);
             LocalUserPackages = new List<LocalPackageManager>();
-            LocalWhiteLabelPackages = new LocalPackageManager(OnError);
-            //LocalServerPackages = new LocalPackageManager(OnError);
-            //SubmissionPackageManager = new SubmissionPackageManager(OnError);
+            LocalServerPackages = new LocalPackageManager(OnError);
+            SubmissionPackageManager = new SubmissionPackageManager(OnError);
             OSUSongManager = new LocalPackageManager(OnError);
-            //ServerHighScoreManager = new ServerHighScoreManager();
+            ServerHighScoreManager = new ServerHighScoreManager();
 
             if (!Directory.Exists("CustomBeatmapsV4-Data"))
                 Directory.CreateDirectory("CustomBeatmapsV4-Data");
@@ -89,16 +86,14 @@ namespace CustomBeatmaps
                     LocalUserPackages.Add(new LocalPackageManager(OnError));
                     LocalUserPackages.Last().SetFolder(config.UserPackagesDir[i], 7);
                 }
-                LocalWhiteLabelPackages.SetFolder(config.WhiteLabelPackagesDir, 8);
-                //LocalServerPackages.SetFolder(config.ServerPackagesDir);
-                //OSUSongManager.SetOverride(ref config.OsuSongsOverrideDirectory, 9);
+                LocalServerPackages.SetFolder(config.ServerPackagesDir, 10);
                 OSUSongManager.SetFolder(config.OsuSongsOverrideDirectory, 9);
-                //PlayedPackageManager = new PlayedPackageManager(config.PlayedBeatmapList);
+                PlayedPackageManager = new PlayedPackageManager(config.PlayedBeatmapList);
             });
             ConfigHelper.LoadConfig("CustomBeatmapsV4-Data/custombeatmaps_backend.json", () => new BackendConfig(), config => BackendConfig = config);
 
-            //UserSession = new UserSession();
-            //Downloader = new BeatmapDownloader();
+            UserSession = new UserSession();
+            Downloader = new BeatmapDownloader();
         }
 
         private static void OnError(Exception ex)
@@ -126,27 +121,22 @@ namespace CustomBeatmaps
             _checkConfigReload.Start();
 
             // User session
-            //Task.Run(UserSession.AttemptLogin);
+            Task.Run(UserSession.AttemptLogin);
 
             // Harmony Patching
             Type[] classesToPatch = {
                 typeof(DebugLogPatch),
-                //typeof(WhiteLabelMainMenuPatch),
                 //typeof(CustomBeatmapLoadingOverridePatch),
-                //typeof(OsuEditorPatch),
-                //typeof(HighScoreScreenPatch),
+                typeof(OsuEditorPatch),
                 //typeof(PauseMenuPatch),
                 //typeof(DisablePracticeRoomOpenerPatch),
                 //typeof(CursorUnhidePatch),
-                //typeof(OneLifeModePatch),
-                //typeof(FlipModePatch),
-                //typeof(SimpleJankHighScoreSongReplacementPatch),
+                typeof(OneLifeModePatch),
+                typeof(FlipModePatch),
                 typeof(DisableRewiredMouseInputPatch),
                 typeof(ArcadeOverridesPatch),
                 typeof(AudioPatch),
-                typeof(ChaboButtonPatch),
-                //typeof(TextPatch)
-                //typeof(TestPatches)
+                typeof(ChaboButtonPatch)
             };
             foreach (var toPatch in classesToPatch)
             {
@@ -165,15 +155,26 @@ namespace CustomBeatmaps
             CustomPackageHelper.TryAddCustomCategory();
         }
 
-        public TestUI songHackUI = new TestUI();
-
-        public void OnGUI()
-        {
-            //songHackUI.DrawUI();
-        }
-
         public void Start()
         {
+            // Disclaimer screen
+            Logger.LogDebug($"Opening Disclaimer Disabled: {Memory.OpeningDisclaimerDisabled}");
+            if (!Memory.OpeningDisclaimerDisabled)
+            {
+                // Make the game freeze
+                Time.timeScale = 0;
+
+                var disclaimer = new GameObject().AddComponent<OpeningDisclaimerUIBehaviour>();
+                disclaimer.OnSelect += () =>
+                {
+                    // Reload
+                    Time.timeScale = 1;
+                    Memory.OpeningDisclaimerDisabled = true;
+                    GameMemory.Save(MEMORY_LOCATION, Memory);
+                    SceneManager.LoadScene(0);
+                };
+            }
+
             // Add images to songs at later timing because the game will crash if loaded any earlier
             CustomPackageHelper.GetAllCustomSongs.ForEach((Song s) => ((CustomSongInfo)s).GetTexture() );
             ArcadeHelper.LoadCustomSongs();

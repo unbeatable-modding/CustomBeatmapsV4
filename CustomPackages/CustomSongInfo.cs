@@ -15,19 +15,29 @@ namespace CustomBeatmaps.CustomPackages
 {
     public class CustomSongInfo : Song
     {
-        public string audioPath;
-        public string filePath;
-        public string directoryPath;
-        public string trueName;
+        public string AudioPath { get; private set; }
+        public string FilePath { get; private set; }
+        public string DirectoryPath { get; private set; }
+        public string TrueName { get; private set; }
+        public string Creator { get; private set; }
+        public string Artist { get; private set; }
+
 
         public CustomSongInfo(string bmapPath, int category) : base(null)
         {
             var text = File.ReadAllText(bmapPath);
-            filePath = bmapPath;
-            directoryPath = Path.GetDirectoryName(bmapPath);
+            FilePath = bmapPath;
+            DirectoryPath = Path.GetDirectoryName(bmapPath);
             name = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[category]}__{CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath)}";
-            trueName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
-            audioPath = $"{directoryPath}\\{CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath)}";
+            var audio = CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
+            var realPath = audio.Contains("/") ? audio.Substring((audio.LastIndexOf("/") + 1), audio.Length - (audio.LastIndexOf("/")+1)) : audio;
+            AudioPath = $"{DirectoryPath}\\{realPath}";
+
+            TrueName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
+            Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", bmapPath);
+            Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", bmapPath);
+
+            
             // Difficulty Logic
             var difficulty = "Star";
             var bmapVer = CustomPackageHelper.GetBeatmapProp(text, "Version", bmapPath);
@@ -63,8 +73,8 @@ namespace CustomBeatmaps.CustomPackages
             var _beatmapinfo = new Dictionary<string, BeatmapInfo>();
 
 
-
-            var map = new BeatmapInfo(new TextAsset(text), difficulty);
+            var map = new CustomBeatmapInfo(new TextAsset(text), difficulty,
+                Artist, Creator, name, TrueName, bmapVer, FilePath, BeatmapIndex.defaultIndex.Categories[category]);
             var beatmapinfo = traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
             beatmapinfo.Add(map);
 
@@ -87,17 +97,30 @@ namespace CustomBeatmaps.CustomPackages
         public void GetTexture()
         {
             var traverse = Traverse.Create(this);
-            var text = File.ReadAllText(filePath);
+            var text = File.ReadAllText(FilePath);
 
-            if (CustomPackageHelper.GetBeatmapImage(text, filePath) != null && File.Exists($"{directoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, filePath)}"))
+            if (CustomPackageHelper.GetBeatmapImage(text, FilePath) != null && File.Exists($"{DirectoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, FilePath)}"))
             {
                 var texture = new Texture2D(2, 2);
-                var bytes = File.ReadAllBytes($"{directoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, filePath)}");
+                var bytes = File.ReadAllBytes($"{DirectoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, FilePath)}");
                 ImageConversion.LoadImage(texture, bytes);
                 var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                 traverse.Field("coverArt").SetValue(sprite);
             }
         }
 
+
+        public List<CustomBeatmapInfo> CustomBeatmaps
+        {
+            get
+            {
+                var beatmaps = new List<CustomBeatmapInfo>();
+                foreach (BeatmapInfo b in Beatmaps.Values)
+                {
+                    continue;
+                }
+                return beatmaps;
+            }
+        }
     }
 }

@@ -12,7 +12,6 @@ namespace CustomBeatmaps.CustomPackages
         private readonly List<Song> _beatmaps = new List<Song>();
         private string _folderOverride;
         private int _category;
-        private string _config { get; set; }
 
         public string WarningMessages;
 
@@ -31,15 +30,12 @@ namespace CustomBeatmaps.CustomPackages
 
         public string Error { get; private set; }
 
-        public void SetOverride(ref string folderOverride, int category)
+        public void SetOverride(string folderOverride, int category)
         {
             if (!string.Equals(_folderOverride, folderOverride, StringComparison.Ordinal))
             {
                 _folderOverride = folderOverride;
             }
-
-            _config = folderOverride;
-            _category = category;
 
             // Clear previous watcher
             if (_watcher != null)
@@ -47,7 +43,7 @@ namespace CustomBeatmaps.CustomPackages
                 _watcher.Dispose();
             }
 
-            string folder = _folderOverride;
+            string folder = OSUHelper.GetOsuPath(Config.Mod.OsuSongsOverrideDirectory);
             try
             {
                 // Watch for changes
@@ -68,7 +64,7 @@ namespace CustomBeatmaps.CustomPackages
                 return;
             lock (_beatmaps)
             {
-                string folder = _folderOverride;
+                string folder = OSUHelper.GetOsuPath(Config.Mod.OsuSongsOverrideDirectory);
                 var bmaps = OSUHelper.LoadOsuBeatmaps(folder, _category, out WarningMessages);
                 if (bmaps != null)
                 {

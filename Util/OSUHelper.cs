@@ -48,7 +48,6 @@ namespace CustomBeatmaps.Util
 
                 // Sort by newest access
                 //beatmaps.Sort((left, right) => Math.Sign(TimeSinceLastWrite(left.OsuPath) - TimeSinceLastWrite(right.OsuPath)));
-                ScheduleHelper.SafeInvoke(() => songs.ForEach((Song s) => ((CustomSongInfo)s).GetTexture()) );
                 return songs.ToArray();
             }
             return null;

@@ -12,6 +12,7 @@ using System.Linq;
 using static Rhythm.BeatmapIndex;
 using UnityEngine.SceneManagement;
 using System.Security.Cryptography;
+using CustomBeatmaps.Patches;
 
 namespace CustomBeatmaps.CustomPackages
 {
@@ -83,9 +84,12 @@ namespace CustomBeatmaps.CustomPackages
         private void UpdatePackage(string folderPath)
         {
             // Remove old package if there was one and update
-            int toRemove = _packages.FindIndex(check => check.FolderName == folderPath);
-            if (toRemove != -1)
-                _packages.RemoveAt(toRemove);
+            lock (_packages)
+            {
+                int toRemove = _packages.FindIndex(check => check.FolderName == folderPath);
+                if (toRemove != -1)
+                    _packages.RemoveAt(toRemove);
+            }
 
             if (CustomPackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
                     _onLoadException))
@@ -108,8 +112,9 @@ namespace CustomBeatmaps.CustomPackages
             }
             else
             {
-                ScheduleHelper.SafeLog($"CANNOT find package: {folderPath} + {_category}");
+                ScheduleHelper.SafeLog($"CANNOT find package: {folderPath}");
             }
+
         }
 
         private void RemovePackage(string folderPath)
@@ -152,6 +157,21 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
 
+        public List<Song> Songs
+        {
+            get
+            {
+                if (InitialLoadState.Loading)
+                {
+                    return new List<Song>();
+                }
+                lock (_packages)
+                {
+                    return _packages.SelectMany(p => p.PkgSongs).ToList();
+                }
+            }
+        }
+
         public bool PackageExists(string folder)
         {
             lock (_downloadedFolders)
@@ -164,7 +184,7 @@ namespace CustomBeatmaps.CustomPackages
         /// <summary>
         /// Given a server package URL and a beatmap info from the server, find our local beatmap.
         /// </summary>
-        public (CustomLocalPackage, CustomSongInfo) FindCustomBeatmapInfoFromServer(string serverPackageURL, string beatmapRelativeKeyPath)
+        public (CustomLocalPackage, CustomBeatmapInfo) FindCustomBeatmapInfoFromServer(string serverPackageURL, string beatmapRelativeKeyPath)
         {
             beatmapRelativeKeyPath = beatmapRelativeKeyPath.Replace('/', '\\');
 
@@ -177,18 +197,18 @@ namespace CustomBeatmaps.CustomPackages
             {
                 string currentFullPath = Path.GetFullPath(package.FolderName);
                 bool samePackage = currentFullPath == targetPackageFullPath;
-                //Debug.Log($"{currentFullPath} compared to {targetFullPath}");
+                //ScheduleHelper.SafeLog($"{currentFullPath} compared to {targetPackageFullPath}");
                 if (samePackage)
                 {
                     foundPackage = true;
-                    foreach (CustomSongInfo cbinfo in package.PkgSongs)//.Beatmaps)
+                    foreach (CustomBeatmapInfo cbinfo in package.PkgSongs.SelectMany(s => s.Beatmaps.Values))
                     {
-                        //string fullOSUPath = Path.GetFullPath(cbinfo.directoryPath);
-                        //string relativeOSUPath = fullOSUPath.Substring(targetPackageFullPath.Length + 1);
-                        //if (beatmapRelativeKeyPath == relativeOSUPath)
-                        //{
-                        //    return (package, cbinfo);
-                        //}
+                        string fullOSUPath = Path.GetFullPath(cbinfo.OsuPath);
+                        string relativeOSUPath = fullOSUPath.Substring(targetPackageFullPath.Length + 1);
+                        if (beatmapRelativeKeyPath == relativeOSUPath)
+                        {
+                            return (package, cbinfo);
+                        }
                     }
                 }
             }
@@ -243,7 +263,7 @@ namespace CustomBeatmaps.CustomPackages
                 return;
             }
 
-            
+            ScheduleHelper.SafeLog($"Local Package Change: {evt.ChangeType}: {basePackageFolder} ");
 
             lock (_loadQueue)
             {
@@ -251,7 +271,7 @@ namespace CustomBeatmaps.CustomPackages
                 bool isFirst = _loadQueue.Count == 0;
                 if (!_loadQueue.Contains(basePackageFolder))
                 {
-                    ScheduleHelper.SafeLog($"adding {basePackageFolder} to queue");
+                    //ScheduleHelper.SafeLog($"adding {basePackageFolder} to queue");
                     _loadQueue.Enqueue(basePackageFolder);
                 }
 

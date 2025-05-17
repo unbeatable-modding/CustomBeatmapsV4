@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CustomBeatmaps.UI;
+using CustomBeatmaps.UI.Highscore;
 using HarmonyLib;
 using UnityEngine;
 
@@ -15,11 +17,11 @@ namespace CustomBeatmaps.Patches
         [HarmonyPostfix]
         public static void JeffBezosPostUpdate()
         {
-            //if (CustomBeatmapsUIBehaviour.Opened || HighScoreUIBehaviour.Opened)
-            //{
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-            //}
+            if (CustomBeatmapsUIBehaviour.Opened || HighScoreUIBehaviour.Opened)
+            {
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+            }
         }
     }
 }
