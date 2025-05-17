@@ -36,7 +36,7 @@ After:
 
 ![image](https://user-images.githubusercontent.com/13367955/160724936-ec8ec110-05e4-4723-9ac1-9e1b1094fcd4.png)
 
-6) Open the game. If the mod was installed correctly, you will see an extra option in the title screens called `CUSTOM BEATMAPS`
+6) Open the game. If the mod was installed correctly, a `Custom Beatmaps` button will appear in the song select menu
 
 # Making Custom Beatmaps
 
