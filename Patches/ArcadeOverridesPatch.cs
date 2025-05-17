@@ -18,6 +18,8 @@ namespace CustomBeatmaps.Patches
         [HarmonyPrefix]
         public static bool UnhideSongs(ref BeatmapIndex __instance, ref List<Song> __result)
         {
+            if (!CustomBeatmaps.ModConfig.ShowHiddenStuff)
+                return true;
             CustomBeatmaps.Log.LogDebug("Overriding GetVisibleSongs");
             __result = __instance.GetAllSongs();
             return false;

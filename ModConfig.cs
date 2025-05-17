@@ -22,10 +22,6 @@ namespace CustomBeatmaps
         /// </summary>
         public string ServerPackagesDir = TryFindWhiteLabel("CustomBeatmapsV3-Data/SERVER_PACKAGES", out var dir) ? dir : "CustomBeatmapsV4-Data/SERVER_PACKAGES";
         /// <summary>
-        /// Directory for [white label] user (local) packages
-        /// </summary>
-        public string WhiteLabelPackagesDir = TryFindWhiteLabel("CustomBeatmapsV3-Data/SERVER_PACKAGES", out var dir) ? dir : null;
-        /// <summary>
         /// Songs directory for your OSU install for the mod to access 
         /// </summary>& test
         public string OsuSongsOverrideDirectory = null;
@@ -45,6 +41,7 @@ namespace CustomBeatmaps
         /// A line separated list of all beatmaps we've tried playing
         /// </summary>
         public string PlayedBeatmapList = "CustomBeatmapsV4-Data/.played_beatmaps";
+        public bool ShowHiddenStuff = false;
 
 
         /// <param name="path"> Path relative to White Label directory </param>
