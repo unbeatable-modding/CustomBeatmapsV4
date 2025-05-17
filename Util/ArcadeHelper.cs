@@ -30,6 +30,7 @@ namespace CustomBeatmaps.Util
         private static List<string> songNames = traverse.Field("_songNames").GetValue<List<string>>();
         private static List<Song> songs = traverse.Field("songs").GetValue<List<Song>>();
         private static Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
+        private static List<Song> _visibleSongs = traverse.Field("_visibleSongs").GetValue<List<Song>>();
         private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
         private static List<Song> songList = new();
 
@@ -87,6 +88,7 @@ namespace CustomBeatmaps.Util
                 {
                     songs.Add(s);
                     _songs.Add(s.name, s);
+                    _visibleSongs.Add(s);
                     songNames.Add(s.name);
                     songList.Add(s);
                     //_categorySongs[s.Category].Add(s);
@@ -104,6 +106,7 @@ namespace CustomBeatmaps.Util
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
             killList.ForEach((string k) => songs.Remove(_songs[k]));
+            killList.ForEach((string k) => _visibleSongs.Remove(_songs[k]));
             killList.ForEach((string k) => _songs.Remove(k));
             killList.ForEach((string k) => songNames.Remove(k));
             return;
@@ -149,7 +152,7 @@ namespace CustomBeatmaps.Util
 
                 JeffBezosController.instance.DisableUIInputs();
                 JeffBezosController.returnFromArcade = true;
-                LoadArcadeLevel(customBeatmapInfo.Path, scene );
+                LevelManager.LoadArcadeLevel(customBeatmapInfo.InternalName, customBeatmapInfo.difficulty);
             }
         }
 
@@ -157,14 +160,6 @@ namespace CustomBeatmaps.Util
         {
             OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.OsuPath, beatmap.Path);
             PlaySong(beatmap, DefaultBeatmapScene);
-        }
-
-        public static void LoadArcadeLevel(string beatmapPath, string stageScene = "TrainStationRhythm", int spawn = 0, bool transition = true)
-        {
-            ArcadeProgression arcadeProgression = new ArcadeProgression(beatmapPath, RhythmGameType.ArcadeMode);
-            JeffBezosController.rhythmGameType = RhythmGameType.ArcadeMode;
-            JeffBezosController.rhythmProgression = arcadeProgression;
-            LevelManager.LoadLevel(stageScene, spawn, transition);
         }
 
         // CUSTOMBEATMAPS V3 STUFF TO CHANGE LATER BELOW

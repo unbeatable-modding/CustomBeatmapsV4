@@ -35,5 +35,16 @@ namespace CustomBeatmaps.Patches
             return false;
         }
 
+        [HarmonyPatch(typeof(LevelManager), "LoadArcadeLevel")]
+        [HarmonyPrefix]
+        public static bool LoadArcadeLevel(string beatmapName, string beatmapDifficulty, int spawn = 0, bool transition = true)
+        {
+            ArcadeProgression arcadeProgression = new ArcadeProgression(beatmapName + "/" + beatmapDifficulty, RhythmGameType.ArcadeMode);
+            JeffBezosController.rhythmGameType = RhythmGameType.ArcadeMode;
+            JeffBezosController.rhythmProgression = arcadeProgression;
+            arcadeProgression.stageScene = ArcadeHelper.GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom);
+            LevelManager.LoadLevel(arcadeProgression.stageScene, spawn, transition);
+            return false;
+        }
     }
 }
