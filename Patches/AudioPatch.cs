@@ -24,7 +24,6 @@ namespace CustomBeatmaps.Patches
         {
             if (key.StartsWith("CUSTOM__"))
             {
-                
                 BeatmapIndex.defaultIndex.TryGetSong(key, out Song songTest);
                 key = ((CustomSongInfo)songTest).AudioPath;
 

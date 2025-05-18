@@ -38,6 +38,7 @@ namespace CustomBeatmaps.Util
             new CustomBeatmapRoom("Default", "TrainStationRhythm"),
             new CustomBeatmapRoom("NSR", "NSR_Stage"),
             new CustomBeatmapRoom("Stage", "Stage"),
+            new CustomBeatmapRoom("Green Screen", "GreenscreenRhythm"),
             // I am not re-implementing these just yet
             //new CustomBeatmapRoom("Practice Room", "PracticeRoomRhythm"),
             //new CustomBeatmapRoom("Tutorial", "Tutorial"),

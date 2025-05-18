@@ -146,6 +146,10 @@ namespace CustomBeatmaps.CustomPackages
 
             foreach (var score in serverScores)
             {
+                // Don't add F ranks to server highscores
+                if (!score.cleared)
+                    continue;
+
                 if (score.song.StartsWith("CUSTOM__server__"))
                 {
                     var localPath = ((CustomBeatmapInfo)ArcadeSongDatabase.Instance.SongDatabase[score.song].BeatmapInfo).OsuPath;

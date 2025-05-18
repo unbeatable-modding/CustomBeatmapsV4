@@ -59,7 +59,8 @@ Screenshot from v3 but it's similar enough
 # Known Issues
 
 - The online packages screen is a bit laggy (will fix if it becomes a problem for anyone)
-- If the beatmap server is offline, the online beatmaps you download won't be visible from the game (you can still play them by moving them to the `USER_PACKAGES` folder).
+- If the beatmap server is offline, the online beatmaps you download won't be visible from the CustomBeatmaps menu (you can still play them from the arcade).
+- The OSU editor is currently semi-broken
 
 ## Disclaimer
 

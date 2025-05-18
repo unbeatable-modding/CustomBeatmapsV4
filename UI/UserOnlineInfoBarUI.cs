@@ -49,7 +49,7 @@ namespace CustomBeatmaps.UI
                     }
                 }
 
-                //NewVersionAvailableUI.Render();
+                NewVersionAvailableUI.Render();
 
                 GUILayout.FlexibleSpace();
                 if (true)//(!session.LoggedIn)
@@ -80,7 +80,7 @@ namespace CustomBeatmaps.UI
                 }
                 // Show status (logging in/login failed/registration failed because XYZ) 
                 GUILayout.Label(session.LoginStatus);
-                //NewVersionAvailableUI.Render();
+                NewVersionAvailableUI.Render();
             }
 
             GUILayout.EndHorizontal();

@@ -41,10 +41,10 @@ namespace CustomBeatmaps.Patches
         
         static OsuEditorPatch()
         {
-            CustomBeatmaps.OSUSongManager.PackageUpdated += package => {
-                ScheduleHelper.SafeLog("HOT RELOAD");
-                HotReloadBeatmap();
-            };
+            //CustomBeatmaps.OSUSongManager.PackageUpdated += package => {
+                //ScheduleHelper.SafeLog("HOT RELOAD");
+                //HotReloadBeatmap();
+            //};
         }
         public static void SetEditMode(bool editMode, bool enableCountdown=true, string path=null, string songPath = null)
         {
