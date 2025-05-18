@@ -77,4 +77,4 @@ NONE of the user beatmaps are endorsed or associated with D-Cell Games.
 [unbeatable-demo-song-hack-author]: https://github.com/ErikGXDev
 
 - [CustomBeatmapsV3][CustomBeatmapsV3] by [TacoTechnical][CustomBeatmapsV3-author] - MIT Licence (A lot of code has been resued from this mod)
-- [unbeatable-demo-song-hack][unbeatable-demo-song-hack] by [ErikGXDev][unbeatable-demo-song-hack-author] - Apache License, Version 2.0
+- [unbeatable-demo-song-hack][unbeatable-demo-song-hack] by [ErikGXDev][unbeatable-demo-song-hack-author] - MIT License
