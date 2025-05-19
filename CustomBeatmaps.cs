@@ -28,7 +28,7 @@ namespace CustomBeatmaps
     {
         private const string modGUID = "gold-me.unbeatable.custombeatmaps";
         private const string modName = "Custom Beatmaps V4";
-        private const string modVer = "4.1.3";
+        private const string modVer = "4.1.4";
 
         internal static new ManualLogSource Log;
 

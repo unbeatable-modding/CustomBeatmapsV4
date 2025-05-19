@@ -11,7 +11,7 @@ namespace CustomBeatmaps.Util
 {
     public static class ZipHelper
     {
-        const string Path7Zip = "BepInEx/plugins/CustomBeatmaps/7z/7z.exe";
+        const string Path7Zip = "BepInEx/plugins/CustomBeatmapsV4/7z/7z.exe";
 
         private static bool Has7Zip()
         {
