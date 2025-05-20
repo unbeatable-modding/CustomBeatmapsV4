@@ -143,7 +143,8 @@ namespace CustomBeatmaps.Util
                 // CUSTOMBEATMAPS_SERVER:: ...
                 if (songPath.StartsWith(serverPackagePrefix))
                 {
-                    //string beatmapRelativeToServerPackages = key.Substring(serverPackagePrefix.Length);
+                    if (!score.cleared)
+                        continue;
                     serverScores.Add(score);
                     continue;
                 }
@@ -151,6 +152,8 @@ namespace CustomBeatmaps.Util
                 // [Song]/[Difficulty]
                 if (false)//(ArcadeHelper.IsValidUnbeatableSongPath(score.song))
                 {
+                    if (!score.cleared)
+                        continue;
                     whiteLabelScores.Add(score);
                     continue;
                 }

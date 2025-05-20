@@ -24,6 +24,7 @@ namespace CustomBeatmaps.UI
         public bool New;
         public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.
         public int PackageIndex; // Also kind of jank but whatever it's book-keeping
+        public int Level;
 
         public PackageHeader(string name, int songCount, int mapCount, string creator, bool @new, BeatmapDownloadStatus downloadStatus, int packageIndex)
         {
@@ -44,14 +45,18 @@ namespace CustomBeatmaps.UI
         public string Creator;
         public string Difficulty;
         public string IconURL;
+        public int Level;
+        public string FlavorText;
 
-        public BeatmapHeader(string name, string artist, string creator, string difficulty, string iconURL)
+        public BeatmapHeader(string name, string artist, string creator, string difficulty, string iconURL, int level, string flavorText)
         {
             Name = name;
             Artist = artist;
             Creator = creator;
             Difficulty = difficulty;
             IconURL = iconURL;
+            Level = level;
+            FlavorText = flavorText;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Arcade.UI.SongSelect;
 using CustomBeatmaps.Util;
 using JetBrains.Annotations;
+using Rhythm;
 using UnityEngine;
 
 namespace CustomBeatmaps.CustomPackages
@@ -138,7 +139,7 @@ namespace CustomBeatmaps.CustomPackages
 
         private static DesyncedScore[] GetDesyncedHighScoresInternal(HighScoreList whiteLabelHighScores, string username, ScoreManager highScores)
         {
-            var (whiteLabelScores, serverScores ) = UserServerHelper.FilterValidHighScores(whiteLabelHighScores);
+            var (whiteLabelScores, serverScores) = UserServerHelper.FilterValidHighScores(whiteLabelHighScores);
 
             List<DesyncedScore> resultingBeatmapKeys = new List<DesyncedScore>();
 
@@ -146,14 +147,10 @@ namespace CustomBeatmaps.CustomPackages
 
             foreach (var score in serverScores)
             {
-                // Don't add F ranks to server highscores
-                if (!score.cleared)
-                    continue;
 
                 if (score.song.StartsWith("CUSTOM__server__"))
                 {
                     var localPath = ((CustomBeatmapInfo)ArcadeSongDatabase.Instance.SongDatabase[score.song].BeatmapInfo).OsuPath;
-                    //string localPath = Path.Combine(serverPackagesFullPath, relativeToServerPackages);
                     var key =
                         UserServerHelper.GetHighScoreBeatmapKeyFromLocalBeatmap(Config.Mod.ServerPackagesDir,
                             localPath);
@@ -165,6 +162,8 @@ namespace CustomBeatmaps.CustomPackages
             }
             foreach (var score in whiteLabelScores)
             {
+                if (!score.song.StartsWith("CUSTOM__") || BeatmapIndex.defaultIndex.GetVisibleSongs().Where(s => s.name == score.song && s.VisibleInArcade).Any())
+                    continue;
                 ScheduleHelper.SafeLog($"WHITE LABEL SCORE: {score.song}");
                 string key = UserServerHelper.GetHighScoreBeatmapKeyFromUnbeatableBeatmap(score.song);
                 if (CanUpdateHighScoreFromWhiteLabel(score, highScores, username, key))

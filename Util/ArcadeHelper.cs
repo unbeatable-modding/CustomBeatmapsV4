@@ -8,18 +8,14 @@ using HarmonyLib;
 using Rhythm;
 using UnityEngine;
 using Utilities;
-using static Rhythm.BeatmapIndex;
-
-using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 using CustomBeatmaps.CustomPackages;
 using Arcade.UI.SongSelect;
-using static Arcade.UI.SongSelect.ArcadeSongDatabase;
 using UnityEngine.SceneManagement;
 using Arcade.UI;
 using FMODUnity;
 using CustomBeatmaps.Patches;
+
+using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.Util
 {
@@ -68,7 +64,7 @@ namespace CustomBeatmaps.Util
                 return;
             var currentArcade = ArcadeSongDatabase.Instance;
             var arcade = Traverse.Create(currentArcade);
-            var _songDatabase = arcade.Field("_songDatabase").GetValue<Dictionary<string, BeatmapItem>>();
+            var _songDatabase = arcade.Field("_songDatabase").GetValue<Dictionary<string, ArcadeSongDatabase.BeatmapItem>>();
             //var allCategory = arcade.Field("allCategory").GetValue<BeatmapIndex.Category>();
             //var SelectableCategories = arcade.Field("allCategory").GetValue<List<BeatmapIndex.Category>>();
             //SelectableCategories = BeatmapIndex.defaultIndex.GetVisibleCategories().Prepend(allCategory).ToList();

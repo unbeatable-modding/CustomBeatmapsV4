@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using Arcade.UI;
+using CustomBeatmaps.CustomPackages;
+using Rhythm;
+using UnityEngine;
+using static Arcade.UI.ArcadeBeatmapProvider;
 
 namespace CustomBeatmaps.UI.PackageList
 {
@@ -6,6 +10,7 @@ namespace CustomBeatmaps.UI.PackageList
     {
         public static void Render(BeatmapHeader beatmapHeader)
         {
+
             var cardStyle = new GUIStyle(GUI.skin.box);
             var m = cardStyle.margin;
             var padH = 16;
@@ -17,13 +22,24 @@ namespace CustomBeatmaps.UI.PackageList
                     GUILayout.Label($"by <b>{beatmapHeader.Artist}</b>");
                 GUILayout.EndVertical();
 
-                GUILayout.FlexibleSpace();
-
+            GUILayout.FlexibleSpace();
+            /*
                 GUILayout.BeginVertical();
-                    GUILayout.Label($"{beatmapHeader.Difficulty}");
-                    GUILayout.Label($"mapper: {beatmapHeader.Creator}");
+                    GUILayout.Label($"{beatmapHeader.FlavorText}");
                 GUILayout.EndVertical();
+
+            GUILayout.FlexibleSpace();
+            */
+                GUILayout.BeginVertical();
+                    if (beatmapHeader.Level != 0)
+                        GUILayout.Label($"{beatmapHeader.Difficulty} ({beatmapHeader.Level})");
+                    else
+                        GUILayout.Label($"{beatmapHeader.Difficulty}");
+                GUILayout.Label($"mapper: {beatmapHeader.Creator}");
+                GUILayout.EndVertical();
+
             GUILayout.EndHorizontal();
         }
+
     }
 }

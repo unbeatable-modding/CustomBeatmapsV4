@@ -176,7 +176,7 @@ namespace CustomBeatmaps
             }
 
             // Add images to songs at later timing because the game will crash if loaded any earlier
-            CustomPackageHelper.GetAllCustomSongs.ForEach((Song s) => ((CustomSongInfo)s).GetTexture() );
+            CustomPackageHelper.GetAllCustomSongs.ForEach(s => s.GetTexture() );
             ArcadeHelper.LoadCustomSongs();
         }
 

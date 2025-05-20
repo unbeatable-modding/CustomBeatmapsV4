@@ -68,7 +68,7 @@ namespace CustomBeatmaps.UI
                 HashSet<string> songs = new HashSet<string>();
                 HashSet<string> names = new HashSet<string>();
                 HashSet<string> creators = new HashSet<string>();
-                foreach (CustomBeatmapInfo bmap in p.PkgSongs.SelectMany(s => s.Beatmaps.Values).ToList())
+                foreach (CustomBeatmapInfo bmap in p.PkgSongs.SelectMany(s => s.CustomBeatmaps))
                 {
                     songs.Add(bmap.InternalName);
                     names.Add(bmap.SongName);
@@ -91,7 +91,7 @@ namespace CustomBeatmaps.UI
                 setSelectedBeatmapIndex?.Invoke(selectedBeatmaps.Count - 1);
             }
 
-            var selectedBeatmap = (CustomBeatmapInfo)selectedPackage.PkgSongs.SelectMany(s => s.Beatmaps.Values).ToArray()[selectedBeatmapIndex];
+            var selectedBeatmap = selectedPackage.PkgSongs.SelectMany(s => s.CustomBeatmaps).ToArray()[selectedBeatmapIndex];
 
             // Preview audio
             BGM.PlaySongPreview(SongDatabase.GetBeatmapItemByPath(selectedBeatmap.Path));

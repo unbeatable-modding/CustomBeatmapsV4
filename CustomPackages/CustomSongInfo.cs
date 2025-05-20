@@ -10,6 +10,7 @@ using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using Newtonsoft.Json;
 
 namespace CustomBeatmaps.CustomPackages
 {
@@ -21,6 +22,8 @@ namespace CustomBeatmaps.CustomPackages
         public string TrueName { get; private set; }
         public string Creator { get; private set; }
         public string Artist { get; private set; }
+
+        public string[] Attributes { get; private set; }
 
 
         public CustomSongInfo(string bmapPath, int category) : base(null)
@@ -36,7 +39,6 @@ namespace CustomBeatmaps.CustomPackages
             TrueName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
             Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", bmapPath);
             Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", bmapPath);
-
             
             // Difficulty Logic
             var difficulty = "Star";
@@ -74,7 +76,7 @@ namespace CustomBeatmaps.CustomPackages
 
 
             var map = new CustomBeatmapInfo(new TextAsset(text), difficulty,
-                Artist, Creator, name, TrueName, bmapVer, FilePath, BeatmapIndex.defaultIndex.Categories[category]);
+                Artist, Creator, name, TrueName, bmapVer, FilePath, BeatmapIndex.defaultIndex.Categories[category], this);
             var beatmapinfo = traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
             beatmapinfo.Add(map);
 
@@ -109,18 +111,18 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
 
-
         public List<CustomBeatmapInfo> CustomBeatmaps
         {
             get
             {
                 var beatmaps = new List<CustomBeatmapInfo>();
-                foreach (BeatmapInfo b in Beatmaps.Values)
+                foreach (CustomBeatmapInfo b in Beatmaps.Values)
                 {
-                    continue;
+                    beatmaps.Add(b);
                 }
                 return beatmaps;
             }
         }
+
     }
 }

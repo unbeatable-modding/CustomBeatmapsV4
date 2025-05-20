@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Arcade.UI.SongSelect;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using HarmonyLib;
@@ -19,15 +20,21 @@ namespace CustomBeatmaps.Util
                 bmap.Artist,
                 bmap.BeatmapCreator,
                 bmap.RealDifficulty,
-                null
+                null,
+                bmap.Level,
+                bmap.FlavorText
             );
         }
-        public static List<BeatmapHeader> CustomBeatmapInfosToBeatmapHeaders(List<Song> customBeatmaps)
+
+        public static List<BeatmapHeader> CustomBeatmapInfosToBeatmapHeaders(List<CustomSongInfo> customBeatmaps)
         {
             List<BeatmapHeader> headers = new List<BeatmapHeader>(customBeatmaps.Count);
-            foreach (var bmap in customBeatmaps.SelectMany(s => s.Beatmaps.Values))
+            foreach (var song in customBeatmaps)
             {
-                headers.Add(CustomBeatmapInfoToBeatmapHeader((CustomBeatmapInfo)bmap));
+                foreach (var bmap in song.CustomBeatmaps)
+                {
+                    headers.Add(CustomBeatmapInfoToBeatmapHeader(bmap));
+                }
             }
 
             return headers;
@@ -89,12 +96,12 @@ namespace CustomBeatmaps.Util
                             nameR = GetLocalPackageName(right);
                         return String.CompareOrdinal(nameL, nameR);
                     case SortMode.Artist:
-                        string artistLeft = left.PkgSongs.Select(map => ((CustomSongInfo)map).Artist).OrderBy(x => x).Join();
-                        string artistRight = right.PkgSongs.Select(map => ((CustomSongInfo)map).Artist).OrderBy(x => x).Join();
+                        string artistLeft = left.PkgSongs.Select(map => map.Artist).OrderBy(x => x).Join();
+                        string artistRight = right.PkgSongs.Select(map => map.Artist).OrderBy(x => x).Join();
                         return String.CompareOrdinal(artistLeft, artistRight);
                     case SortMode.Creator:
-                        string creatorLeft = left.PkgSongs.Select(map => ((CustomSongInfo)map).Creator).OrderBy(x => x).Join();
-                        string creatorRight = right.PkgSongs.Select(map => ((CustomSongInfo)map).Creator).OrderBy(x => x).Join();
+                        string creatorLeft = left.PkgSongs.Select(map => map.Creator).OrderBy(x => x).Join();
+                        string creatorRight = right.PkgSongs.Select(map => map.Creator).OrderBy(x => x).Join();
                         return String.CompareOrdinal(creatorLeft, creatorRight);
                     case SortMode.Downloaded:
                         return 1.CompareTo(1); // um

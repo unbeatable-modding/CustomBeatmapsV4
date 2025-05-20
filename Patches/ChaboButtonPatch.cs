@@ -5,8 +5,10 @@ using System.Text;
 using System.Xml;
 using Arcade.UI;
 using Arcade.UI.MenuStates;
+using Arcade.UI.SongSelect;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.Util;
+using FMOD.Studio;
 using HarmonyLib;
 using InGameCutsceneStuff.Runtime;
 using Rewired;
@@ -74,6 +76,21 @@ namespace CustomBeatmaps.Patches
             return true;
         }
 
+
+        [HarmonyPatch(typeof(ArcadeBGMManager), "PlaySongPreview")]
+        [HarmonyPrefix]
+        static bool DontChangeSongsForPath(ref ArcadeSongDatabase.BeatmapItem item)
+        {
+            var currentItem = Traverse.Create(ArcadeBGMManager.Instance).Field("currentItem").GetValue<ArcadeSongDatabase.BeatmapItem>();
+            var songPreviewInstance = Traverse.Create(ArcadeBGMManager.Instance).Field("songPreviewInstance").GetValue<EventInstance>();
+
+            if (songPreviewInstance.isValid())
+            {
+                if (item != null && item.Path == currentItem.Path)
+                    return false;
+            }
+            return true;
+        }
 
     }
 }

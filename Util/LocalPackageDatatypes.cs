@@ -11,7 +11,7 @@ namespace CustomBeatmaps.Util
     public struct CustomLocalPackage
     {
         public string FolderName;
-        public List<Song> PkgSongs;
+        public List<CustomSongInfo> PkgSongs;
         //public CustomBeatmapInfo[] Beatmaps;
 
         public override string ToString()

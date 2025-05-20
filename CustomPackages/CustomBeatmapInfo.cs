@@ -1,5 +1,11 @@
-﻿using Rhythm;
+﻿using System;
+using Arcade.UI;
+using Arcade.UI.SongSelect;
+using CustomBeatmaps.Util;
+using Newtonsoft.Json;
+using Rhythm;
 using UnityEngine;
+using static Arcade.UI.ArcadeBeatmapProvider;
 using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.CustomPackages
@@ -32,6 +38,7 @@ namespace CustomBeatmaps.CustomPackages
         /// Parsed Difficulty name
         /// </summary>
         public readonly string RealDifficulty;
+        public CustomSongInfo Song;
         public string Path
         {
             get
@@ -41,9 +48,13 @@ namespace CustomBeatmaps.CustomPackages
         }
         public readonly string OsuPath;
         public readonly Category Category;
+        public TagData Tags;
+        public int Level => Tags.Level;
+        public string FlavorText => Tags.FlavorText;
+        public string[] Attributes => Tags.Attributes;
 
         public CustomBeatmapInfo(TextAsset textAsset, string difficulty, string artist,
-            string beatmapCreator, string name, string songName, string realDifficulty, string osuPath, Category category) : base(textAsset, difficulty)
+            string beatmapCreator, string name, string songName, string realDifficulty, string osuPath, Category category, CustomSongInfo song) : base(textAsset, difficulty)
         {
             
             OsuPath = osuPath;
@@ -54,12 +65,36 @@ namespace CustomBeatmaps.CustomPackages
             RealDifficulty = realDifficulty;
             BeatmapCreator = beatmapCreator;
             Category = category;
-        }
+            Song = song;
 
+            var tagTest = CustomPackageHelper.GetBeatmapProp(text, "Tags", OsuPath);
+            if (tagTest.StartsWith("{") && tagTest.EndsWith("}"))
+            {
+                try
+                {
+                    Tags = JsonConvert.DeserializeObject<TagData>(tagTest);
+                }
+                catch (Exception e)
+                {
+                    ScheduleHelper.SafeLog("INVALID JSON");
+                }
+            }
+                
+        }
         public override string ToString()
         {
             return $"{{{SongName} by {Artist} ({RealDifficulty}) mapped {BeatmapCreator} ({Path})}}";
         }
 
+        public struct TagData
+        {
+            public int Level;
+
+            public string FlavorText;
+
+            public float SongLength;
+
+            public string[] Attributes;
+        }
     }
 }

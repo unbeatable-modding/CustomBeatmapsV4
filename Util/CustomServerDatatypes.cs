@@ -46,6 +46,10 @@ namespace CustomBeatmaps.Util
         public string Difficulty;
         [JsonProperty("audioFileName")]
         public string AudioFileName;
+        [JsonProperty("level")]
+        public int Level;
+        [JsonProperty("flavorText")]
+        public string FlavorText;
 
         public override string ToString()
         {

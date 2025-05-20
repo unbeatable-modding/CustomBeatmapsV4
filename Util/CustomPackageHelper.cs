@@ -15,6 +15,12 @@ using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 
 using static Rhythm.BeatmapIndex;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using CustomBeatmaps.Patches;
+using Arcade.UI.SongSelect;
+using FMOD.Studio;
+using Arcade.UI;
 
 
 namespace CustomBeatmaps.Util
@@ -51,6 +57,14 @@ namespace CustomBeatmaps.Util
             //throw new BeatmapException($"Image property not found.", beatmapPath);
         }
 
+        public static void SetBeatmapJson(string beatmapText, CustomBeatmapInfo.TagData data, string beatmapPath)
+        {
+            data.SongLength = ArcadeBGMManager.SongDuration;
+            var beatmapSave = SerializeHelper.SerializeJSON(data);
+            var match = Regex.Replace(beatmapText, $"(?<=Tags:)(.+?)\r?\n", beatmapSave + "\r\n");
+            File.WriteAllText(beatmapPath, match);
+        }
+
         private static bool IsBeatmapFile(string beatmapPath)
         {
             return beatmapPath.ToLower().EndsWith(".osu");
@@ -69,7 +83,7 @@ namespace CustomBeatmaps.Util
             package.FolderName = rootSubFolder;
             ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
-            var songs = new List<Song>();
+            var songs = new List<CustomSongInfo>();
 
             foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
             {
@@ -296,15 +310,15 @@ namespace CustomBeatmaps.Util
         /// </summary>
         /// <param name="toLoad"> Song to be added to List  </param>
         /// <param name="songs"> List the Song will be added to </param>
-        public static void AddSongToList(CustomSongInfo toLoad, ref List<Song> songs, List<CustomLocalPackage> tmpPkg = null)
+        public static void AddSongToList(CustomSongInfo toLoad, ref List<CustomSongInfo> songs, List<CustomLocalPackage> tmpPkg = null)
         {
             //List<Song>[] toCheck = [songs, GetAllCustomSongs, tmpPkg.SelectMany(p => p.PkgSongs).ToList()];
-            List<List<Song>> toCheck = [songs, GetAllCustomSongs];
+            List<List<CustomSongInfo>> toCheck = [songs, GetAllCustomSongs];
             // DO NOT TRY TO PARSE TMPPKG IF NULL STOP BREAKING THINGS
             if (tmpPkg != null)
                 toCheck.Add(tmpPkg.SelectMany(p => p.PkgSongs).ToList());
 
-            foreach (List<Song> list in toCheck)
+            foreach (List<CustomSongInfo> list in toCheck)
             {
                 DupeSongChecker(ref toLoad, list);
                 //break;
@@ -337,11 +351,11 @@ namespace CustomBeatmaps.Util
         /// <summary>
         /// Return a list of all Custom Songs
         /// </summary>
-        public static List<Song> GetAllCustomSongs
+        public static List<CustomSongInfo> GetAllCustomSongs
         {
             get
             {
-                var songl = new List<Song>();
+                var songl = new List<CustomSongInfo>();
                 songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
                 //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
                 songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs);
@@ -350,7 +364,7 @@ namespace CustomBeatmaps.Util
             }
         }
 
-        private static bool DupeSongChecker(ref CustomSongInfo toLoad, List<Song> songs)
+        private static bool DupeSongChecker(ref CustomSongInfo toLoad, List<CustomSongInfo> songs)
         {
             if (songs == null)
                 return false;
@@ -360,8 +374,8 @@ namespace CustomBeatmaps.Util
             {
                 var dupeInt = 0;
                 var startingName = returnSong.name;
-                while (songs.Where((Song s) =>
-                    s.name == returnSong.name && (((CustomSongInfo)s).DirectoryPath != returnSong.DirectoryPath || s.Difficulties.Contains(returnSong.Difficulties.Single()))).Any())
+                while (songs.Where((CustomSongInfo s) =>
+                    s.name == returnSong.name && (s.DirectoryPath != returnSong.DirectoryPath || s.Difficulties.Contains(returnSong.Difficulties.Single()))).Any())
                 {
                     returnSong.name = startingName + dupeInt;
                     isDupe = true;
@@ -370,8 +384,12 @@ namespace CustomBeatmaps.Util
 
                 if (isDupe)
                 {
-                    returnSong.Beatmaps.Values.ToList().ForEach(b => ((CustomBeatmapInfo)b).InternalName = returnSong.name);
-                    toLoad = returnSong;                    
+                    returnSong.CustomBeatmaps.ForEach(b => { 
+                        b.InternalName = returnSong.name;
+                        b.Song = returnSong;
+                    });
+                    toLoad = returnSong;
+
                 }
                     
             }

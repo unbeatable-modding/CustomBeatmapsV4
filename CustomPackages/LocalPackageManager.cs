@@ -94,7 +94,7 @@ namespace CustomBeatmaps.CustomPackages
             if (CustomPackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
                     _onLoadException))
             {
-                ScheduleHelper.SafeInvoke(() => package.PkgSongs.ForEach((Song s) => ((CustomSongInfo)s).GetTexture()));
+                ScheduleHelper.SafeInvoke(() => package.PkgSongs.ForEach(s => s.GetTexture()));
                 ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
                 lock (_packages)
                 {
@@ -157,13 +157,13 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
 
-        public List<Song> Songs
+        public List<CustomSongInfo> Songs
         {
             get
             {
                 if (InitialLoadState.Loading)
                 {
-                    return new List<Song>();
+                    return new List<CustomSongInfo>();
                 }
                 lock (_packages)
                 {
@@ -201,7 +201,7 @@ namespace CustomBeatmaps.CustomPackages
                 if (samePackage)
                 {
                     foundPackage = true;
-                    foreach (CustomBeatmapInfo cbinfo in package.PkgSongs.SelectMany(s => s.Beatmaps.Values))
+                    foreach (CustomBeatmapInfo cbinfo in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
                     {
                         string fullOSUPath = Path.GetFullPath(cbinfo.OsuPath);
                         string relativeOSUPath = fullOSUPath.Substring(targetPackageFullPath.Length + 1);

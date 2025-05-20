@@ -31,6 +31,9 @@
       <Reference Include="FMODUnity">
         <HintPath>$(ManagedPath)\FMODUnity.dll</HintPath>
       </Reference>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>$(ManagedPath)\Newtonsoft.Json.dll</HintPath>
+      </Reference>
       <Reference Include="Rewired_Core">
         <HintPath>$(ManagedPath)\Rewired_Core.dll</HintPath>
       </Reference>

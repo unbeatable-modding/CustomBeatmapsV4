@@ -93,7 +93,7 @@ namespace CustomBeatmaps.UI
                         {
                             if (selectedBeatmapIndex >= package.PkgSongs.Count)
                                 selectedBeatmapIndex = package.PkgSongs.Count - 1;
-                            var selectedBeatmap = ((CustomSongInfo)package.PkgSongs[selectedBeatmapIndex]).CustomBeatmaps[0];
+                            var selectedBeatmap = package.PkgSongs[selectedBeatmapIndex].CustomBeatmaps[0];
 
                             BGM.PlaySongPreview(SongDatabase.GetBeatmapItemByPath(selectedBeatmap.Path));
 
