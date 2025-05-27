@@ -30,16 +30,30 @@ namespace CustomBeatmaps.Util
         private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
         private static List<Song> songList = new();
 
-        public static readonly CustomBeatmapRoom[] Rooms = {
+        public static CustomBeatmapRoom[] Rooms
+        {
+            get
+            {
+                var rooms = new List<CustomBeatmapRoom>();
+                rooms.AddRange(BaseRooms);
+                if (CustomBeatmaps.ModConfig.ShowHiddenStuff)
+                    rooms.AddRange(ExtraRooms);
+                return rooms.ToArray();
+            }
+        }
+
+        private static readonly CustomBeatmapRoom[] BaseRooms = {
             new CustomBeatmapRoom("Default", "TrainStationRhythm"),
             new CustomBeatmapRoom("NSR", "NSR_Stage"),
-            new CustomBeatmapRoom("Stage", "Stage"),
             new CustomBeatmapRoom("Green Screen", "GreenscreenRhythm"),
             // I am not re-implementing these just yet
             //new CustomBeatmapRoom("Practice Room", "PracticeRoomRhythm"),
             //new CustomBeatmapRoom("Tutorial", "Tutorial"),
             // This one would be interesting but we already have the tutorial screen
             //new CustomBeatmapRoom("Offset Wizard", "OffsetWizard")
+        };
+        private static readonly CustomBeatmapRoom[] ExtraRooms = {
+            new CustomBeatmapRoom("Stage", "Stage")
         };
 
         private static readonly string DefaultBeatmapScene = "TrainStationRhythm";

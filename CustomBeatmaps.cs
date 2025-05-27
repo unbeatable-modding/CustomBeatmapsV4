@@ -26,9 +26,9 @@ namespace CustomBeatmaps
     [BepInPlugin(modGUID, modName, modVer)]
     public class CustomBeatmaps : BaseUnityPlugin
     {
-        private const string modGUID = "gold-me.unbeatable.custombeatmaps";
-        private const string modName = "Custom Beatmaps V4";
-        private const string modVer = "4.1.4";
+        private const string modGUID = PluginInfo.PLUGIN_GUID;
+        private const string modName = PluginInfo.PLUGIN_NAME;
+        private const string modVer = PluginInfo.PLUGIN_VERSION;
 
         internal static new ManualLogSource Log;
 
@@ -136,7 +136,7 @@ namespace CustomBeatmaps
                 typeof(DisableRewiredMouseInputPatch),
                 typeof(ArcadeOverridesPatch),
                 typeof(AudioPatch),
-                typeof(ChaboButtonPatch)
+                typeof(ChaboButtonPatch),
             };
             foreach (var toPatch in classesToPatch)
             {

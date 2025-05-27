@@ -22,7 +22,8 @@ namespace CustomBeatmaps.Util
                 bmap.RealDifficulty,
                 null,
                 bmap.Level,
-                bmap.FlavorText
+                bmap.FlavorText,
+                bmap.Attributes
             );
         }
 
@@ -104,7 +105,9 @@ namespace CustomBeatmaps.Util
                         string creatorRight = right.PkgSongs.Select(map => map.Creator).OrderBy(x => x).Join();
                         return String.CompareOrdinal(creatorLeft, creatorRight);
                     case SortMode.Downloaded:
-                        return 1.CompareTo(1); // um
+                        nameL = GetLocalPackageName(left);
+                        nameR = GetLocalPackageName(right);
+                        return String.CompareOrdinal(nameL, nameR); ; // um
                     default:
                         throw new ArgumentOutOfRangeException(nameof(sortMode), sortMode, null);
                 }
@@ -129,6 +132,38 @@ namespace CustomBeatmaps.Util
                     bmap.Name,
                     bmap.Artist,
                     bmap.Creator,
+                    bmap.Difficulty
+                };
+                foreach (var possibleMatch in possibleMatches)
+                {
+                    string toCheck = caseSensitive
+                        ? possibleMatch
+                        : possibleMatch.ToLower();
+                    if (toCheck.Contains(filterQuery))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool PackageMatchesFilter(CustomLocalPackage serverPackage, string filterQuery)
+        {
+            if (string.IsNullOrEmpty(filterQuery))
+            {
+                return true;
+            }
+
+            bool caseSensitive = filterQuery.ToLower() != filterQuery;
+            foreach (var bmap in serverPackage.PkgSongs.SelectMany(s => s.CustomBeatmaps).ToList())
+            {
+                string[] possibleMatches = new[]
+                {
+                    bmap.SongName,
+                    bmap.Artist,
+                    bmap.BeatmapCreator,
                     bmap.Difficulty
                 };
                 foreach (var possibleMatch in possibleMatches)

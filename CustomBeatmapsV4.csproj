@@ -3,8 +3,11 @@
   <PropertyGroup>
 	<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <TargetFramework>netstandard2.1</TargetFramework>
-	<PackageId>CustomBeatmaps</PackageId>
+	<AssemblyName>unbeatablethings.unbeatableDemo.CustomBeatmapsV4</AssemblyName>
+	<Product>Custom Beatmaps V4</Product>
+	<Version>4.1.4</Version>
 	<RootNamespace>CustomBeatmaps</RootNamespace>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<LangVersion>latest</LangVersion>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
@@ -12,18 +15,18 @@
 	  <GamePath>C:\Program Files (x86)\Steam\steamapps\common\UNBEATABLE Demo</GamePath>
 	  
 	  <ManagedPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed</ManagedPath>
-	  <PostBuildEvent>copy CustomBeatmapsV4.dll "$(GamePath)\BepInEx\plugins\CustomBeatmapsV4\CustomBeatmapsV4.dll"</PostBuildEvent>
+	  <PostBuildEvent>copy $(AssemblyName).dll "$(GamePath)\BepInEx\plugins\CustomBeatmapsV4\$(Product).dll"</PostBuildEvent>
   </PropertyGroup>
-
+	
   <ItemGroup>
-      <Reference Include="0Harmony">
-        <HintPath>$(GamePath)\BepInEx\core\0Harmony.dll</HintPath>
-      </Reference>
       <Reference Include="Assembly-CSharp">
         <HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath>
       </Reference>
-      <Reference Include="BepInEx">
-        <HintPath>$(GamePath)\BepInEx\core\BepInEx.dll</HintPath>
+      <Reference Include="Assembly-CSharp-firstpass">
+        <HintPath>$(ManagedPath)\Assembly-CSharp-firstpass.dll</HintPath>
+      </Reference>
+      <Reference Include="BepInEx.Preloader">
+        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\UNBEATABLE Demo\BepInEx\core\BepInEx.Preloader.dll</HintPath>
       </Reference>
       <Reference Include="DOTween">
         <HintPath>$(ManagedPath)\DOTween.dll</HintPath>
@@ -40,43 +43,21 @@
       <Reference Include="Unity.TextMeshPro">
         <HintPath>$(ManagedPath)\Unity.TextMeshPro.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine">
-        <HintPath>$(ManagedPath)\UnityEngine.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.CoreModule">
-        <HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ImageConversionModule">
-        <HintPath>$(ManagedPath)\UnityEngine.ImageConversionModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.IMGUIModule">
-        <HintPath>$(ManagedPath)\UnityEngine.IMGUIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputLegacyModule">
-        <HintPath>$(ManagedPath)\UnityEngine.InputLegacyModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputModule">
-        <HintPath>$(ManagedPath)\UnityEngine.InputModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.JSONSerializeModule">
-        <HintPath>$(ManagedPath)\UnityEngine.JSONSerializeModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TextCoreFontEngineModule">
-        <HintPath>$(ManagedPath)\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TextCoreTextEngineModule">
-        <HintPath>$(ManagedPath)\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TextRenderingModule">
-        <HintPath>$(ManagedPath)\UnityEngine.TextRenderingModule.dll</HintPath>
-      </Reference>
       <Reference Include="UnityEngine.UI">
         <HintPath>$(ManagedPath)\UnityEngine.UI.dll</HintPath>
       </Reference>
+
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+		<PackageReference Include="BepInEx.Core" Version="5.*" />
+		<PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+		<PackageReference Include="UnityEngine.Modules" Version="2022.3.41" IncludeAssets="compile" />
 		<PackageReference Include="Pri.LongPath" Version="2.0.53" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
 	</ItemGroup>
 </Project>

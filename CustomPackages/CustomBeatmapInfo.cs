@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Arcade.UI;
 using Arcade.UI.SongSelect;
 using CustomBeatmaps.Util;
@@ -51,7 +52,15 @@ namespace CustomBeatmaps.CustomPackages
         public TagData Tags;
         public int Level => Tags.Level;
         public string FlavorText => Tags.FlavorText;
-        public string[] Attributes => Tags.Attributes;
+        public Dictionary<string, bool> Attributes
+        {
+            get
+            {
+                if (Tags.Attributes == null)
+                    Tags.Attributes = new();
+                return Tags.Attributes;
+            }
+        }
 
         public CustomBeatmapInfo(TextAsset textAsset, string difficulty, string artist,
             string beatmapCreator, string name, string songName, string realDifficulty, string osuPath, Category category, CustomSongInfo song) : base(textAsset, difficulty)
@@ -86,6 +95,9 @@ namespace CustomBeatmaps.CustomPackages
             return $"{{{SongName} by {Artist} ({RealDifficulty}) mapped {BeatmapCreator} ({Path})}}";
         }
 
+        
+
+
         public struct TagData
         {
             public int Level;
@@ -94,7 +106,7 @@ namespace CustomBeatmaps.CustomPackages
 
             public float SongLength;
 
-            public string[] Attributes;
+            public Dictionary<string, bool> Attributes;
         }
     }
 }

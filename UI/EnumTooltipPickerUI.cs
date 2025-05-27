@@ -36,5 +36,6 @@ namespace CustomBeatmaps.UI
         {
             Render(tab, setTab, null);
         }
+
     }
 }

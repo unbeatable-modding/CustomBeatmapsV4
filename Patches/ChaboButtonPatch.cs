@@ -86,7 +86,7 @@ namespace CustomBeatmaps.Patches
 
             if (songPreviewInstance.isValid())
             {
-                if (item != null && item.Path == currentItem.Path)
+                if (item != null && item.Song == currentItem.Song || item.Path == currentItem.Path)
                     return false;
             }
             return true;

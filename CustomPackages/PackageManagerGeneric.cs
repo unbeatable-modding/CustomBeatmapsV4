@@ -18,7 +18,7 @@ namespace CustomBeatmaps.CustomPackages
     /// <summary>
     /// Manages Local packages in the USER_PACKAGES or SERVER_PACKAGES directory
     /// </summary>
-    public class LocalPackageManager
+    public class PackageManagerGeneric
     {
         public Action<CustomLocalPackage> PackageUpdated;
 
@@ -30,7 +30,6 @@ namespace CustomBeatmaps.CustomPackages
         private readonly Queue<string> _loadQueue = new Queue<string>();
 
         private string _folder;
-        public string Folder => _folder;
         private int _category;
         private FileSystemWatcher _watcher;
 
@@ -42,7 +41,7 @@ namespace CustomBeatmaps.CustomPackages
             public int Total;
         }
 
-        public LocalPackageManager(Action<BeatmapException> onLoadException)
+        public PackageManagerGeneric(Action<BeatmapException> onLoadException)
         {
             _onLoadException = onLoadException;
         }
@@ -83,7 +82,7 @@ namespace CustomBeatmaps.CustomPackages
 
         private void UpdatePackage(string folderPath)
         {
-            // Remove old package if there was one and update
+            // Remove old package if there was one then update
             lock (_packages)
             {
                 int toRemove = _packages.FindIndex(check => check.FolderName == folderPath);
@@ -98,10 +97,6 @@ namespace CustomBeatmaps.CustomPackages
                 ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
                 lock (_packages)
                 {
-                    // Remove old package if there was one and update
-                    //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
-                    //if (toRemove != -1)
-                    //    _packages.RemoveAt(toRemove);
                     _packages.Add(package);
                     lock (_downloadedFolders)
                     {
@@ -228,7 +223,7 @@ namespace CustomBeatmaps.CustomPackages
             folder = Path.GetFullPath(folder);
             if (folder == _folder)
                 return;
-            
+
             _folder = folder;
             _category = category;
 
@@ -282,15 +277,15 @@ namespace CustomBeatmaps.CustomPackages
                     {
                         await Task.Delay(400);
                         RefreshQueuedPackages();
-                        
+
                     }).ContinueWith(task => ScheduleHelper.SafeInvoke(() => {
                         _loadQueue.Clear();
                         ArcadeHelper.ReloadArcadeList();
                     }));
-                    
+
                 }
             }
-            
+
         }
 
         private void RefreshQueuedPackages()

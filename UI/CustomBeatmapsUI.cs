@@ -1,6 +1,8 @@
 ﻿
 using System;
+using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.Patches;
+using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
 using FMOD;
 using UnityEngine;
@@ -11,6 +13,10 @@ namespace CustomBeatmaps.UI
 {
     public static class CustomBeatmapsUI
     {
+        private static AbstractPackageList DevPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
+        private static AbstractPackageList LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
+        private static AbstractPackageList OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
+
         public static void Render()
         {
             /*
@@ -36,7 +42,8 @@ namespace CustomBeatmaps.UI
                     OnlinePackageListUI.Render(() => RenderListTop(tab, setTab));
                     break;
                 case Tab.Local:
-                    LocalPackageListUI.Render(() => RenderListTop(tab, setTab));
+                    LocalPackageList.Render(() => RenderListTop(tab, setTab));
+                    //LocalPackageListUI.Render(() => RenderListTop(tab, setTab));
                     break;
                     /*
                 case Tab.Submissions:
@@ -44,8 +51,12 @@ namespace CustomBeatmaps.UI
                     break;
                     */
                 case Tab.Osu:
-                    OSUPackageListUI.Render(() => RenderListTop(tab, setTab));
+                    OsuPackageList.Render(() => RenderListTop(tab, setTab));
+                    //OSUPackageList.Render(() => RenderListTop(tab, setTab));
                     break;
+                //case Tab.Dev:
+                //    DevPackageList.Render(() => RenderListTop(tab, setTab));
+                //    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -95,6 +106,8 @@ namespace CustomBeatmaps.UI
                         */
                     case Tab.Osu:
                         return "OSU!";
+                    //case Tab.Dev:
+                    //    return "DEV";
                     default:
                         throw new ArgumentOutOfRangeException(nameof(tabName), tabName, null);
                 }

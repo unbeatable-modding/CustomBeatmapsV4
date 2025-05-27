@@ -116,7 +116,8 @@ namespace CustomBeatmaps.UI
                         bmap.Difficulty,
                         null,
                         bmap.Level,
-                        bmap.FlavorText
+                        bmap.FlavorText,
+                        new()
                     ));
                 }
 

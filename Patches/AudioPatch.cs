@@ -14,6 +14,7 @@ using Directory = Pri.LongPath.Directory;
 using static Rhythm.BeatmapIndex;
 using Arcade.UI;
 using FMOD;
+using System.Linq;
 
 namespace CustomBeatmaps.Patches
 {
@@ -42,7 +43,7 @@ namespace CustomBeatmaps.Patches
             }
             return true;
         }
-        
+
         [HarmonyPatch(typeof(ArcadeBGMManager), "OnProgrammerSoundCreated")]
         [HarmonyPostfix]
         public static void MadeSound(PROGRAMMER_SOUND_PROPERTIES properties)
