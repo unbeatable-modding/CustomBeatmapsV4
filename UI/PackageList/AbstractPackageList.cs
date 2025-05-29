@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text.RegularExpressions;
 using Arcade.UI;
 using CustomBeatmaps.CustomPackages;
@@ -17,18 +18,17 @@ using static CustomBeatmaps.Util.ArcadeHelper;
 
 namespace CustomBeatmaps.UISystem
 {
-    public abstract class AbstractPackageList
+    public abstract class AbstractPackageList<TManager, TPackage, TBeatmap> 
+        where TManager : IPackageInterface<CustomLocalPackage>
+        where TPackage : ICustomPackage<TBeatmap>
+        where TBeatmap : ICustomBeatmap
     {
-        
-        protected object Manager;
+        protected TManager Manager;
+
         protected List<CustomLocalPackage> _localPackages;
-        protected List<CustomLocalPackage> LocalPackages => (List<CustomLocalPackage>)Manager.GetType().GetProperty("Packages").GetValue(Manager, null);
-        protected string Folder => (string)Manager.GetType().GetProperty("Folder").GetValue(Manager, null);
-        protected InitialLoadStateData LoadState => (InitialLoadStateData)Manager.GetType().GetProperty("InitialLoadState").GetValue(Manager, null);
-
-
-        protected List<PackageHeader> Packages;
-        protected Action ReloadPackages;
+        protected List<CustomLocalPackage> LocalPackages => Manager.Packages;
+        protected string Folder => Manager.Folder;        
+        protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
         protected int _selectedPackageIndex = 0;
         protected int SelectedPackageIndex => _selectedPackageIndex;
@@ -43,164 +43,108 @@ namespace CustomBeatmaps.UISystem
         protected Action<SortMode> SetSortMode;
 
         protected List<BeatmapHeader> _selectedBeatmaps;
-        protected CustomBeatmapInfo _selectedBeatmap;
-        protected CustomLocalPackage _selectedPackage;
+        protected TBeatmap _selectedBeatmap;
+        protected TPackage _selectedPackage;
 
-        protected List<PackageHeader> _pkgHeaders;
+        protected List<PackageHeader> _pkgHeaders = new();
+        //protected Dictionary<PackageHeader, TPackage> _pkgHeadersMap;
 
         protected Action LeftRender;
         protected Action[] RightRenders;
-        private static string _searchQuery;
+        protected string _searchQuery;
 
-        private void Init()
+        public AbstractPackageList(TManager manager)
         {
+            Manager = manager;
+            Init(manager);
+        }
+
+        protected virtual void Init(TManager manager)
+        {
+            Manager.PackageUpdated += package =>
+            {
+                Reload(true);
+            };
+
             Fallbacks();
 
             // Action Setup
             SetSelectedPackageIndex = (val) => {
                 _selectedPackageIndex = val;
-                ReloadPackages?.Invoke();
+                MapPackages();
             };
-            SetSelectedBeatmapIndex = (val) => _selectedBeatmapIndex = val;
 
-            ReloadPackages = () => {
-                _localPackages = LocalPackages;
-                Load();
+            SetSelectedBeatmapIndex = (val) => {
+                _selectedBeatmapIndex = val;
+                MapPackages();
             };
 
             SetSortMode = (val) => {
                 _sortMode = val;
-                var pkg = _selectedPackage;
-                _localPackages = LocalPackages;
-                UIConversionHelper.SortLocalPackages(_localPackages, _sortMode);
-                RegenerateHeaders();
+                Reload(true);
+            };
+            
+            Reload(false);
+        }
+
+        // Load stuff
+        public virtual void Reload(bool retain)
+        {
+            var pkg = _selectedPackage;
+            _localPackages = LocalPackages;
+            SortPackages();
+            RegenerateHeaders();
+
+            // Try to keep the same package selected when retain is true
+            if (retain)
+            {
                 var packages = _pkgHeaders.Select(h => h.Package).ToList();
                 if (packages.Contains(pkg))
                 {
                     SetSelectedPackageIndex(packages.IndexOf(pkg));
                     return;
                 }
-                ReloadPackages?.Invoke();
-            };
-            
-            ReloadPackages?.Invoke();
-            
-        }
-
-        public AbstractPackageList(object manager)
-        {
-            Manager = manager;
-            _localPackages = LocalPackages;
-
-            if (manager is LocalPackageManager pkgManager)
-            {
-                pkgManager.PackageUpdated += package =>
-                {
-                    var pkg = _selectedPackage;
-                    _localPackages = LocalPackages;
-                    UIConversionHelper.SortLocalPackages(_localPackages, _sortMode);
-                    if (_localPackages.IndexOf(pkg) != -1)
-                        SetSelectedPackageIndex(_localPackages.IndexOf(pkg));
-                    else
-                        ReloadPackages?.Invoke();
-                };
-            }
-            else if (manager is CustomPackageHandler pkgHandler)
-            {
-                pkgHandler.PackageUpdated += package =>
-                {
-                    var pkg = _selectedPackage;
-                    _localPackages = LocalPackages;
-                    UIConversionHelper.SortLocalPackages(_localPackages, _sortMode);
-                    if (_localPackages.IndexOf(pkg) != -1)
-                        SetSelectedPackageIndex(_localPackages.IndexOf(pkg));
-                    else
-                        ReloadPackages?.Invoke();
-                };
             }
 
-            Init();
-            
-        }
-
-        public void Render(Action onRenderAboveList)
-        {
-
-            var loadState = LoadState;
-            if (loadState.Loading)
+            if (SelectedPackageIndex > _pkgHeaders.Count)
             {
-                float p = (float)loadState.Loaded / loadState.Total;
-                ProgressBarUI.Render(p, $"Loaded {loadState.Loaded} / {loadState.Total}", GUILayout.ExpandWidth(true), GUILayout.Height(32));
-                return;
-            }
-
-            // No packages?
-
-            if (_localPackages.Count == 0)
-            {
-                onRenderAboveList();
-                RenderSearchbar();
-                GUILayout.Label($"No Packages Found in {Folder}");
-                return;
-            }
-
-            // Clamp packages to fit in the event of package list changing while the UI is open
-            if (SelectedPackageIndex > _localPackages.Count)
-                SetSelectedPackageIndex(_localPackages.Count - 1);
-
-            // Preview audio
-            var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.Path);
-            BGM.PlaySongPreview(previewsong);
-                
-
-            // Render
-            onRenderAboveList();
-            LeftRender();
-
-            // Render Right Info
-            PackageInfoUI.Render(RightRenders[0], RightRenders[1], RightRenders[2]);
-
-            GUILayout.EndHorizontal();
-        }
-
-        protected abstract void Load();
-
-        protected void LoadDefault()
-        {
-
-            UIConversionHelper.SortLocalPackages(_localPackages, SortMode);
-
-            //_selectedPackage = _localPackages[SelectedPackageIndex];
-
-            // Map local packages -> package header
-
-            RegenerateHeaders();
-
-            //_selectedPackage = _localPackages[SelectedPackageIndex];
-            if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomLocalPackage)_pkgHeaders.ToArray()[SelectedPackageIndex].Package;
-
-            _selectedBeatmaps =
-                UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
-            if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
-            {
-                SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
+                return;
             }
 
-            _selectedBeatmap = _selectedPackage.PkgSongs.SelectMany(s => s.CustomBeatmaps).ToArray()[SelectedBeatmapIndex];
+            MapPackages();
+        }
+        protected abstract void SortPackages();
+        protected virtual void RegenerateHeaders()
+        {
+            var headers = new List<PackageHeader>(_localPackages.Count);
+            //var headersMap = new Dictionary<PackageHeader, TPackage>(_localPackages.Count);
+            foreach (CustomLocalPackage p in _localPackages)
+            {
+
+                if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
+                    continue;
+
+                var toAdd = new PackageHeader(package: p);
+                headers.Add(toAdd);
+                //headersMap.Add(toAdd, p);
+            }
+
+            _pkgHeaders = headers;
+            //_pkgHeadersMap = headersMap;
         }
 
-        private void RenderSearchbar()
+        protected abstract void MapPackages();
+        protected virtual void RenderSearchbar()
         {
             Searchbar.Render(_searchQuery, searchTextInput =>
             {
                 _searchQuery = searchTextInput;
-                SetSortMode(SortMode);
+                Reload(true);
 
             });
         }
-        private void Fallbacks()
+        protected void Fallbacks()
         {
             LeftRender = () =>
             {
@@ -226,45 +170,56 @@ namespace CustomBeatmaps.UISystem
                 {
                     PackageBeatmapPickerUI.Render(_selectedBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
 
-                    if (PlayButtonUI.Render("Play", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.RealDifficulty}"))
+                    if (PlayButtonUI.Render("Play", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                     {
                         // Play a local beatmap
                         CustomBeatmaps.PlayedPackageManager.RegisterPlay(_selectedPackage.FolderName);
-                        PlaySong(_selectedBeatmap);
+                        RunSong();
                     }
                 }
             ];
         }
-
-        protected void RegenerateHeaders()
+        protected abstract void RunSong();
+        public virtual void Render(Action onRenderAboveList)
         {
-            List<PackageHeader> headers = new List<PackageHeader>(_localPackages.Count);
-            int packageIndex = -1;
-            foreach (var p in _localPackages)
+            var loadState = LoadState;
+            if (loadState.Loading)
             {
-                ++packageIndex;
-                // Get unique song count
-                HashSet<string> songs = new HashSet<string>();
-                HashSet<string> names = new HashSet<string>();
-                HashSet<string> creators = new HashSet<string>();
-                foreach (CustomBeatmapInfo bmap in p.PkgSongs.SelectMany(s => s.CustomBeatmaps))
-                {
-                    songs.Add(bmap.InternalName);
-                    names.Add(bmap.SongName);
-                    creators.Add(bmap.BeatmapCreator);
-                }
-
-                if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
-                    continue;
-
-                string creator = creators.Join(x => x, " | ");
-                string name = names.Join(x => x, ", ");
-
-                bool isNew = false;
-                headers.Add(new PackageHeader(name, songs.Count, p.PkgSongs.SelectMany(s => s.Beatmaps).Count(), creator, isNew, BeatmapDownloadStatus.Downloaded, packageIndex, p));
+                float p = (float)loadState.Loaded / loadState.Total;
+                ProgressBarUI.Render(p, $"Loaded {loadState.Loaded} / {loadState.Total}", GUILayout.ExpandWidth(true), GUILayout.Height(32));
+                return;
             }
 
-            _pkgHeaders = headers;
+            // No packages?
+
+            if (_pkgHeaders.Count == 0)
+            {
+                onRenderAboveList();
+                RenderSearchbar();
+                GUILayout.Label($"No Packages Found in {Folder}");
+                return;
+            }
+
+            // Clamp packages to fit in the event of package list changing while the UI is open
+            if (SelectedPackageIndex > _pkgHeaders.Count)
+                SetSelectedPackageIndex(_pkgHeaders.Count - 1);
+
+            // Preview audio
+            if (_selectedBeatmap.SongPath != null)
+            {
+                var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
+                BGM.PlaySongPreview(previewsong);
+            }
+
+
+            // Render
+            onRenderAboveList();
+            LeftRender();
+
+            // Render Right Info
+            PackageInfoUI.Render(RightRenders[0], RightRenders[1], RightRenders[2]);
+
+            GUILayout.EndHorizontal();
         }
     }
 }

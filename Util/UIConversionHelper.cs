@@ -43,7 +43,7 @@ namespace CustomBeatmaps.Util
 
         private static string GetServerPackageName(CustomServerPackage package)
         {
-            return package.Beatmaps.Join(beatmap => beatmap.Value.Name, " | ");
+            return package.Beatmaps.Join(beatmap => beatmap.Value.SongName, " | ");
         }
         private static string GetLocalPackageName(CustomLocalPackage package)
         {
@@ -129,7 +129,7 @@ namespace CustomBeatmaps.Util
                 string[] possibleMatches = new[]
                 {
                     bmapName,
-                    bmap.Name,
+                    bmap.SongName,
                     bmap.Artist,
                     bmap.Creator,
                     bmap.Difficulty
@@ -180,5 +180,6 @@ namespace CustomBeatmaps.Util
 
             return false;
         }
+
     }
 }

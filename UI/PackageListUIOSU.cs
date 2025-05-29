@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI.PackageList;
@@ -9,12 +10,12 @@ using UnityEngine;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOSU : AbstractPackageList
+    public class PackageListUIOSU : AbstractPackageList<LocalPackageManager, CustomLocalPackage, LocalCustomBeatmap>
     {
         private static bool _overrideCountdown = true;
         public PackageListUIOSU(LocalPackageManager pkgManager) : base(pkgManager)
         {
-
+            //Manager2 = new PkgTransformer<object>(pkgManager, (pkgManager).Folder, (pkgManager).Packages);
             RightRenders = [
                 () =>
                     {
@@ -27,7 +28,7 @@ namespace CustomBeatmaps.UI
                                        "2) It should appear in this screen at the top. Open to test it.\n" +
                                        "3) While testing, the beatmap should automatically reload when you make changes and save in OSU"
                             );
-                        MetadataUI.Render(_selectedBeatmap);
+                        MetadataUI.Render(_selectedBeatmap.Beatmap);
                     },
                     () =>
                     {
@@ -43,17 +44,57 @@ namespace CustomBeatmaps.UI
                         {
                             // Play a local beatmap
                             var package = _localPackages[SelectedPackageIndex];
-                            ArcadeHelper.PlaySongEdit(_selectedBeatmap, _overrideCountdown);
+                            RunSong();
                         }
                     }
             ];
 
         }
 
-        protected override void Load()
+        protected override void RegenerateHeaders()
         {
-            LoadDefault();
-            _pkgHeaders.ForEach(p => p.New = false);
+            var headers = new List<PackageHeader>(_localPackages.Count);
+            var headersMap = new Dictionary<PackageHeader, CustomLocalPackage>(_localPackages.Count);
+            foreach (var p in _localPackages)
+            {
+
+                if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
+                    continue;
+
+                var toAdd = new PackageHeader(p, false);
+                headers.Add(toAdd);
+                headersMap.Add(toAdd, p);
+            }
+
+            _pkgHeaders = headers;
+            //_pkgHeadersMap = headersMap;
         }
+
+        protected override void SortPackages()
+        {
+            UIConversionHelper.SortLocalPackages(_localPackages, SortMode);
+        }
+
+        protected override void MapPackages()
+        {
+            if (SelectedPackageIndex >= _pkgHeaders.Count)
+                SetSelectedPackageIndex(_pkgHeaders.Count - 1);
+            _selectedPackage = (CustomLocalPackage)_pkgHeaders[SelectedPackageIndex].Package;
+
+            _selectedBeatmaps =
+                UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
+            if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
+            {
+                SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
+            }
+
+            _selectedBeatmap = _selectedPackage.CustomBeatmaps[SelectedBeatmapIndex];
+        }
+
+        protected override void RunSong()
+        {
+            ArcadeHelper.PlaySongEdit(_selectedBeatmap.Beatmap, _overrideCountdown);
+        }
+
     }
 }

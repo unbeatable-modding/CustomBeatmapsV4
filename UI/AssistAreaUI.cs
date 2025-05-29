@@ -34,7 +34,9 @@ namespace CustomBeatmaps.UI
             if (newSongSpeed != -1 && prevSongSpeed != newSongSpeed)
             {
                 JeffBezosController.SetSongSpeed(newSongSpeed);
-                FileStorage.profile.SaveBeatmapOptions();
+                FileStorage.SaveOptions();
+                //FileStorage.profile.SaveBeatmapOptions();
+                ArcadeHelper.BGM.StopSongPreview();
             }
 
             GUILayout.BeginHorizontal();

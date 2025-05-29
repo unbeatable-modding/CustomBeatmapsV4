@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using static Rhythm.BeatmapIndex;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
+using Rewired.Utils.Classes.Data;
 
 namespace CustomBeatmaps
 {
@@ -196,7 +197,6 @@ namespace CustomBeatmaps
                 GameMemory.Save(MEMORY_LOCATION, Memory);
             _quitted = true;
         }
-
 
     }
 }

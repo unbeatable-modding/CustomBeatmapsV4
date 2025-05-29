@@ -124,5 +124,17 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
 
+        public List<LocalCustomBeatmap> CustomBeatmaps2
+        {
+            get
+            {
+                var beatmaps = new List<LocalCustomBeatmap>();
+                foreach (CustomBeatmapInfo b in Beatmaps.Values)
+                {
+                    beatmaps.Add(b.Info);
+                }
+                return beatmaps;
+            }
+        }
     }
 }

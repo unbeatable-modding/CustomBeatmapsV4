@@ -4,16 +4,13 @@ using System.Linq;
 using System.Text;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.Util;
-using Unity.Loading;
-using static CustomBeatmaps.CustomPackages.LocalPackageManager;
-
 namespace CustomBeatmaps.CustomPackages
 {
-    public class CustomPackageHandler
+    public class CustomPackageHandler : IPackageInterface<CustomLocalPackage>
     {
         protected List<LocalPackageManager> Managers;
 
-        public Action<CustomLocalPackage> PackageUpdated;
+        public Action<CustomLocalPackage> PackageUpdated { get; set; }
 
         public CustomPackageHandler(List<LocalPackageManager> managers)
         {
@@ -42,8 +39,6 @@ namespace CustomBeatmaps.CustomPackages
                 return string.Join(", ", Managers.Select(m => m.Folder));
             }
         }
-
-
         public InitialLoadStateData InitialLoadState
         {
             get

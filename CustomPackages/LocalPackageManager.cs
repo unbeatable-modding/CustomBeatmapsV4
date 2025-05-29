@@ -18,9 +18,9 @@ namespace CustomBeatmaps.CustomPackages
     /// <summary>
     /// Manages Local packages in the USER_PACKAGES or SERVER_PACKAGES directory
     /// </summary>
-    public class LocalPackageManager
+    public class LocalPackageManager : IPackageInterface<CustomLocalPackage>
     {
-        public Action<CustomLocalPackage> PackageUpdated;
+        public Action<CustomLocalPackage> PackageUpdated { get; set; }
 
         private readonly List<CustomLocalPackage> _packages = new List<CustomLocalPackage>();
         private readonly HashSet<string> _downloadedFolders = new HashSet<string>();
@@ -35,12 +35,6 @@ namespace CustomBeatmaps.CustomPackages
         private FileSystemWatcher _watcher;
 
         public InitialLoadStateData InitialLoadState { get; private set; } = new InitialLoadStateData();
-        public class InitialLoadStateData
-        {
-            public bool Loading;
-            public int Loaded;
-            public int Total;
-        }
 
         public LocalPackageManager(Action<BeatmapException> onLoadException)
         {

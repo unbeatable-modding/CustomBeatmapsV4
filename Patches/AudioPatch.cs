@@ -46,7 +46,7 @@ namespace CustomBeatmaps.Patches
 
         [HarmonyPatch(typeof(ArcadeBGMManager), "OnProgrammerSoundCreated")]
         [HarmonyPostfix]
-        public static void MadeSound(PROGRAMMER_SOUND_PROPERTIES properties)
+        public static void MadeSound(ref PROGRAMMER_SOUND_PROPERTIES properties)
         {
             var sound = new Sound(properties.sound);
             var getLength = sound.getLength(out var length, TIMEUNIT.MS);
@@ -57,7 +57,7 @@ namespace CustomBeatmaps.Patches
             if (sound.getLength(out length, TIMEUNIT.MS) == RESULT.OK && length > 0)
             {
                 AccessTools.PropertySetter(typeof(ArcadeBGMManager), nameof(ArcadeBGMManager.SongDuration))
-                    .Invoke(null, new object[] { (float)length / 1000f });
+                    .Invoke(null, new object[] { ((float)length / 1000f ) + 0.5f }); // extra half second so looping is not weird
             }
         }
 

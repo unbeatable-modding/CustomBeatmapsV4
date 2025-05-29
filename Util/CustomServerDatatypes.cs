@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CustomBeatmaps.Util
@@ -8,14 +9,15 @@ namespace CustomBeatmaps.Util
     {
         [JsonProperty("packages")]
         public CustomServerPackage[] Packages;
-
+        /*
         public override string ToString()
         {
             return string.Join(",\n", Packages);
         }
+        */
     }
 
-    public struct CustomServerPackage
+    public class CustomServerPackage : ICustomPackage<CustomServerBeatmap>
     {
         [JsonProperty("filePath")]
         public string ServerURL;
@@ -23,6 +25,10 @@ namespace CustomBeatmaps.Util
         public DateTime UploadTime;
         [JsonProperty("beatmaps")]
         public Dictionary<string, CustomServerBeatmap> Beatmaps;
+
+        public string FolderName { get; set; }
+        public CustomServerBeatmap[] CustomBeatmaps => Beatmaps.Values.ToArray();
+
         public override string ToString()
         {
             return $"{{[{string.Join(", ", Beatmaps)}] at {ServerURL} on {UploadTime}}}";
@@ -34,26 +40,28 @@ namespace CustomBeatmaps.Util
         }
     }
 
-    public struct CustomServerBeatmap
+    public class CustomServerBeatmap : ICustomBeatmap
     {
         [JsonProperty("name")]
-        public string Name;
+        public string SongName { get; set; }
         [JsonProperty("artist")]
-        public string Artist;
+        public string Artist { get; set; }
         [JsonProperty("creator")]
-        public string Creator;
+        public string Creator { get; set; }
         [JsonProperty("difficulty")]
-        public string Difficulty;
+        public string Difficulty { get; set; }
         [JsonProperty("audioFileName")]
-        public string AudioFileName;
+        public string AudioFileName { get; set; }
         [JsonProperty("level")]
-        public int Level;
+        public int Level { get; set; }
         [JsonProperty("flavorText")]
-        public string FlavorText;
+        public string FlavorText { get; set; }
+
+        public string SongPath => null;
 
         public override string ToString()
         {
-            return $"{{{Name} ({Difficulty}) by {Artist}: mapped by {Creator}}}";
+            return $"{{{SongName} ({Difficulty}) by {Artist}: mapped by {Creator}}}";
         }
     }
 

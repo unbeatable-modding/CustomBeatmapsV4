@@ -16,6 +16,9 @@ using FMODUnity;
 using CustomBeatmaps.Patches;
 
 using static Rhythm.BeatmapIndex;
+using File = Pri.LongPath.File;
+using CustomBeatmaps.UI;
+using RJBuildScripts;
 
 namespace CustomBeatmaps.Util
 {
@@ -30,6 +33,7 @@ namespace CustomBeatmaps.Util
         private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
         private static List<Song> songList = new();
 
+        //static OsuBeatmapHotLoader HotLoader = new OsuBeatmapHotLoader();
         public static CustomBeatmapRoom[] Rooms
         {
             get
@@ -53,7 +57,8 @@ namespace CustomBeatmaps.Util
             //new CustomBeatmapRoom("Offset Wizard", "OffsetWizard")
         };
         private static readonly CustomBeatmapRoom[] ExtraRooms = {
-            new CustomBeatmapRoom("Stage", "Stage")
+            new CustomBeatmapRoom("Stage", "Stage"),
+            new CustomBeatmapRoom("Beatball?", "C2_BattingCage_Minigame")
         };
 
         private static readonly string DefaultBeatmapScene = "TrainStationRhythm";
@@ -172,6 +177,8 @@ namespace CustomBeatmaps.Util
             OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.OsuPath, beatmap.Path);
             PlaySong(beatmap, DefaultBeatmapScene);
         }
+
+
 
         // CUSTOMBEATMAPS V3 STUFF TO CHANGE LATER BELOW
 

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using CustomBeatmaps.CustomPackages;
+using CustomBeatmaps.Util;
+using HarmonyLib;
 
 namespace CustomBeatmaps.UI
 {
@@ -9,7 +11,7 @@ namespace CustomBeatmaps.UI
     public enum Tab
     {
         //Online, Local, Submissions, Osu
-        Online, Local, Osu
+        Online, Local, Osu, Dev
     }
 
     public enum SortMode
@@ -23,7 +25,7 @@ namespace CustomBeatmaps.UI
         public int SongCount;
         public int MapCount;
         public string Creator;
-        public bool New;
+        public bool New { get; set; }
         public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.
         public int PackageIndex; // Also kind of jank but whatever it's book-keeping
         public int Level;
@@ -38,6 +40,95 @@ namespace CustomBeatmaps.UI
             New = @new;
             DownloadStatus = downloadStatus;
             PackageIndex = packageIndex;
+            Package = package;
+        }
+
+        public PackageHeader(CustomLocalPackage package)
+        {
+            ConvertLocal(package);
+        }
+
+        public PackageHeader(CustomLocalPackage package, bool @new)
+        {
+            ConvertLocal(package);
+            New = @new;
+        }
+
+        private void ConvertLocal(CustomLocalPackage package)
+        {
+            var songs = new HashSet<string>();
+            var names = new HashSet<string>();
+            var creators = new HashSet<string>();
+            var beatmaps = 0;
+            foreach (CustomBeatmapInfo bmap in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
+            {
+                songs.Add(bmap.InternalName);
+                names.Add(bmap.SongName);
+                creators.Add(bmap.BeatmapCreator);
+                beatmaps++;
+            }
+
+            var creator = creators.Join(x => x, " | ");
+            var name = names.Join(x => x, ", ");
+            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.FolderName);
+
+            Name = name;
+            SongCount = songs.Count;
+            MapCount = beatmaps;
+            Creator = creator;
+            New = isNew;
+            DownloadStatus = BeatmapDownloadStatus.Downloaded;
+            Package = package;
+        }
+    }
+
+    public struct NewPackageHeader
+    {
+        public string Name;
+        public int SongCount;
+        public int MapCount;
+        public string Creator;
+        public bool New;
+        public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.
+        public int Level;
+        public object Package;
+
+        public NewPackageHeader(string name, int songCount, int mapCount, string creator, bool @new, BeatmapDownloadStatus downloadStatus, int packageIndex, object package = null)
+        {
+            Name = name;
+            SongCount = songCount;
+            MapCount = mapCount;
+            Creator = creator;
+            New = @new;
+            DownloadStatus = downloadStatus;
+            Package = package;
+        }
+
+        public NewPackageHeader(CustomLocalPackage package)
+        {
+            var songs = new HashSet<string>();
+            var names = new HashSet<string>();
+            var creators = new HashSet<string>();
+            var beatmaps = 0;
+            foreach (CustomBeatmapInfo bmap in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
+            {
+                songs.Add(bmap.InternalName);
+                names.Add(bmap.SongName);
+                creators.Add(bmap.BeatmapCreator);
+                beatmaps++;
+            }
+
+            var creator = creators.Join(x => x, " | ");
+            var name = names.Join(x => x, ", ");
+            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.FolderName);
+
+            
+            Name = name;
+            SongCount = songs.Count;
+            MapCount = beatmaps;
+            Creator = creator;
+            New = isNew;
+            DownloadStatus = BeatmapDownloadStatus.Downloaded;
             Package = package;
         }
     }

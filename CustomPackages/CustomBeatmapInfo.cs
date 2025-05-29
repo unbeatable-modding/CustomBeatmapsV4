@@ -13,6 +13,7 @@ namespace CustomBeatmaps.CustomPackages
 {
     public class CustomBeatmapInfo : BeatmapInfo
     {
+        public LocalCustomBeatmap Info;
         public readonly string Artist;
         public readonly string BeatmapCreator;
         /// <summary>
@@ -65,7 +66,6 @@ namespace CustomBeatmaps.CustomPackages
         public CustomBeatmapInfo(TextAsset textAsset, string difficulty, string artist,
             string beatmapCreator, string name, string songName, string realDifficulty, string osuPath, Category category, CustomSongInfo song) : base(textAsset, difficulty)
         {
-            
             OsuPath = osuPath;
             Artist = artist;
             InternalName = name;
@@ -88,7 +88,10 @@ namespace CustomBeatmaps.CustomPackages
                     ScheduleHelper.SafeLog("INVALID JSON");
                 }
             }
-                
+
+            Info = new LocalCustomBeatmap(name, songName, difficulty, realDifficulty,
+                artist, beatmapCreator, osuPath,
+                category, song, Tags, this);
         }
         public override string ToString()
         {
@@ -98,15 +101,6 @@ namespace CustomBeatmaps.CustomPackages
         
 
 
-        public struct TagData
-        {
-            public int Level;
-
-            public string FlavorText;
-
-            public float SongLength;
-
-            public Dictionary<string, bool> Attributes;
-        }
+        
     }
 }

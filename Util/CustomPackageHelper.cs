@@ -57,7 +57,7 @@ namespace CustomBeatmaps.Util
             //throw new BeatmapException($"Image property not found.", beatmapPath);
         }
 
-        public static void SetBeatmapJson(string beatmapText, CustomBeatmapInfo.TagData data, string beatmapPath)
+        public static void SetBeatmapJson(string beatmapText, TagData data, string beatmapPath)
         {
             data.SongLength = ArcadeBGMManager.SongDuration;
             var beatmapSave = SerializeHelper.SerializeJSON(data);
@@ -73,6 +73,7 @@ namespace CustomBeatmaps.Util
         public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomLocalPackage package, int category, bool recursive = false,
             Action<BeatmapException> onBeatmapFail = null, List<CustomLocalPackage> tmpPkg = null)
         {
+            package = new CustomLocalPackage();
             packageFolder = Path.GetFullPath(packageFolder);
             outerFolderPath = Path.GetFullPath(outerFolderPath);
 

@@ -4,6 +4,7 @@ using Rhythm;
 using UnityEngine;
 using static Rhythm.BeatmapIndex;
 using CustomBeatmaps.Util;
+using UnityEngine.SocialPlatforms;
 
 
 
@@ -45,6 +46,15 @@ namespace CustomBeatmaps.Patches
             arcadeProgression.stageScene = ArcadeHelper.GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom);
             LevelManager.LoadLevel(arcadeProgression.stageScene, spawn, transition);
             return false;
+        }
+
+        // fixes half/double time
+        [HarmonyPatch(typeof(RhythmController), "LoadLocalBeatmap")]
+        [HarmonyPostfix]
+        public static void InitializeController()
+        {
+            JeffBezosController.SetTimeScale(Mathf.Abs(FileStorage.beatmapOptions.songSpeed), 10f);
+            //return true;
         }
     }
 }

@@ -110,7 +110,7 @@ namespace CustomBeatmaps.UI
                 {
                     var bmap = bmapKVPair.Value;
                     selectedBeatmaps.Add(new BeatmapHeader(
-                        bmap.Name,
+                        bmap.SongName,
                         bmap.Artist,
                         bmap.Creator,
                         bmap.Difficulty,
@@ -186,7 +186,7 @@ namespace CustomBeatmaps.UI
                             {
                                 case BeatmapDownloadStatus.Downloaded:
                                     buttonText = "PLAY";
-                                    buttonSub = $"{selectedBeatmap.Name}: {selectedBeatmap.Difficulty}";
+                                    buttonSub = $"{selectedBeatmap.SongName}: {selectedBeatmap.Difficulty}";
                                     break;
                                 case BeatmapDownloadStatus.CurrentlyDownloading:
                                     buttonText = "Downloading...";
@@ -341,7 +341,7 @@ namespace CustomBeatmaps.UI
                     foreach (var bmap in serverPackage.Beatmaps.Values)
                     {
                         songs.Add(bmap.AudioFileName);
-                        names.Add(bmap.Name);
+                        names.Add(bmap.SongName);
                         creators.Add(bmap.Creator);
                     }
 
