@@ -12,6 +12,7 @@ using System.Linq;
 using static Rhythm.BeatmapIndex;
 using System.Security.Cryptography;
 using CustomBeatmaps.Patches;
+using CustomBeatmaps.UI;
 
 namespace CustomBeatmaps.CustomPackages
 {
@@ -197,7 +198,7 @@ namespace CustomBeatmaps.CustomPackages
                     foundPackage = true;
                     foreach (CustomBeatmapInfo cbinfo in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
                     {
-                        string fullOSUPath = Path.GetFullPath(cbinfo.OsuPath);
+                        string fullOSUPath = Path.GetFullPath(cbinfo.Info.OsuPath);
                         string relativeOSUPath = fullOSUPath.Substring(targetPackageFullPath.Length + 1);
                         if (beatmapRelativeKeyPath == relativeOSUPath)
                         {

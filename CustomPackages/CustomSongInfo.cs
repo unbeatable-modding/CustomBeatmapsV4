@@ -11,6 +11,7 @@ using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 using Newtonsoft.Json;
+using CustomBeatmaps.UI;
 
 namespace CustomBeatmaps.CustomPackages
 {
@@ -22,8 +23,6 @@ namespace CustomBeatmaps.CustomPackages
         public string TrueName { get; private set; }
         public string Creator { get; private set; }
         public string Artist { get; private set; }
-
-        public string[] Attributes { get; private set; }
 
 
         public CustomSongInfo(string bmapPath, int category) : base(null)
@@ -65,7 +64,6 @@ namespace CustomBeatmaps.CustomPackages
                     break;
                 }
             }
-            
             var traverse = Traverse.Create(this);
             
             traverse.Field("visibleInArcade").SetValue(true);
@@ -124,11 +122,11 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
 
-        public List<LocalCustomBeatmap> CustomBeatmaps2
+        public List<CustomLocalBeatmap> CustomBeatmaps2
         {
             get
             {
-                var beatmaps = new List<LocalCustomBeatmap>();
+                var beatmaps = new List<CustomLocalBeatmap>();
                 foreach (CustomBeatmapInfo b in Beatmaps.Values)
                 {
                     beatmaps.Add(b.Info);

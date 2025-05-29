@@ -29,6 +29,14 @@ namespace CustomBeatmaps.Util
         public string FolderName { get; set; }
         public CustomServerBeatmap[] CustomBeatmaps => Beatmaps.Values.ToArray();
 
+        public List<string> Difficulties
+        {
+            get
+            {
+                return CustomBeatmaps.Select(b => b.Difficulty).ToList();
+            }
+        }
+
         public override string ToString()
         {
             return $"{{[{string.Join(", ", Beatmaps)}] at {ServerURL} on {UploadTime}}}";

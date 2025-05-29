@@ -10,12 +10,11 @@ using UnityEngine;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOSU : AbstractPackageList<LocalPackageManager, CustomLocalPackage, LocalCustomBeatmap>
+    public class PackageListUIOSU : AbstractPackageList<LocalPackageManager, CustomLocalPackage, CustomLocalBeatmap>
     {
         private static bool _overrideCountdown = true;
         public PackageListUIOSU(LocalPackageManager pkgManager) : base(pkgManager)
         {
-            //Manager2 = new PkgTransformer<object>(pkgManager, (pkgManager).Folder, (pkgManager).Packages);
             RightRenders = [
                 () =>
                     {
@@ -57,6 +56,9 @@ namespace CustomBeatmaps.UI
             var headersMap = new Dictionary<PackageHeader, CustomLocalPackage>(_localPackages.Count);
             foreach (var p in _localPackages)
             {
+
+                if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
+                    continue;
 
                 if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
                     continue;

@@ -77,8 +77,8 @@ namespace CustomBeatmaps.Patches
         }
 
 
-        //[HarmonyPatch(typeof(ArcadeBGMManager), "PlaySongPreview")]
-        //[HarmonyPrefix]
+        [HarmonyPatch(typeof(ArcadeBGMManager), "PlaySongPreview")]
+        [HarmonyPrefix]
         static bool DontChangeSongsForPath(ref ArcadeSongDatabase.BeatmapItem item)
         {
             var currentItem = Traverse.Create(ArcadeBGMManager.Instance).Field("currentItem").GetValue<ArcadeSongDatabase.BeatmapItem>();

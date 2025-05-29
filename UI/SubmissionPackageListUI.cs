@@ -95,12 +95,12 @@ namespace CustomBeatmaps.UI
                                 selectedBeatmapIndex = package.PkgSongs.Count - 1;
                             var selectedBeatmap = package.PkgSongs[selectedBeatmapIndex].CustomBeatmaps[0];
 
-                            BGM.PlaySongPreview(SongDatabase.GetBeatmapItemByPath(selectedBeatmap.Path));
+                            BGM.PlaySongPreview(SongDatabase.GetBeatmapItemByPath(selectedBeatmap.Info.SongPath));
 
                             PackageBeatmapPickerUI.Render(beatmaps, selectedBeatmapIndex, setSelectedBeatmapIndex);
 
                             if (PlayButtonUI.Render("PLAY",
-                                    $"{selectedBeatmap.SongName}: {selectedBeatmap.Difficulty}"))
+                                    $"{selectedBeatmap.Info.SongName}: {selectedBeatmap.Info.Difficulty}"))
                             {
                                 // Play a local beatmap
                                 //var customBeatmapInfo = package.Beatmaps[selectedBeatmapIndex];

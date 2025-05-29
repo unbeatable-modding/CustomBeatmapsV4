@@ -11,12 +11,23 @@ namespace CustomBeatmaps.UI
     public enum Tab
     {
         //Online, Local, Submissions, Osu
-        Online, Local, Osu, Dev
+        Online, Local, Osu
     }
 
     public enum SortMode
     {
         New, Title, Artist, Creator, Downloaded
+    }
+
+    public enum Difficulty
+    {
+        All,
+        Beginner,
+        Normal,
+        Hard,
+        Expert,
+        Unbeatable,
+        Star
     }
 
     public struct PackageHeader
@@ -27,11 +38,10 @@ namespace CustomBeatmaps.UI
         public string Creator;
         public bool New { get; set; }
         public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.
-        public int PackageIndex; // Also kind of jank but whatever it's book-keeping
         public int Level;
         public object Package;
 
-        public PackageHeader(string name, int songCount, int mapCount, string creator, bool @new, BeatmapDownloadStatus downloadStatus, int packageIndex, object package = null)
+        public PackageHeader(string name, int songCount, int mapCount, string creator, bool @new, BeatmapDownloadStatus downloadStatus, object package = null)
         {
             Name = name;
             SongCount = songCount;
@@ -39,7 +49,6 @@ namespace CustomBeatmaps.UI
             Creator = creator;
             New = @new;
             DownloadStatus = downloadStatus;
-            PackageIndex = packageIndex;
             Package = package;
         }
 
@@ -62,9 +71,9 @@ namespace CustomBeatmaps.UI
             var beatmaps = 0;
             foreach (CustomBeatmapInfo bmap in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
             {
-                songs.Add(bmap.InternalName);
-                names.Add(bmap.SongName);
-                creators.Add(bmap.BeatmapCreator);
+                songs.Add(bmap.Info.InternalName);
+                names.Add(bmap.Info.SongName);
+                creators.Add(bmap.Info.Creator);
                 beatmaps++;
             }
 
@@ -112,9 +121,9 @@ namespace CustomBeatmaps.UI
             var beatmaps = 0;
             foreach (CustomBeatmapInfo bmap in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
             {
-                songs.Add(bmap.InternalName);
-                names.Add(bmap.SongName);
-                creators.Add(bmap.BeatmapCreator);
+                songs.Add(bmap.Info.InternalName);
+                names.Add(bmap.Info.SongName);
+                creators.Add(bmap.Info.Creator);
                 beatmaps++;
             }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CustomBeatmaps.CustomPackages;
+using CustomBeatmaps.UI;
 using HarmonyLib;
 using Newtonsoft.Json;
 using Rhythm;
@@ -11,13 +12,22 @@ using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.Util
 {
-    public class CustomLocalPackage : ICustomPackage<LocalCustomBeatmap>
+    public class CustomLocalPackage : ICustomPackage<CustomLocalBeatmap>
     {
         public string FolderName { get; set; }
         public List<CustomSongInfo> PkgSongs;
         public CustomBeatmapInfo[] Beatmaps => PkgSongs.SelectMany(p => p.CustomBeatmaps).ToArray();
 
-        public LocalCustomBeatmap[] CustomBeatmaps => PkgSongs.SelectMany(p => p.CustomBeatmaps2).ToArray();
+
+        public List<string> Difficulties
+        {
+            get
+            {
+                return Beatmaps.Select(b => b.difficulty).ToList();
+            }
+        }
+
+        public CustomLocalBeatmap[] CustomBeatmaps => PkgSongs.SelectMany(p => p.CustomBeatmaps2).ToArray();
 
         public override string ToString()
         {
@@ -49,6 +59,16 @@ namespace CustomBeatmaps.Util
         public Dictionary<string, bool> Attributes;
     }
 
+    public interface IPackageInterface<T>
+    {
+        List<T> Packages { get; }
+        string Folder { get; }
+        InitialLoadStateData InitialLoadState { get; }
+
+        Action<T> PackageUpdated { get; set; }
+
+    }
+
     public interface ICustomPackage<T> where T : ICustomBeatmap
     {
         string FolderName { get; }
@@ -56,7 +76,7 @@ namespace CustomBeatmaps.Util
 
     }
 
-    public class LocalCustomBeatmap : ICustomBeatmap
+    public class CustomLocalBeatmap : ICustomBeatmap
     {
         public string SongName { get; }
         public string Artist { get; }
@@ -67,7 +87,7 @@ namespace CustomBeatmaps.Util
         public string FlavorText => Tags.FlavorText;
 
         public string InternalName { get; set; }
-        public readonly string RealDifficulty;
+        public string RealDifficulty { get; }
         public CustomSongInfo Song;
         public readonly Category Category;
         public TagData Tags;
@@ -81,7 +101,7 @@ namespace CustomBeatmaps.Util
             }
         }
 
-        public LocalCustomBeatmap(string internalName, string songName, string difficulty, string realDifficulty, 
+        public CustomLocalBeatmap(string internalName, string songName, string difficulty, string realDifficulty, 
             string artist, string beatmapCreator, string osuPath, 
             Category category, CustomSongInfo song, TagData tags, CustomBeatmapInfo beatmap)
         {

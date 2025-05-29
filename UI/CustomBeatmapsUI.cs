@@ -14,19 +14,10 @@ namespace CustomBeatmaps.UI
 {
     public static class CustomBeatmapsUI
     {
-        private static PackageListUIOnline DevPackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
+        private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
         private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
         private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
 
-        /*
-        private static Dictionary<Tab, AbstractPackageList<>> Tabs = new Dictionary<Tab, AbstractPackageList<object, object>>
-        {
-            {Tab.Online, LocalPackageList},
-            {Tab.Local, LocalPackageList},
-            {Tab.Osu, OsuPackageList},
-            {Tab.Dev, OsuPackageList}
-        };
-        */
         public static void Render()
         {
             /*
@@ -48,25 +39,14 @@ namespace CustomBeatmaps.UI
                 CustomBeatmaps.Memory.SelectedTab = val;
             });
 
-            /*
-            try
-            {
-                Tabs[tab].Render(() => RenderListTop(tab, setTab));
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            */
+
             switch (tab)
             {
                 case Tab.Online:
-                    //OnlinePackageListUI.Render(() => RenderListTop(tab, setTab));
-                    DevPackageList.Render(() => RenderListTop(tab, setTab));
+                    OnlinePackageList.Render(() => RenderListTop(tab, setTab));
                     break;
                 case Tab.Local:
                     LocalPackageList.Render(() => RenderListTop(tab, setTab));
-                    //LocalPackageListUI.Render(() => RenderListTop(tab, setTab));
                     break;
                 /*
             case Tab.Submissions:
@@ -76,9 +56,6 @@ namespace CustomBeatmaps.UI
                 case Tab.Osu:
                     OsuPackageList.Render(() => RenderListTop(tab, setTab));
                     //OSUPackageList.Render(() => RenderListTop(tab, setTab));
-                    break;
-                case Tab.Dev:
-                    OsuPackageList.Render(() => RenderListTop(tab, setTab));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -131,8 +108,6 @@ namespace CustomBeatmaps.UI
                         */
                     case Tab.Osu:
                         return "OSU!";
-                    case Tab.Dev:
-                        return "DEV";
                     default:
                         throw new ArgumentOutOfRangeException(nameof(tabName), tabName, null);
                 }

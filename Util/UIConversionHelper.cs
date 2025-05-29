@@ -16,13 +16,13 @@ namespace CustomBeatmaps.Util
         public static BeatmapHeader CustomBeatmapInfoToBeatmapHeader(CustomBeatmapInfo bmap)
         {
             return new BeatmapHeader(
-                bmap.SongName,
-                bmap.Artist,
-                bmap.BeatmapCreator,
-                bmap.RealDifficulty,
+                bmap.Info.SongName,
+                bmap.Info.Artist,
+                bmap.Info.Creator,
+                bmap.Info.RealDifficulty,
                 null,
-                bmap.Level,
-                bmap.FlavorText,
+                bmap.Info.Level,
+                bmap.Info.FlavorText,
                 bmap.Attributes
             );
         }
@@ -115,6 +115,73 @@ namespace CustomBeatmaps.Util
             });
         }
 
+        public static bool PackageHasDifficulty(CustomLocalPackage package, Difficulty diff)
+        {
+            if (diff == Difficulty.All)
+                return true;
+            Dictionary<Difficulty, string> EdifficultyIndex = new Dictionary<Difficulty, string>
+            {
+                {Difficulty.Beginner, "Beginner"},
+                {Difficulty.Normal, "Easy"},
+                {Difficulty.Hard, "Normal"},
+                {Difficulty.Expert, "Hard"},
+                {Difficulty.Unbeatable, "UNBEATABLE"},
+                {Difficulty.Star, "Star"},
+            };
+            return package.Difficulties.Contains(EdifficultyIndex[diff]);
+        }
+        
+        public static readonly Dictionary<Difficulty, string[]> DifficultyIndex = 
+            new Dictionary<Difficulty, string[]>
+            {
+                {Difficulty.Beginner, ["beginner"]},
+                {Difficulty.Normal, ["easy", "normal"]},
+                {Difficulty.Hard, ["hard"]},
+                {Difficulty.Expert, ["expert", "beatable"]},
+                {Difficulty.Unbeatable, ["unbeatable"]},
+            };
+        
+        public static bool PackageHasDifficulty(CustomServerPackage package, Difficulty diff)
+        {
+            if (diff == Difficulty.All)
+                return true;
+            try
+            {
+
+                foreach (var tryDiff in package.Difficulties)
+                {
+                    if (diff == Difficulty.Star)
+                    {
+                        
+                        foreach (string i in DifficultyIndex.Values.SelectMany(s => s.ToList()))
+                        {
+                            if (tryDiff.ToLower().StartsWith(i))
+                                return false;
+                        }
+                        
+                        return true;
+                    }
+                    else
+                    {
+                        foreach (string i in DifficultyIndex[diff].ToList())
+                        {
+                            if (tryDiff.ToLower().StartsWith(i))
+                                return true;
+                        }
+                    }
+                        
+                }
+            }
+            catch (Exception e)
+            {
+                CustomBeatmaps.Log.LogError(e);
+            }
+            
+
+
+            return false;
+        }
+
         public static bool PackageMatchesFilter(CustomServerPackage serverPackage, string filterQuery)
         {
             if (string.IsNullOrEmpty(filterQuery))
@@ -161,10 +228,10 @@ namespace CustomBeatmaps.Util
             {
                 string[] possibleMatches = new[]
                 {
-                    bmap.SongName,
-                    bmap.Artist,
-                    bmap.BeatmapCreator,
-                    bmap.Difficulty
+                    bmap.Info.SongName,
+                    bmap.Info.Artist,
+                    bmap.Info.Creator,
+                    bmap.Info.Difficulty
                 };
                 foreach (var possibleMatch in possibleMatches)
                 {

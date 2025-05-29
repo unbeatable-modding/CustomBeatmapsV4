@@ -386,8 +386,8 @@ namespace CustomBeatmaps.Util
                 if (isDupe)
                 {
                     returnSong.CustomBeatmaps.ForEach(b => { 
-                        b.InternalName = returnSong.name;
-                        b.Song = returnSong;
+                        b.Info.InternalName = returnSong.name;
+                        b.Info.Song = returnSong;
                     });
                     toLoad = returnSong;
 

@@ -57,8 +57,7 @@ namespace CustomBeatmaps.Util
             //new CustomBeatmapRoom("Offset Wizard", "OffsetWizard")
         };
         private static readonly CustomBeatmapRoom[] ExtraRooms = {
-            new CustomBeatmapRoom("Stage", "Stage"),
-            new CustomBeatmapRoom("Beatball?", "C2_BattingCage_Minigame")
+            new CustomBeatmapRoom("Stage", "Stage")
         };
 
         private static readonly string DefaultBeatmapScene = "TrainStationRhythm";
@@ -138,16 +137,11 @@ namespace CustomBeatmaps.Util
         public static ArcadeBGMManager BGM => ArcadeBGMManager.Instance;
         private static BeatmapIndex BeatmapIndex => BeatmapIndex.defaultIndex;
 
-        public static void SetArcadeBGM()
-        {
-            
-        }
-
         public static void ForceSelectSong(CustomBeatmapInfo customBeatmapInfo)
         {
-            SongDatabase.SetCategory(customBeatmapInfo.Category);
+            SongDatabase.SetCategory(customBeatmapInfo.Info.Category);
             SongDatabase.SetDifficulty(customBeatmapInfo.difficulty);
-            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == customBeatmapInfo.Path));
+            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == customBeatmapInfo.Info.SongPath));
         }
 
         public static void PlaySong(CustomBeatmapInfo customBeatmapInfo)
@@ -168,13 +162,13 @@ namespace CustomBeatmaps.Util
 
                 JeffBezosController.instance.DisableUIInputs();
                 JeffBezosController.returnFromArcade = true;
-                LevelManager.LoadArcadeLevel(customBeatmapInfo.InternalName, customBeatmapInfo.difficulty);
+                LevelManager.LoadArcadeLevel(customBeatmapInfo.Info.InternalName, customBeatmapInfo.difficulty);
             }
         }
 
         public static void PlaySongEdit(CustomBeatmapInfo beatmap, bool enableCountdown = false)
         {
-            OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.OsuPath, beatmap.Path);
+            OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.Info.OsuPath, beatmap.Info.SongPath);
             PlaySong(beatmap, DefaultBeatmapScene);
         }
 

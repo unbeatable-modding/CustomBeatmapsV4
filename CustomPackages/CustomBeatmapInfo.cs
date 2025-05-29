@@ -13,43 +13,8 @@ namespace CustomBeatmaps.CustomPackages
 {
     public class CustomBeatmapInfo : BeatmapInfo
     {
-        public LocalCustomBeatmap Info;
-        public readonly string Artist;
-        public readonly string BeatmapCreator;
-        /// <summary>
-        /// Name of the song.
-        /// <example>
-        /// For example:
-        /// Worn Out Tapes
-        /// </example>
-        /// </summary>
-        public readonly string SongName;
-        /// <summary>
-        /// Name used in BeatmapIndex.
-        /// <example>
-        /// For example:
-        /// CUSTOM__LOCAL__Example
-        /// </example>
-        /// </summary>
-        public string InternalName;
-        /// <summary>
-        /// Difficulty for BeatmapIndex
-        /// </summary>
-        public readonly string Difficulty;
-        /// <summary>
-        /// Parsed Difficulty name
-        /// </summary>
-        public readonly string RealDifficulty;
-        public CustomSongInfo Song;
-        public string Path
-        {
-            get
-            {
-                return $"{InternalName}/{Difficulty}";
-            }
-        }
-        public readonly string OsuPath;
-        public readonly Category Category;
+        public CustomLocalBeatmap Info;
+
         public TagData Tags;
         public int Level => Tags.Level;
         public string FlavorText => Tags.FlavorText;
@@ -66,17 +31,8 @@ namespace CustomBeatmaps.CustomPackages
         public CustomBeatmapInfo(TextAsset textAsset, string difficulty, string artist,
             string beatmapCreator, string name, string songName, string realDifficulty, string osuPath, Category category, CustomSongInfo song) : base(textAsset, difficulty)
         {
-            OsuPath = osuPath;
-            Artist = artist;
-            InternalName = name;
-            SongName = songName;
-            Difficulty = difficulty;
-            RealDifficulty = realDifficulty;
-            BeatmapCreator = beatmapCreator;
-            Category = category;
-            Song = song;
 
-            var tagTest = CustomPackageHelper.GetBeatmapProp(text, "Tags", OsuPath);
+            var tagTest = CustomPackageHelper.GetBeatmapProp(text, "Tags", osuPath);
             if (tagTest.StartsWith("{") && tagTest.EndsWith("}"))
             {
                 try
@@ -89,18 +45,13 @@ namespace CustomBeatmaps.CustomPackages
                 }
             }
 
-            Info = new LocalCustomBeatmap(name, songName, difficulty, realDifficulty,
+            Info = new CustomLocalBeatmap(name, songName, difficulty, realDifficulty,
                 artist, beatmapCreator, osuPath,
                 category, song, Tags, this);
         }
         public override string ToString()
         {
-            return $"{{{SongName} by {Artist} ({RealDifficulty}) mapped {BeatmapCreator} ({Path})}}";
+            return $"{{{Info.SongName} by {Info.Artist} ({Info.RealDifficulty}) mapped {Info.Creator} ({Info.SongPath})}}";
         }
-
-        
-
-
-        
     }
 }

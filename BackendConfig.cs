@@ -19,8 +19,8 @@
         /// Where we grab user data from
         public string ServerUserURL = "http://64.225.60.116:8081";
         // Grabs the latest project tag from GitHub
-        public string RepoLatestTagsURL = "https://api.github.com/repos/gold-me/CustomBeatmapsV4/tags?per_page=1";
-        public string DownloadLatestReleaseLink = "https://github.com/gold-me/CustomBeatmapsV4/releases";
+        public string RepoLatestTagsURL = "https://api.github.com/repos/unbeatable-modding/CustomBeatmapsV4/tags?per_page=1";
+        public string DownloadLatestReleaseLink = "https://github.com/unbeatable-modding/CustomBeatmapsV4/releases";
         public string DiscordInviteLink = "https://discord.gg/TfZF7Vxv8S";
     }
 }

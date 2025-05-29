@@ -2,22 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Text.RegularExpressions;
-using Arcade.UI;
-using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.Util;
-using HarmonyLib;
-using JetBrains.Annotations;
-using Rhythm;
 using UnityEngine;
-using static CustomBeatmaps.CustomPackages.LocalPackageManager;
 using static CustomBeatmaps.Util.ArcadeHelper;
 
 namespace CustomBeatmaps.UISystem
 {
+    // the horror
     public abstract class AbstractPackageList<TManager, TPackage, TBeatmap> 
         where TManager : IPackageInterface<CustomLocalPackage>
         where TPackage : ICustomPackage<TBeatmap>
@@ -42,12 +35,14 @@ namespace CustomBeatmaps.UISystem
         protected SortMode SortMode => _sortMode;
         protected Action<SortMode> SetSortMode;
 
+        protected Difficulty _difficulty = Difficulty.All;
+        protected Action<Difficulty> SetDifficulty;
+
         protected List<BeatmapHeader> _selectedBeatmaps;
         protected TBeatmap _selectedBeatmap;
         protected TPackage _selectedPackage;
 
         protected List<PackageHeader> _pkgHeaders = new();
-        //protected Dictionary<PackageHeader, TPackage> _pkgHeadersMap;
 
         protected Action LeftRender;
         protected Action[] RightRenders;
@@ -71,11 +66,15 @@ namespace CustomBeatmaps.UISystem
             // Action Setup
             SetSelectedPackageIndex = (val) => {
                 _selectedPackageIndex = val;
+                if (val < 0)
+                    _selectedPackageIndex = 0;
                 MapPackages();
             };
 
             SetSelectedBeatmapIndex = (val) => {
                 _selectedBeatmapIndex = val;
+                if (val < 0)
+                    _selectedBeatmapIndex = 0;
                 MapPackages();
             };
 
@@ -83,7 +82,12 @@ namespace CustomBeatmaps.UISystem
                 _sortMode = val;
                 Reload(true);
             };
-            
+
+            SetDifficulty = (val) => {
+                _difficulty = val;
+                Reload(true);
+            };
+
             Reload(false);
         }
 
@@ -118,20 +122,19 @@ namespace CustomBeatmaps.UISystem
         protected virtual void RegenerateHeaders()
         {
             var headers = new List<PackageHeader>(_localPackages.Count);
-            //var headersMap = new Dictionary<PackageHeader, TPackage>(_localPackages.Count);
             foreach (CustomLocalPackage p in _localPackages)
             {
+                if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
+                    continue;
 
                 if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
                     continue;
 
                 var toAdd = new PackageHeader(package: p);
                 headers.Add(toAdd);
-                //headersMap.Add(toAdd, p);
             }
 
             _pkgHeaders = headers;
-            //_pkgHeadersMap = headersMap;
         }
 
         protected abstract void MapPackages();
@@ -151,8 +154,12 @@ namespace CustomBeatmaps.UISystem
                 GUILayout.BeginHorizontal();
                 // Render list
                 GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-                RenderSearchbar();
+                GUILayout.BeginHorizontal();
+                DifficultyPickerUI.Render(_difficulty, SetDifficulty);
+                GUILayout.FlexibleSpace();
                 SortModePickerUI.Render(SortMode, SetSortMode);
+                GUILayout.EndHorizontal();
+                RenderSearchbar();
                 PackageListUI.Render($"Packages in {Folder}", _pkgHeaders, SelectedPackageIndex, SetSelectedPackageIndex);
                 AssistAreaUI.Render();
                 GUILayout.EndVertical();
@@ -195,8 +202,11 @@ namespace CustomBeatmaps.UISystem
             if (_pkgHeaders.Count == 0)
             {
                 onRenderAboveList();
-                RenderSearchbar();
+                //RenderSearchbar();
+                LeftRender();
                 GUILayout.Label($"No Packages Found in {Folder}");
+                GUILayout.EndHorizontal();
+                
                 return;
             }
 

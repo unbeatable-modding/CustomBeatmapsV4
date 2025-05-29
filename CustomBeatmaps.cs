@@ -8,19 +8,17 @@ using CustomBeatmaps.Util;
 using System.Timers;
 using HarmonyLib;
 using CustomBeatmaps.CustomPackages;
-using Debug = UnityEngine.Debug;
+using UnityEngine;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
+using Debug = UnityEngine.Debug;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
-using UnityEngine;
-using System.Diagnostics;
-using System.Linq;
-using System.Collections.Generic;
-using static Rhythm.BeatmapIndex;
-using System.Threading.Tasks;
-using UnityEngine.SceneManagement;
-using Rewired.Utils.Classes.Data;
+
 
 namespace CustomBeatmaps
 {

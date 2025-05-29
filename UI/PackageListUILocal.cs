@@ -11,13 +11,12 @@ using UnityEngine;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUILocal : AbstractPackageList<CustomPackageHandler, CustomLocalPackage, LocalCustomBeatmap>
+    public class PackageListUILocal : AbstractPackageList<CustomPackageHandler, CustomLocalPackage, CustomLocalBeatmap>
     {
 
         //protected override List<CustomLocalPackage> _packages;
         public PackageListUILocal(CustomPackageHandler pkgManager) : base(pkgManager)
         {
-            //Manager2 = new PkgTransformer<object>(pkgManager, pkgManager.Folder, pkgManager.Packages);
 
             RightRenders = [
                 () =>
@@ -54,9 +53,7 @@ namespace CustomBeatmaps.UI
             _selectedBeatmaps =
                 UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
             if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
-            {
                 SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
-            }
 
             _selectedBeatmap = _selectedPackage.CustomBeatmaps[SelectedBeatmapIndex];
         }

@@ -3,9 +3,10 @@
   <PropertyGroup>
 	<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <TargetFramework>netstandard2.1</TargetFramework>
-	<AssemblyName>unbeatablethings.unbeatableDemo.CustomBeatmapsV4</AssemblyName>
+	<AssemblyName>unbeatable-modding.unbeatableDemo.CustomBeatmapsV4</AssemblyName>
 	<Product>Custom Beatmaps V4</Product>
-	<Version>4.1.4</Version>
+	<AssemblyName>CustomBeatmapsV4</AssemblyName>
+	<Version>4.1.5</Version>
 	<RootNamespace>CustomBeatmaps</RootNamespace>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<LangVersion>latest</LangVersion>
@@ -15,7 +16,7 @@
 	  <GamePath>C:\Program Files (x86)\Steam\steamapps\common\UNBEATABLE Demo</GamePath>
 	  
 	  <ManagedPath>$(GamePath)\UNBEATABLE [DEMO]_Data\Managed</ManagedPath>
-	  <PostBuildEvent>copy $(AssemblyName).dll "$(GamePath)\BepInEx\plugins\CustomBeatmapsV4\$(Product).dll"</PostBuildEvent>
+	  <PostBuildEvent>copy $(AssemblyName).dll "$(GamePath)\BepInEx\plugins\CustomBeatmapsV4\$(AssemblyName).dll"</PostBuildEvent>
   </PropertyGroup>
 	
   <ItemGroup>
