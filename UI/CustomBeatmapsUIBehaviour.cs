@@ -54,7 +54,7 @@ namespace CustomBeatmaps.UI
             DOTween.To(() => _windowOffset, value => _windowOffset = value, Vector2.zero, 0.2f)
                 .SetEase(Ease.OutBounce)
                 .SetId(this);
-
+            OnGUI();
             //WhiteLabelMainMenuPatch.DisableBGM();
 
             // Reload our high scores + submissions just to be clean/up to date

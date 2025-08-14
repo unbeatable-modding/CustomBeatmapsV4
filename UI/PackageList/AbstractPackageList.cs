@@ -18,7 +18,7 @@ namespace CustomBeatmaps.UISystem
     {
         protected TManager Manager;
 
-        protected List<CustomLocalPackage> _localPackages;
+        protected List<CustomLocalPackage> _localPackages = new();
         protected List<CustomLocalPackage> LocalPackages => Manager.Packages;
         protected string Folder => Manager.Folder;        
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
@@ -192,6 +192,7 @@ namespace CustomBeatmaps.UISystem
             var loadState = LoadState;
             if (loadState.Loading)
             {
+                onRenderAboveList();
                 float p = (float)loadState.Loaded / loadState.Total;
                 ProgressBarUI.Render(p, $"Loaded {loadState.Loaded} / {loadState.Total}", GUILayout.ExpandWidth(true), GUILayout.Height(32));
                 return;
@@ -215,10 +216,13 @@ namespace CustomBeatmaps.UISystem
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
 
             // Preview audio
-            if (_selectedBeatmap.SongPath != null)
+            if (_selectedBeatmap != null)
             {
-                var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
-                BGM.PlaySongPreview(previewsong);
+                if (_selectedBeatmap.SongPath != null)
+                {
+                    var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
+                    BGM.PlaySongPreview(previewsong);
+                }
             }
 
 

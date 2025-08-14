@@ -39,26 +39,41 @@ namespace CustomBeatmaps.UI
                 CustomBeatmaps.Memory.SelectedTab = val;
             });
 
-
-            switch (tab)
+            try
             {
-                case Tab.Online:
-                    OnlinePackageList.Render(() => RenderListTop(tab, setTab));
+                switch (tab)
+                {
+                    case Tab.Online:
+                        try
+                        {
+                            OnlinePackageList.Render(() => RenderListTop(tab, setTab));
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                        
+                        break;
+                    case Tab.Local:
+                        LocalPackageList.Render(() => RenderListTop(tab, setTab));
+                        break;
+                    /*
+                case Tab.Submissions:
+                    SubmissionPackageListUI.Render(() => RenderListTop(tab, setTab));
                     break;
-                case Tab.Local:
-                    LocalPackageList.Render(() => RenderListTop(tab, setTab));
-                    break;
-                /*
-            case Tab.Submissions:
-                SubmissionPackageListUI.Render(() => RenderListTop(tab, setTab));
-                break;
-                */
-                case Tab.Osu:
-                    OsuPackageList.Render(() => RenderListTop(tab, setTab));
-                    //OSUPackageList.Render(() => RenderListTop(tab, setTab));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                    */
+                    case Tab.Osu:
+                        OsuPackageList.Render(() => RenderListTop(tab, setTab));
+                        //OSUPackageList.Render(() => RenderListTop(tab, setTab));
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            catch(Exception e)
+            {
+                //CustomBeatmaps.Log.LogError(e);
+                RenderListTop(tab, setTab);
             }
 
 

@@ -12,7 +12,8 @@ namespace CustomBeatmaps.UI.PackageList
         public static void Render(List<BeatmapHeader> packageBeatmaps, int selectedBeatmapIndex)
         {
             // If No beatmaps...
-
+            if (packageBeatmaps == null)
+                return;
             if (packageBeatmaps.Count == 0)
             {
                 GUILayout.Label("No beatmaps provided!");

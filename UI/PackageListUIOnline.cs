@@ -19,11 +19,11 @@ namespace CustomBeatmaps.UI
     public class PackageListUIOnline : AbstractPackageList<LocalPackageManager, CustomServerPackage, CustomServerBeatmap>
     {
 
-        private CustomServerPackageList _list;
+        private CustomServerPackageList _list = new();
         private bool _reloading;
         private bool _loaded;
         private string _failure;
-        private KeyValuePair<string,CustomServerBeatmap>[]  _selectedServerBeatmapKVPairs;
+        private KeyValuePair<string,CustomServerBeatmap>[]  _selectedServerBeatmapKVPairs = new KeyValuePair<string, CustomServerBeatmap>[1];
 
         protected int _selectedHeaderIndex = 0;
 
