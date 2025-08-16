@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Arcade.UI;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using Rhythm;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace CustomBeatmaps.UI.PackageList
 {
     public static class BeatmapInfoCardUI
     {
-        public static void Render(BeatmapHeader beatmapHeader)
+        public static void Render(BeatmapData beatmapHeader)
         {
 
             var cardStyle = new GUIStyle(GUI.skin.box);
@@ -20,7 +21,7 @@ namespace CustomBeatmaps.UI.PackageList
             GUILayout.BeginHorizontal(cardStyle);
             // TODO: Icon if provided! For fun!
                 GUILayout.BeginVertical();
-                    GUILayout.Label($"<b><size=20>{beatmapHeader.Name}</size></b>");
+                    GUILayout.Label($"<b><size=20>{beatmapHeader.SongName}</size></b>");
                     GUILayout.Label($"by <b>{beatmapHeader.Artist}</b>");
                     if (beatmapHeader.FlavorText != null && beatmapHeader.FlavorText.Any())
                         GUILayout.Label($"{beatmapHeader.FlavorText}");

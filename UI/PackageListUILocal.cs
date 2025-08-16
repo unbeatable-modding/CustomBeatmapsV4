@@ -13,8 +13,6 @@ namespace CustomBeatmaps.UI
 {
     public class PackageListUILocal : AbstractPackageList
     {
-
-        //protected override List<CustomLocalPackage> _packages;
         public PackageListUILocal(PackageManagerLocal pkgManager) : base(pkgManager)
         {
 
@@ -48,10 +46,10 @@ namespace CustomBeatmaps.UI
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex].Package;
+            _selectedPackage = (CustomPacakage)_pkgHeaders[SelectedPackageIndex];
 
-            _selectedBeatmaps =
-                UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
+            _selectedBeatmaps = _selectedPackage.BeatmapDatas.ToList();
+
             if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
                 SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
 

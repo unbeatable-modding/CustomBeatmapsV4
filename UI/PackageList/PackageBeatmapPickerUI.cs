@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace CustomBeatmaps.UI.PackageList
 {
     public class PackageBeatmapPickerUI
     {
-        public static void Render(List<BeatmapHeader> packageBeatmaps, int selectedBeatmapIndex,
+        public static void Render(List<BeatmapData> packageBeatmaps, int selectedBeatmapIndex,
             Action<int> onBeatmapSelect)
         {
             // If No beatmaps...
@@ -25,7 +26,7 @@ namespace CustomBeatmaps.UI.PackageList
             }
 
             var selected = packageBeatmaps[selectedBeatmapIndex];
-            string selectedName = selected.Name;
+            string selectedName = selected.SongName;
             int selectedNameIndex = 0;
             int selectedDifficultyIndex = 0;
 
@@ -35,7 +36,7 @@ namespace CustomBeatmaps.UI.PackageList
             for (int i = 0; i < packageBeatmaps.Count; ++i)
             {
                 var packageBeatmap = packageBeatmaps[i];
-                string name = packageBeatmap.Name;
+                string name = packageBeatmap.SongName;
                 bool isSelected = i == selectedBeatmapIndex;
                 bool isSelectedName = (name == selectedName);
                 if (!uniqueNames.Contains(name))
@@ -68,7 +69,7 @@ namespace CustomBeatmaps.UI.PackageList
                     for (int i = 0; i < packageBeatmaps.Count; ++i)
                     {
                         var packageBeatmap = packageBeatmaps[i];
-                        if (packageBeatmap.Name == newSelectionName)
+                        if (packageBeatmap.SongName == newSelectionName)
                         {
                             onBeatmapSelect(i);
                             break;
@@ -94,7 +95,7 @@ namespace CustomBeatmaps.UI.PackageList
                     for (int i = 0; i < packageBeatmaps.Count; ++i)
                     {
                         var packageBeatmap = packageBeatmaps[i];
-                        if (packageBeatmap.Name == selectedName && packageBeatmap.Difficulty == newDifficultyName)
+                        if (packageBeatmap.SongName == selectedName && packageBeatmap.Difficulty == newDifficultyName)
                         {
                             onBeatmapSelect(i);
                             break;

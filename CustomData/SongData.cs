@@ -112,20 +112,25 @@ namespace CustomBeatmaps.CustomData
             Artist = bmapData.Artist;
             Creator = bmapData.Creator;
 
-            BeatmapDatas.Add(bmapData);
+            
 
             if (bmapData.IsLocal)
             {
                 DirectoryPath = bmapData.DirectoryPath;
                 AudioPath = bmapData.AudioPath;
                 CoverPath = bmapData.CoverPath;
-                InitLocalSong();
+                InitLocalSong(bmapData);
+                //TryAddToThisSong(bmapData);
+            }
+            else
+            {
+                BeatmapDatas.Add(bmapData);
             }
 
-            TryAddToThisSong(bmapData);
+            
         }
 
-        private void InitLocalSong()
+        private void InitLocalSong(BeatmapData bmap = null)
         {
             Song = new CustomSong(InternalName, this);
             Traverse = Traverse.Create(Song);
@@ -138,35 +143,36 @@ namespace CustomBeatmaps.CustomData
             Traverse.Field("_beatmaps").SetValue(new Dictionary<string, BeatmapInfo>());
 
             isLocal = true;
+            AddToThisSong(bmap);
         }
 
         public bool TryAddToThisSong(BeatmapData bmap)
         {
-            try
-            {
-                var diffs = InternalDifficulties;
-                diffs.Add(bmap.InternalDifficulty);
-                AddToThisSong(bmap);
-            }
-            catch (Exception)
-            {
+            if (InternalDifficulties.Contains(bmap.InternalDifficulty))
                 return false;
-            }
+            AddToThisSong(bmap);
             return true;
         }
 
         private void AddToThisSong(BeatmapData bmapData)
         {
-            BeatmapDatas.Add(bmapData);
-            if (isLocal)
+            try
             {
-                var _difficulties = Traverse.Field("_difficulties").GetValue<List<string>>();
-                var beatmaps = Traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
-                var _beatmaps = Traverse.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
+                BeatmapDatas.Add(bmapData);
+                if (isLocal)
+                {
+                    var _difficulties = Traverse.Field("_difficulties").GetValue<List<string>>();
+                    var beatmaps = Traverse.Field("beatmaps").GetValue<List<BeatmapInfo>>();
+                    var _beatmaps = Traverse.Field("_beatmaps").GetValue<Dictionary<string, BeatmapInfo>>();
 
-                _difficulties.Add(bmapData.InternalDifficulty);
-                beatmaps.Add(bmapData.BeatmapPointer);
-                _beatmaps.Add(bmapData.InternalDifficulty, bmapData.BeatmapPointer);
+                    _difficulties.Add(bmapData.InternalDifficulty);
+                    beatmaps.Add(bmapData.BeatmapPointer);
+                    _beatmaps.Add(bmapData.InternalDifficulty, bmapData.BeatmapPointer);
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
     }

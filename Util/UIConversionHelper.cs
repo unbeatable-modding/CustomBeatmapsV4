@@ -10,6 +10,8 @@ using CustomBeatmaps.UI;
 using HarmonyLib;
 using static Rhythm.BeatmapIndex;
 
+using Directory = Pri.LongPath.Directory;
+
 namespace CustomBeatmaps.Util
 {
     public static class UIConversionHelper
@@ -46,7 +48,7 @@ namespace CustomBeatmaps.Util
         {
             return package.Beatmaps.Join(beatmap => beatmap.Value.SongName, " | ");
         }
-        private static string GetLocalPackageName(CustomPackage package)
+        private static string GetLocalPackageName(CustomPacakage package)
         {
             return package.PkgSongs.Join(beatmap => beatmap.Name, " | ");
         }
@@ -85,7 +87,7 @@ namespace CustomBeatmaps.Util
                 ;
             });
         }
-        public static void SortLocalPackages(List<CustomPackage> packages, SortMode sortMode)
+        public static void SortLocalPackages(List<CustomPacakage> packages, SortMode sortMode)
         {
             packages.Sort((left, right) =>
             {
@@ -116,7 +118,7 @@ namespace CustomBeatmaps.Util
             });
         }
 
-        public static bool PackageHasDifficulty(CustomPackage package, Difficulty diff)
+        public static bool PackageHasDifficulty(CustomPacakage package, Difficulty diff)
         {
             if (diff == Difficulty.All)
                 return true;
@@ -217,7 +219,7 @@ namespace CustomBeatmaps.Util
             return false;
         }
 
-        public static bool PackageMatchesFilter(CustomPackage serverPackage, string filterQuery)
+        public static bool PackageMatchesFilter(CustomPacakage serverPackage, string filterQuery)
         {
             if (string.IsNullOrEmpty(filterQuery))
             {

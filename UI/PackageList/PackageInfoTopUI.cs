@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Arcade.UI.SongSelect;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using UnityEngine;
 using static Arcade.UI.SongSelect.ArcadeSongDatabase;
@@ -9,7 +10,7 @@ namespace CustomBeatmaps.UI.PackageList
 {
     public static class PackageInfoTopUI
     {
-        public static void Render(List<BeatmapHeader> packageBeatmaps, int selectedBeatmapIndex)
+        public static void Render(List<BeatmapData> packageBeatmaps, int selectedBeatmapIndex)
         {
             // If No beatmaps...
             if (packageBeatmaps == null)

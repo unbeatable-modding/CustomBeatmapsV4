@@ -10,14 +10,14 @@ namespace CustomBeatmaps.CustomPackages
     public class zzzCustomPackageHandler : IPackageInterface<CustomLocalPackage>
     {
 
-        protected List<LocalPackageManager> Managers;
+        protected List<zzzLocalPackageManager> Managers;
 
         public Action<CustomLocalPackage> PackageUpdated { get; set; }
 
-        public zzzCustomPackageHandler(List<LocalPackageManager> managers)
+        public zzzCustomPackageHandler(List<zzzLocalPackageManager> managers)
         {
             Managers = managers;
-            foreach (LocalPackageManager m in managers)
+            foreach (zzzLocalPackageManager m in managers)
             {
                 m.PackageUpdated += package =>
                 {

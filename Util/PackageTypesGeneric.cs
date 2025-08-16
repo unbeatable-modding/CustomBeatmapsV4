@@ -15,18 +15,13 @@ using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 
 using static Rhythm.BeatmapIndex;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
-using CustomBeatmaps.Patches;
-using Arcade.UI.SongSelect;
-using FMOD.Studio;
 using Arcade.UI;
 
 
 namespace CustomBeatmaps.Util
 {
     [Obsolete("DO NOT USE")]
-    public static class zzzCustomPackageHelper
+    public static class PackageTypesGeneric
     {
 
         // TODO: make this not hardcoded

@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
-using Debug = UnityEngine.Debug;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
@@ -88,7 +87,7 @@ namespace CustomBeatmaps
                     LocalUserPackages.Last().SetFolder(config.UserPackagesDir[i], 7);
                 }
                 */
-                LocalUserPackages.SetFolder(config.ServerPackagesDir, 7);
+                LocalUserPackages.SetFolder(config.UserPackagesDir[0], 7);
                 LocalServerPackages.SetFolder(config.ServerPackagesDir, 10);
                 OSUSongManager.SetFolder(config.OsuSongsOverrideDirectory, 9);
                 PlayedPackageManager = new PlayedPackageManager(config.PlayedBeatmapList);

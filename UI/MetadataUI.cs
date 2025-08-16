@@ -64,7 +64,7 @@ namespace CustomBeatmaps.UI
                 bmap.Tags.Attributes["BT"] = BlindTurn;
                 bmap.Tags.Attributes["MW"] = MotionWarning;
                 bmap.Tags.Attributes["4K"] = FourKey;
-                zzzCustomPackageHelper.SetBeatmapJson(bmap.text, bmap.Tags, bmap.Info.OsuPath);
+                PackageTypesGeneric.SetBeatmapJson(bmap.text, bmap.Tags, bmap.Info.OsuPath);
             }
         }
 

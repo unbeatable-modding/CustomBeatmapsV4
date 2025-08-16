@@ -15,7 +15,7 @@ namespace CustomBeatmaps.CustomPackages
         Temp
 
     }
-    public abstract class CustomPackage
+    public abstract class CustomPacakage
     {
         public string FolderName { get; set; }
         public virtual BeatmapData[] BeatmapDatas { get; protected set; }
@@ -23,7 +23,9 @@ namespace CustomBeatmaps.CustomPackages
         public List<SongData> PkgSongs;
         public abstract PackageType PkgType { get; }
 
-        public List<string> Difficulties
+        public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.
+        public bool New { get; set; }
+        public virtual List<string> Difficulties
         {
             get
             {

@@ -53,18 +53,18 @@ namespace CustomBeatmaps.UI
             Package = package;
         }
 
-        public PackageHeader(CustomPackage package)
+        public PackageHeader(CustomPacakage package)
         {
             ConvertLocal(package);
         }
 
-        public PackageHeader(CustomPackage package, bool @new)
+        public PackageHeader(CustomPacakage package, bool @new)
         {
             ConvertLocal(package);
             New = @new;
         }
 
-        private void ConvertLocal(CustomPackage package)
+        private void ConvertLocal(CustomPacakage package)
         {
             var songs = new HashSet<string>();
             var names = new HashSet<string>();
@@ -114,7 +114,7 @@ namespace CustomBeatmaps.UI
             Package = package;
         }
 
-        public NewPackageHeader(CustomPackage package)
+        public NewPackageHeader(CustomPacakage package)
         {
             var songs = new HashSet<string>();
             var names = new HashSet<string>();

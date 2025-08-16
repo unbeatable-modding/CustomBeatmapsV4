@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcade.UI.SongSelect;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util;
 using JetBrains.Annotations;
 using Rhythm;
@@ -150,7 +151,7 @@ namespace CustomBeatmaps.CustomPackages
 
                 if (score.song.StartsWith("CUSTOM__server__"))
                 {
-                    var localPath = ((CustomBeatmapInfo)ArcadeSongDatabase.Instance.SongDatabase[score.song].BeatmapInfo).Info.OsuPath;
+                    var localPath = ((CustomBeatmap)ArcadeSongDatabase.Instance.SongDatabase[score.song].BeatmapInfo).Data.SongPath;
                     var key =
                         UserServerHelper.GetHighScoreBeatmapKeyFromLocalBeatmap(Config.Mod.ServerPackagesDir,
                             localPath);

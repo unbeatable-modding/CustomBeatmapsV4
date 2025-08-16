@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util;
 
+
+using File = Pri.LongPath.File;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
+
 namespace CustomBeatmaps.CustomPackages
 {
     public class PackageManagerLocal : PackageManagerGeneric
@@ -190,13 +195,13 @@ namespace CustomBeatmaps.CustomPackages
 
         }
 
-        public override List<CustomPackage> Packages
+        public override List<CustomPacakage> Packages
         {
             get
             {
                 if (InitialLoadState.Loading)
                 {
-                    return new List<CustomPackage>();
+                    return new List<CustomPacakage>();
                 }
                 lock (_packages)
                 {

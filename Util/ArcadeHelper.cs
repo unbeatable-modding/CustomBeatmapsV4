@@ -17,8 +17,6 @@ using CustomBeatmaps.Patches;
 
 using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
-using CustomBeatmaps.UI;
-using RJBuildScripts;
 using CustomBeatmaps.CustomData;
 
 namespace CustomBeatmaps.Util

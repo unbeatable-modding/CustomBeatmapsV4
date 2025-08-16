@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
 using Rewired;
@@ -11,7 +12,7 @@ namespace CustomBeatmaps.UI.PackageList
     {
         private static Player _rewired;
 
-        public static void Render(string header, List<PackageHeader> packageHeaders, int selectedHeaderIndex, Action<int> onPackageHeaderSelect)
+        public static void Render(string header, List<CustomPacakage> packageHeaders, int selectedHeaderIndex, Action<int> onPackageHeaderSelect)
         {
             var (scrollPos, setScrollPos) = Reacc.UseState(Vector2.zero);
             var (prevSelectedHeaderIndex, setPrevSelectedHeaderIndex) = Reacc.UseState(-1);

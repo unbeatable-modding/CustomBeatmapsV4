@@ -11,7 +11,6 @@ using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 using System.Linq;
-using System.Xml.Linq;
 using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.CustomData
@@ -131,8 +130,7 @@ namespace CustomBeatmaps.CustomData
 
         public Category BeatmapCategory { get; private set; }
 
-
-
+        // The groundwork for local beatmaps
         public BeatmapData(string bmapPath, int category)
         {
             BeatmapPath = bmapPath;
@@ -140,18 +138,26 @@ namespace CustomBeatmaps.CustomData
             BeatmapCategory = BeatmapIndex.defaultIndex.Categories[category];
             DirectoryPath = Path.GetDirectoryName(bmapPath);
 
-            var text = File.ReadAllText(BeatmapPath);
-            SongName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
-            InternalName = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[Category]}__{SongName}";
-            Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", bmapPath);
-            Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", bmapPath);
+            IsLocal = CreateLocalBeatmap();
+        }
 
-            CoverPath = CustomPackageHelper.GetBeatmapImage(text, BeatmapPath);
+        private bool CreateLocalBeatmap()
+        {
+            try
+            {
+                var text = File.ReadAllText(BeatmapPath);
 
-            // Difficulty Logic
-            var difficulty = "Star";
-            var bmapVer = CustomPackageHelper.GetBeatmapProp(text, "Version", bmapPath);
-            Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
+                SongName = CustomPackageHelper.GetBeatmapProp(text, "Title", BeatmapPath);
+                InternalName = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[Category]}__{SongName}";
+                Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", BeatmapPath);
+                Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", BeatmapPath);
+
+                CoverPath = CustomPackageHelper.GetBeatmapImage(text, BeatmapPath);
+
+                // Difficulty Logic
+                var difficulty = "Star";
+                var bmapVer = CustomPackageHelper.GetBeatmapProp(text, "Version", BeatmapPath);
+                Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
             {
                 {"beginner", "Beginner"},
                 {"easy", "Easy"}, // easy is a lie shove the song into normal
@@ -161,42 +167,32 @@ namespace CustomBeatmaps.CustomData
                 {"beatable", "Hard"}, // A lot of maps like using this idk
                 {"unbeatable", "UNBEATABLE"}
             };
-            // Check if the difficulty is in the default list
-            // If not, set it to one that can be found in the game
-            foreach (var i in difficultyIndex.Keys.ToArray())
-            {
-                // Check if the start of the version field matches a difficulty and then set accordingly
-                // This is so songs that have (UNBEATABLE + 4k) get put in the UNBEATABLE difficulty
-                if (bmapVer.ToLower().StartsWith(i))
+                // Check if the difficulty is in the default list
+                // If not, set it to one that can be found in the game
+                foreach (var i in difficultyIndex.Keys.ToArray())
                 {
-                    difficultyIndex.TryGetValue(i, out difficulty);
-                    break;
+                    // Check if the start of the version field matches a difficulty and then set accordingly
+                    // This is so songs that have (UNBEATABLE + 4k) get put in the UNBEATABLE difficulty
+                    if (bmapVer.ToLower().StartsWith(i))
+                    {
+                        difficultyIndex.TryGetValue(i, out difficulty);
+                        break;
+                    }
                 }
-            }
-            Difficulty = bmapVer;
-            InternalDifficulty = difficulty;
+                Difficulty = bmapVer;
+                InternalDifficulty = difficulty;
 
-            var audio = CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
-            // realPath fixes some issues with old beatmaps, don't remove
-            var realPath = audio.Contains("/") ? audio.Substring(audio.LastIndexOf("/") + 1, audio.Length - (audio.LastIndexOf("/") + 1)) : audio;
-            AudioPath = $"{DirectoryPath}\\{realPath}";
+                var audio = CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", BeatmapPath);
+                // realPath fixes some issues with old beatmaps, don't remove
+                var realPath = audio.Contains("/") ? audio.Substring(audio.LastIndexOf("/") + 1, audio.Length - (audio.LastIndexOf("/") + 1)) : audio;
+                AudioPath = $"{DirectoryPath}\\{realPath}";
 
-            IsLocal = CreateLocalBeatmap();
-
-            //if (!CreateLocalBeatmap())
-            //    throw new BeatmapException("Failed to make local beatmap", SongPath);
-        }
-
-        private bool CreateLocalBeatmap()
-        {
-            try
-            {
-                var text = File.ReadAllText(BeatmapPath);
                 BeatmapPointer = new CustomBeatmap(this, new TextAsset(text), InternalDifficulty);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new BeatmapException("Failed to make local beatmap", SongPath);
+                //throw new BeatmapException("Failed to make local beatmap", SongPath);
+                throw e;
                 //return false;
             }
             return true;
@@ -211,6 +207,7 @@ namespace CustomBeatmaps.CustomData
             try
             {
                 songDatas.Add(InternalName, new SongData(this));
+                return;
             }
             catch (Exception)
             {
@@ -223,16 +220,15 @@ namespace CustomBeatmaps.CustomData
                         InternalName = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[Category]}__{SongName}{Offset}";
                         Offset++;
                         songDatas.Add(InternalName, new SongData(this));
-                        break;
+                        return;
                     }
                     catch (Exception)
                     {
                         if (songDatas[InternalName].TryAddToThisSong(this))
-                            break;
+                            return;
                     }
                 }
             }
-            return;
         }
 
         public override string ToString()
@@ -243,7 +239,7 @@ namespace CustomBeatmaps.CustomData
 
     public class CustomBeatmap : BeatmapInfo
     {
-        public BeatmapData Data { get; }
+        public BeatmapData Data { get; private set; }
 
         public CustomBeatmap(BeatmapData bmap, TextAsset textAsset, string difficulty) : base(textAsset, difficulty)
         {

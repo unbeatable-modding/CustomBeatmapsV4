@@ -12,9 +12,13 @@ using Rhythm;
 using UnityEngine;
 using static Rhythm.BeatmapIndex;
 
+using File = Pri.LongPath.File;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
+
 namespace CustomBeatmaps.Util
 {
-    public class CustomPackageLocal : CustomPackage
+    public class CustomPackageLocal : CustomPacakage
     {
         //public string FolderName { get; set; }
         //public List<CustomSongInfo> PkgSongs;
@@ -22,13 +26,16 @@ namespace CustomBeatmaps.Util
         
         public CustomBeatmap[] CustomBeatmaps => PkgSongs.SelectMany(p => p.BeatmapInfos).ToArray();
 
-        public List<string> Difficulties
+        /*
+        public override List<string> Difficulties
         {
             get
             {
                 return BeatmapDatas.Select(b => b.Difficulty).ToList();
             }
         }
+        */
+
         public override PackageType PkgType => PackageType.Local;
 
         public override BeatmapData[] BeatmapDatas => PkgSongs.SelectMany(p => p.BeatmapDatas).ToArray();

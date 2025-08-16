@@ -361,8 +361,8 @@ namespace CustomBeatmaps.Util
                 //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
                 songl.AddRange(CustomBeatmaps.LocalUserPackages.Songs);
                 //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
-                //songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs);
-                //songl.AddRange(CustomBeatmaps.OSUSongManager.Songs);
+                songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs);
+                songl.AddRange(CustomBeatmaps.OSUSongManager.Songs);
                 return songl;
             }
         }
@@ -378,43 +378,10 @@ namespace CustomBeatmaps.Util
                 //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
                 songl.AddRange(CustomBeatmaps.LocalUserPackages.Songs.Select(s => s.Song));
                 //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
-                //songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs);
-                //songl.AddRange(CustomBeatmaps.OSUSongManager.Songs);
+                songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs.Select(s => s.Song));
+                songl.AddRange(CustomBeatmaps.OSUSongManager.Songs.Select(s => s.Song));
                 return songl;
             }
-        }
-
-        [Obsolete]
-        private static bool DupeSongChecker(ref CustomSongInfo toLoad, List<CustomSongInfo> songs)
-        {
-            if (songs == null)
-                return false;
-            var returnSong = toLoad;
-            var isDupe = false;
-            if (songs.Any())
-            {
-                var dupeInt = 0;
-                var startingName = returnSong.name;
-                while (songs.Where((CustomSongInfo s) =>
-                    s.name == returnSong.name && (s.DirectoryPath != returnSong.DirectoryPath || s.Difficulties.Contains(returnSong.Difficulties.Single()))).Any())
-                {
-                    returnSong.name = startingName + dupeInt;
-                    isDupe = true;
-                    dupeInt++;
-                }
-
-                if (isDupe)
-                {
-                    returnSong.CustomBeatmaps.ForEach(b => { 
-                        b.Info.InternalName = returnSong.name;
-                        b.Info.Song = returnSong;
-                    });
-                    toLoad = returnSong;
-
-                }
-                    
-            }
-            return isDupe;
         }
 
     }

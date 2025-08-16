@@ -11,7 +11,7 @@ using HarmonyLib;
 using UnityEngine;
 
 using static CustomBeatmaps.Util.ArcadeHelper;
-
+/*
 namespace CustomBeatmaps.UI
 {
     // TODO: Big code duplication with OnlinePackageListUI
@@ -143,3 +143,4 @@ namespace CustomBeatmaps.UI
         }
     }
 }
+*/

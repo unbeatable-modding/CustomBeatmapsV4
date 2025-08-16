@@ -17,8 +17,8 @@ namespace CustomBeatmaps.UISystem
     {
         protected PackageManagerGeneric Manager;
 
-        protected List<CustomPackage> _localPackages = new();
-        protected List<CustomPackage> LocalPackages => Manager.Packages;
+        protected List<CustomPacakage> _localPackages = new();
+        protected List<CustomPacakage> LocalPackages => Manager.Packages;
         protected string Folder => Manager.Folder;        
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
@@ -37,11 +37,11 @@ namespace CustomBeatmaps.UISystem
         protected Difficulty _difficulty = Difficulty.All;
         protected Action<Difficulty> SetDifficulty;
 
-        protected List<BeatmapHeader> _selectedBeatmaps;
+        protected List<BeatmapData> _selectedBeatmaps;
         protected BeatmapData _selectedBeatmap;
-        protected CustomPackage _selectedPackage;
+        protected CustomPacakage _selectedPackage;
 
-        protected List<PackageHeader> _pkgHeaders = new();
+        protected List<CustomPacakage> _pkgHeaders = new();
 
         protected Action LeftRender;
         protected Action[] RightRenders;
@@ -101,7 +101,7 @@ namespace CustomBeatmaps.UISystem
             // Try to keep the same package selected when retain is true
             if (retain)
             {
-                var packages = _pkgHeaders.Select(h => h.Package).ToList();
+                var packages = _pkgHeaders.ToList();
                 if (packages.Contains(pkg))
                 {
                     SetSelectedPackageIndex(packages.IndexOf(pkg));
@@ -120,8 +120,8 @@ namespace CustomBeatmaps.UISystem
         protected abstract void SortPackages();
         protected virtual void RegenerateHeaders()
         {
-            var headers = new List<PackageHeader>(_localPackages.Count);
-            foreach (CustomPackage p in _localPackages)
+            var headers = new List<CustomPacakage>(_localPackages.Count);
+            foreach (CustomPacakage p in _localPackages)
             {
                 if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
                     continue;
@@ -129,8 +129,8 @@ namespace CustomBeatmaps.UISystem
                 if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
                     continue;
 
-                var toAdd = new PackageHeader(package: p);
-                headers.Add(toAdd);
+                //var toAdd = new CustomPackage(package: p);
+                headers.Add(p);
             }
 
             _pkgHeaders = headers;

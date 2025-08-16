@@ -6,6 +6,10 @@ using System.Text;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util;
 
+using File = Pri.LongPath.File;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
+
 namespace CustomBeatmaps.CustomPackages
 {
     /// <summary>
@@ -16,10 +20,10 @@ namespace CustomBeatmaps.CustomPackages
         /// <summary>
         /// Action that is invoked after a package is updated
         /// </summary>
-        public Action<CustomPackage> PackageUpdated;
+        public Action<CustomPacakage> PackageUpdated;
         public string Folder { get; protected set; }
 
-        protected readonly List<CustomPackage> _packages = new List<CustomPackage>();
+        protected readonly List<CustomPacakage> _packages = new List<CustomPacakage>();
         protected readonly HashSet<string> _downloadedFolders = new HashSet<string>();
 
         protected readonly Action<BeatmapException> _onLoadException;
@@ -54,7 +58,7 @@ namespace CustomBeatmaps.CustomPackages
         /// <summary>
         /// List of all Packages this manager can see
         /// </summary>
-        public virtual List<CustomPackage> Packages { get; private set; }
+        public virtual List<CustomPacakage> Packages { get; private set; }
         /// <summary>
         /// List of all Songs inside all Packages this manager can see
         /// (Songs contain beatmaps)
