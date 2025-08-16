@@ -21,12 +21,12 @@ using CustomBeatmaps.Patches;
 using Arcade.UI.SongSelect;
 using FMOD.Studio;
 using Arcade.UI;
-using CustomBeatmaps.CustomData;
 
 
 namespace CustomBeatmaps.Util
 {
-    public static class CustomPackageHelper
+    [Obsolete("DO NOT USE")]
+    public static class zzzCustomPackageHelper
     {
 
         // TODO: make this not hardcoded
@@ -37,6 +37,7 @@ namespace CustomBeatmaps.Util
             new Category("server", "online", 10)
             };
 
+        [Obsolete]
         public static string GetBeatmapProp(string beatmapText, string prop, string beatmapPath)
         {
             var match = Regex.Match(beatmapText, $"{prop}: *(.+?)\r?\n");
@@ -47,6 +48,7 @@ namespace CustomBeatmaps.Util
             throw new BeatmapException($"{prop} property not found.", beatmapPath);
         }
 
+        [Obsolete]
         public static string GetBeatmapImage(string beatmapText, string beatmapPath)
         {
             var match = Regex.Match(beatmapText, $"Background and Video events\r?\n.*\"(.+?)\"");
@@ -58,6 +60,7 @@ namespace CustomBeatmaps.Util
             //throw new BeatmapException($"Image property not found.", beatmapPath);
         }
 
+        [Obsolete]
         public static void SetBeatmapJson(string beatmapText, TagData data, string beatmapPath)
         {
             data.SongLength = ArcadeBGMManager.SongDuration;
@@ -66,11 +69,13 @@ namespace CustomBeatmaps.Util
             File.WriteAllText(beatmapPath, match);
         }
 
+        [Obsolete]
         private static bool IsBeatmapFile(string beatmapPath)
         {
             return beatmapPath.ToLower().EndsWith(".osu");
         }
 
+        [Obsolete]
         public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, int category, bool recursive = false,
             Action<BeatmapException> onBeatmapFail = null, List<CustomPackageLocal> tmpPkg = null)
         {
@@ -85,7 +90,7 @@ namespace CustomBeatmaps.Util
             package.FolderName = rootSubFolder;
             ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
-            var songs = new Dictionary<string, SongData>();
+            var songs = new List<CustomSongInfo>();
 
             foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
             {
@@ -94,10 +99,8 @@ namespace CustomBeatmaps.Util
                 {
                     try
                     {
-                        //var toLoad = new CustomSongInfo(packageSubFile, category);
+                        var toLoad = new CustomSongInfo(packageSubFile, category);
                         //AddSongToList(toLoad, ref songs, tmpPkg);
-                        var bmapInfo = new BeatmapData(packageSubFile, category);
-                        bmapInfo.TryAttachSong(ref songs);
                     }
                     catch (BeatmapException e)
                     {
@@ -115,8 +118,8 @@ namespace CustomBeatmaps.Util
             // This folder has some beatmaps!
             if (songs.Any())
             {
-                package.PkgSongs = songs.Values.ToList();
-                return true;
+                //package.PkgSongs = songs;
+                return false;
             }
 
             // Empty
@@ -124,9 +127,115 @@ namespace CustomBeatmaps.Util
             return false;
         }
 
+        [Obsolete]
+        public static bool zzzTryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomLocalPackage package, int category, bool recursive = false,
+            Action<BeatmapException> onBeatmapFail = null, List<CustomLocalPackage> tmpPkg = null)
+        {
+            package = new CustomLocalPackage();
+            packageFolder = Path.GetFullPath(packageFolder);
+            outerFolderPath = Path.GetFullPath(outerFolderPath);
+
+            // We can't do Path.GetRelativePath, Path.GetPathRoot, or string.Split so this works instead.
+            string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
+            // We also only want the stub (lowest directory)
+            string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
+            package.FolderName = rootSubFolder;
+            ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
+
+            var songs = new List<CustomSongInfo>();
+
+            foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
+            {
+                ScheduleHelper.SafeLog($"    {packageSubFile.Substring(packageFolder.Length)}");
+                if (IsBeatmapFile(packageSubFile))
+                {
+                    try
+                    {
+                        var toLoad = new CustomSongInfo(packageSubFile, category);
+                        zzzAddSongToList(toLoad, ref songs, tmpPkg);
+
+                        //ScheduleHelper.SafeLog("          (OSU!)");
+                    }
+                    catch (BeatmapException e)
+                    {
+                        ScheduleHelper.SafeLog($"    BEATMAP FAIL: {e.Message}");
+                        onBeatmapFail?.Invoke(e);
+                    }
+                    catch (Exception e)
+                    {
+                        ScheduleHelper.SafeInvoke(() => Debug.LogException(e));
+                    }
+
+                }
+            }
+
+            // This folder has some beatmaps!
+            if (songs.Any())
+            {
+                package.PkgSongs = songs;
+                return true;
+            }
+
+            // Empty
+            package = new CustomLocalPackage();
+            return false;
+        }
+
+        [Obsolete]
         public static int EstimatePackageCount(string folderPath)
         {
             return Directory.GetDirectories(folderPath).Length + Directory.GetFiles(folderPath).Length;
+        }
+
+        public static CustomLocalPackage[] zzzLoadLocalPackages(string folderPath, int category, Action<CustomLocalPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
+        {
+            folderPath = Path.GetFullPath(folderPath);
+
+            var result = new List<CustomLocalPackage>();
+            //result = new List<CustomLocalPackage>();
+
+            ScheduleHelper.SafeLog("step A");
+
+            // Folders = packages
+            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+            {
+                CustomLocalPackage potentialNewPackage;
+                if (zzzTryLoadLocalPackage(subDir, folderPath, out potentialNewPackage, category, false, onBeatmapFail, result))
+                {
+                    onLoadPackage?.Invoke(potentialNewPackage);
+                    result.Add(potentialNewPackage);
+                }
+            }
+
+            ScheduleHelper.SafeLog("step B");
+
+            // Files = packages too! For compatibility with V1 (cause why not)
+            /*
+            foreach (string subFile in Directory.GetFiles(folderPath))
+            {
+                //if (IsBeatmapFile(subFile))
+                if (false)
+                {
+                    try
+                    {
+                        //var customBmap = LoadLocalBeatmap(subFile);
+                        var newPackage = new CustomLocalPackage();
+                        //newPackage.Beatmaps = new[] { customBmap };
+                        onLoadPackage?.Invoke(newPackage);
+                        result.Add(newPackage);
+                    }
+                    catch (BeatmapException e)
+                    {
+                        onBeatmapFail?.Invoke(e);
+                    }
+                }
+            }
+            */
+
+            ScheduleHelper.SafeLog($"LOADED {result.Count} PACKAGES");
+            ScheduleHelper.SafeLog($"####### FULL PACKAGES LIST: #######\n{result.Join(delimiter: "\n")}");
+
+            return result.ToArray();
         }
 
         public static CustomPackageLocal[] LoadLocalPackages(string folderPath, int category, Action<CustomPackageLocal> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
@@ -134,6 +243,7 @@ namespace CustomBeatmaps.Util
             folderPath = Path.GetFullPath(folderPath);
 
             var result = new List<CustomPackageLocal>();
+            //result = new List<CustomLocalPackage>();
 
             ScheduleHelper.SafeLog("step A");
 
@@ -181,28 +291,33 @@ namespace CustomBeatmaps.Util
 
         // Package IDs are just the ending zip file name.
         // If we want the server to hold on to external packages, we probably want a custom key system or something to prevent duplicate names... 
+        [Obsolete]
         private static string GetPackageFolderIdFromServerPackageURL(string serverPackageURL)
         {
             string endingName = Path.GetFileName(serverPackageURL);
             return endingName;
         }
 
+        [Obsolete]
         public static string GetLocalFolderFromServerPackageURL(string localServerPackageDirectory, string serverPackageURL)
         {
             string packageFolderId = GetPackageFolderIdFromServerPackageURL(serverPackageURL);
             return Path.Combine(localServerPackageDirectory, packageFolderId);
         }
 
+        [Obsolete]
         public static async Task<CustomServerPackageList> FetchServerPackageList(string url)
         {
             return await FetchHelper.GetJSON<CustomServerPackageList>(url);
         }
 
+        [Obsolete]
         public static async Task<Dictionary<string, ServerSubmissionPackage>> FetchServerSubmissions(string url)
         {
             return await FetchHelper.GetJSON<Dictionary<string, ServerSubmissionPackage>>(url);
         }
 
+        [Obsolete]
         private static string GetURLFromServerPackageURL(string serverDirectory, string serverPackageRoot, string serverPackageURL)
         {
             // In the form "packages/<something>/zip"
@@ -255,6 +370,7 @@ namespace CustomBeatmaps.Util
         /// <param name="localServerPackageDirectory"> Local directory to save packages ex. SERVER_PACKAGES </param>
         /// <param name="serverPackageURL">The url from the server (https or "packages/{something}.zip"</param>
         /// <param name="callback"> Returns the local path of the downloaded file </param>
+        [Obsolete]
         public static async Task DownloadPackage(string packageDownloadURL, string serverPackageRoot, string localServerPackageDirectory, string serverPackageURL)
         {
             string serverDownloadURL = GetURLFromServerPackageURL(packageDownloadURL, serverPackageRoot, serverPackageURL);
@@ -264,6 +380,7 @@ namespace CustomBeatmaps.Util
             await DownloadPackageInner(serverDownloadURL, localDownloadExtractPath);
         }
 
+        [Obsolete]
         public static async Task DownloadTemporarySubmissionPackage(string downloadURL, string tempSubmissionFolder)
         {
             try
@@ -281,6 +398,7 @@ namespace CustomBeatmaps.Util
         /// <summary>
         /// Adds Custom Categories into the game
         /// </summary>
+        [Obsolete]
         public static void TryAddCustomCategory()
         {
             foreach (var customCategory in customCategories)
@@ -305,23 +423,24 @@ namespace CustomBeatmaps.Util
             }
         }
 
+
         /// <summary>
         /// Add a Custom Song to a list with logic
         /// </summary>
         /// <param name="toLoad"> Song to be added to List  </param>
         /// <param name="songs"> List the Song will be added to </param>
-        /*
-        public static void AddSongToList(CustomSongInfo toLoad, ref List<CustomSongInfo> songs, List<CustomPackageLocal> tmpPkg = null)
+        [Obsolete]
+        public static void zzzAddSongToList(CustomSongInfo toLoad, ref List<CustomSongInfo> songs, List<CustomLocalPackage> tmpPkg = null)
         {
             //List<Song>[] toCheck = [songs, GetAllCustomSongs, tmpPkg.SelectMany(p => p.PkgSongs).ToList()];
-            List<List<CustomSongInfo>> toCheck = [songs, GetAllCustomSongs];
+            List<List<CustomSongInfo>> toCheck = [songs];
             // DO NOT TRY TO PARSE TMPPKG IF NULL STOP BREAKING THINGS
             if (tmpPkg != null)
                 toCheck.Add(tmpPkg.SelectMany(p => p.PkgSongs).ToList());
 
             foreach (List<CustomSongInfo> list in toCheck)
             {
-                DupeSongChecker(ref toLoad, list);
+                //DupeSongChecker(ref toLoad, list);
                 //break;
             }
 
@@ -348,74 +467,7 @@ namespace CustomBeatmaps.Util
                 songs.Add(toLoad);
             }
         }
-        */
 
-        /// <summary>
-        /// Return a list of all Custom Songs
-        /// </summary>
-        public static List<SongData> GetAllCustomSongs
-        {
-            get
-            {
-                var songl = new List<SongData>();
-                //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
-                songl.AddRange(CustomBeatmaps.LocalUserPackages.Songs);
-                //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
-                //songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs);
-                //songl.AddRange(CustomBeatmaps.OSUSongManager.Songs);
-                return songl;
-            }
-        }
-
-        /// <summary>
-        /// Return a list of all Custom Songs
-        /// </summary>
-        public static List<CustomSong> GetAllCustomSongInfos
-        {
-            get
-            {
-                var songl = new List<CustomSong>();
-                //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
-                songl.AddRange(CustomBeatmaps.LocalUserPackages.Songs.Select(s => s.Song));
-                //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
-                //songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs);
-                //songl.AddRange(CustomBeatmaps.OSUSongManager.Songs);
-                return songl;
-            }
-        }
-
-        [Obsolete]
-        private static bool DupeSongChecker(ref CustomSongInfo toLoad, List<CustomSongInfo> songs)
-        {
-            if (songs == null)
-                return false;
-            var returnSong = toLoad;
-            var isDupe = false;
-            if (songs.Any())
-            {
-                var dupeInt = 0;
-                var startingName = returnSong.name;
-                while (songs.Where((CustomSongInfo s) =>
-                    s.name == returnSong.name && (s.DirectoryPath != returnSong.DirectoryPath || s.Difficulties.Contains(returnSong.Difficulties.Single()))).Any())
-                {
-                    returnSong.name = startingName + dupeInt;
-                    isDupe = true;
-                    dupeInt++;
-                }
-
-                if (isDupe)
-                {
-                    returnSong.CustomBeatmaps.ForEach(b => { 
-                        b.Info.InternalName = returnSong.name;
-                        b.Info.Song = returnSong;
-                    });
-                    toLoad = returnSong;
-
-                }
-                    
-            }
-            return isDupe;
-        }
 
     }
 }

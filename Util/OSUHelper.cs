@@ -10,18 +10,19 @@ using HarmonyLib;
 using Rhythm;
 using static Rhythm.BeatmapIndex;
 using System.Linq;
-
+using CustomBeatmaps.CustomData;
+/*
 namespace CustomBeatmaps.Util
 {
     public static class OSUHelper
     {
-        public static CustomSongInfo[] LoadOsuBeatmaps(string path, int category, out string failMessage)
+        public static CustomSong[] LoadOsuBeatmaps(string path, int category, out string failMessage)
         {
             failMessage = "";
             path = GetOsuPath(path);
             if (Directory.Exists(path))
             {
-                List<CustomSongInfo> songs = new List<CustomSongInfo>();
+                List<CustomSong> songs = new List<CustomSong>();
                 foreach (string osuProjectDir in Directory.EnumerateDirectories(path))
                 {
                     foreach (string file in Directory.EnumerateFiles(osuProjectDir, "*.*", SearchOption.AllDirectories))
@@ -30,8 +31,8 @@ namespace CustomBeatmaps.Util
                         {
                             try
                             {
-                                var toLoad = new CustomSongInfo(file, category);
-                                CustomPackageHelper.AddSongToList(toLoad, ref songs);
+                                var toLoad = new CustomSong(file, category);
+                                //CustomPackageHelper.AddSongToList(toLoad, ref songs);
                             }
                             catch (Exception e)
                             {
@@ -66,7 +67,7 @@ namespace CustomBeatmaps.Util
         private static string LoadPackageNameFromOsu(string osuPath)
         {
             string text = File.ReadAllText(osuPath);
-            return CustomPackageHelper.GetBeatmapProp(text, "Title", osuPath);
+            return zzzCustomPackageHelper.GetBeatmapProp(text, "Title", osuPath);
         }
 
         public static string CreateExportZipFile(string osuPath, string temporaryFolderLocation)
@@ -88,3 +89,4 @@ namespace CustomBeatmaps.Util
         }
     }
 }
+*/

@@ -13,10 +13,10 @@ using Pri.LongPath;
 using UnityEngine;
 
 using static CustomBeatmaps.Util.ArcadeHelper;
-
+/*
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOnline : AbstractPackageList<LocalPackageManager, CustomServerPackage, CustomServerBeatmap>
+    public class PackageListUIOnline : AbstractPackageList
     {
 
         private CustomServerPackageList _list = new();
@@ -27,7 +27,7 @@ namespace CustomBeatmaps.UI
 
         protected int _selectedHeaderIndex = 0;
 
-        public PackageListUIOnline(LocalPackageManager manager) : base(manager)
+        public PackageListUIOnline(LocalPackageManager manager)
         {  
             LeftRender = () =>
             {
@@ -154,7 +154,7 @@ namespace CustomBeatmaps.UI
                                         if (PlayButtonUI.Render("INVALID PACKAGE: Redownload"))
                                         {
                                             // Delete + redownload
-                                            Directory.Delete(CustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir, _selectedPackage.ServerURL), true);
+                                            Directory.Delete(zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir, _selectedPackage.ServerURL), true);
                                             CustomBeatmaps.Downloader.QueueDownloadPackage(_selectedPackage.ServerURL);
                                         }
                                     }
@@ -332,7 +332,7 @@ namespace CustomBeatmaps.UI
                 string serverUrl = serverPackage.ServerURL;
                 var downloadStatus = CustomBeatmaps.Downloader.GetDownloadStatus(serverUrl);
                 bool isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(
-                    CustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir, serverUrl));
+                    zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir, serverUrl));
                 _pkgHeaders.Add(new PackageHeader(name, songs.Count, serverPackage.Beatmaps.Count, creator, isNew, downloadStatus, serverPackage));
 
                 if (_selectedHeaderIndex > _pkgHeaders.Count)
@@ -364,7 +364,7 @@ namespace CustomBeatmaps.UI
             // Also reload high scores because... yeah
             CustomBeatmaps.ServerHighScoreManager.Reload();
             _failure = "loading...";
-            CustomPackageHelper.FetchServerPackageList(CustomBeatmaps.BackendConfig.ServerPackageList).ContinueWith(result =>
+            zzzCustomPackageHelper.FetchServerPackageList(CustomBeatmaps.BackendConfig.ServerPackageList).ContinueWith(result =>
             {
                 if (result.Exception != null)
                 {
@@ -464,3 +464,4 @@ namespace CustomBeatmaps.UI
         }
     }
 }
+*/

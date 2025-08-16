@@ -19,6 +19,7 @@ using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using CustomBeatmaps.UI;
 using RJBuildScripts;
+using CustomBeatmaps.CustomData;
 
 namespace CustomBeatmaps.Util
 {
@@ -95,7 +96,7 @@ namespace CustomBeatmaps.Util
         {
             CleanSongs();
 
-            foreach (Song s in CustomPackageHelper.GetAllCustomSongs)
+            foreach (Song s in CustomPackageHelper.GetAllCustomSongInfos)
             {
                 //CustomBeatmaps.Log.LogDebug($"{s.name}");
 
@@ -117,7 +118,7 @@ namespace CustomBeatmaps.Util
         {
             var killList = new List<string>();
 
-            songs.DoIf((Song s) => s is CustomSongInfo, s => killList.Add(s.name));
+            songs.DoIf((Song s) => s is CustomSong, s => killList.Add(s.name));
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
             killList.ForEach((string k) => songs.Remove(_songs[k]));
@@ -137,18 +138,18 @@ namespace CustomBeatmaps.Util
         public static ArcadeBGMManager BGM => ArcadeBGMManager.Instance;
         private static BeatmapIndex BeatmapIndex => BeatmapIndex.defaultIndex;
 
-        public static void ForceSelectSong(CustomBeatmapInfo customBeatmapInfo)
+        public static void ForceSelectSong(CustomBeatmap customBeatmapInfo)
         {
-            SongDatabase.SetCategory(customBeatmapInfo.Info.Category);
+            SongDatabase.SetCategory(customBeatmapInfo.Data.BeatmapCategory);
             SongDatabase.SetDifficulty(customBeatmapInfo.difficulty);
-            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == customBeatmapInfo.Info.SongPath));
+            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == customBeatmapInfo.Data.SongPath));
         }
 
-        public static void PlaySong(CustomBeatmapInfo customBeatmapInfo)
+        public static void PlaySong(CustomBeatmap customBeatmapInfo)
         {
             PlaySong(customBeatmapInfo, GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom));
         }
-        public static void PlaySong(CustomBeatmapInfo customBeatmapInfo, string scene)
+        public static void PlaySong(CustomBeatmap customBeatmapInfo, string scene)
         {
             ForceSelectSong(customBeatmapInfo);
             var onSongPlaySound = Traverse.Create(SongDatabase).Field("onSongPlaySound").GetValue<EventReference>();
@@ -162,13 +163,13 @@ namespace CustomBeatmaps.Util
 
                 JeffBezosController.instance.DisableUIInputs();
                 JeffBezosController.returnFromArcade = true;
-                LevelManager.LoadArcadeLevel(customBeatmapInfo.Info.InternalName, customBeatmapInfo.difficulty);
+                LevelManager.LoadArcadeLevel(customBeatmapInfo.Data.InternalName, customBeatmapInfo.difficulty);
             }
         }
 
-        public static void PlaySongEdit(CustomBeatmapInfo beatmap, bool enableCountdown = false)
+        public static void PlaySongEdit(CustomBeatmap beatmap, bool enableCountdown = false)
         {
-            OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.Info.OsuPath, beatmap.Info.SongPath);
+            //OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.Info.OsuPath, beatmap.Info.SongPath);
             PlaySong(beatmap, DefaultBeatmapScene);
         }
 

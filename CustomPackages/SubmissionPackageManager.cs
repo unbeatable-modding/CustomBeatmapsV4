@@ -10,11 +10,11 @@ namespace CustomBeatmaps.CustomPackages
         private bool _fetching = false;
 
         private string _downloadedPackageURL;
-        private CustomLocalPackage _localPackage;
+        private CustomPackageLocal _localPackage;
 
         public bool LocalPackageDownloaded => _downloadedPackageURL != null;
         public string LocalPackageDownloadURL => _downloadedPackageURL;
-        public CustomLocalPackage LocalPackage => _localPackage;
+        public CustomPackageLocal LocalPackage => _localPackage;
 
         public bool ListLoaded { get; private set; }
         public readonly List<string> ListLoadFailures = new List<string>();

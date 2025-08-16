@@ -12,16 +12,15 @@ using System.Linq;
 using static Rhythm.BeatmapIndex;
 using System.Security.Cryptography;
 using CustomBeatmaps.Patches;
-using CustomBeatmaps.UI;
 
 namespace CustomBeatmaps.CustomPackages
 {
     /// <summary>
     /// Manages Local packages in the USER_PACKAGES or SERVER_PACKAGES directory
     /// </summary>
-    public class ServerPackageManager : IPackageInterface<CustomLocalPackage>
+    public class zzzPackageManagerLocal
     {
-        public Action<CustomLocalPackage> PackageUpdated { get; set; }
+        public Action<CustomLocalPackage> PackageUpdated;
 
         private readonly List<CustomLocalPackage> _packages = new List<CustomLocalPackage>();
         private readonly HashSet<string> _downloadedFolders = new HashSet<string>();
@@ -31,13 +30,18 @@ namespace CustomBeatmaps.CustomPackages
         private readonly Queue<string> _loadQueue = new Queue<string>();
 
         private string _folder;
-        public string Folder => _folder;
         private int _category;
         private FileSystemWatcher _watcher;
 
         public InitialLoadStateData InitialLoadState { get; private set; } = new InitialLoadStateData();
+        public class InitialLoadStateData
+        {
+            public bool Loading;
+            public int Loaded;
+            public int Total;
+        }
 
-        public ServerPackageManager(Action<BeatmapException> onLoadException)
+        public zzzPackageManagerLocal(Action<BeatmapException> onLoadException)
         {
             _onLoadException = onLoadException;
         }
@@ -53,11 +57,11 @@ namespace CustomBeatmaps.CustomPackages
                 {
                     InitialLoadState.Loading = true;
                     InitialLoadState.Loaded = 0;
-                    InitialLoadState.Total = CustomPackageHelper.EstimatePackageCount(_folder);
+                    InitialLoadState.Total = zzzCustomPackageHelper.EstimatePackageCount(_folder);
                     ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folder}");
 
                     _packages.Clear();
-                    var packages = CustomPackageHelper.LoadLocalPackages(_folder, _category, loadedPackage =>
+                    var packages = zzzCustomPackageHelper.zzzLoadLocalPackages(_folder, _category, loadedPackage =>
                     {
                         InitialLoadState.Loaded++;
                     }, _onLoadException);
@@ -78,7 +82,7 @@ namespace CustomBeatmaps.CustomPackages
 
         private void UpdatePackage(string folderPath)
         {
-            // Remove old package if there was one and update
+            // Remove old package if there was one then update
             lock (_packages)
             {
                 int toRemove = _packages.FindIndex(check => check.FolderName == folderPath);
@@ -86,17 +90,13 @@ namespace CustomBeatmaps.CustomPackages
                     _packages.RemoveAt(toRemove);
             }
 
-            if (CustomPackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
+            if (zzzCustomPackageHelper.zzzTryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
                     _onLoadException))
             {
                 ScheduleHelper.SafeInvoke(() => package.PkgSongs.ForEach(s => s.GetTexture()));
                 ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
                 lock (_packages)
                 {
-                    // Remove old package if there was one and update
-                    //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
-                    //if (toRemove != -1)
-                    //    _packages.RemoveAt(toRemove);
                     _packages.Add(package);
                     lock (_downloadedFolders)
                     {
@@ -183,7 +183,7 @@ namespace CustomBeatmaps.CustomPackages
         {
             beatmapRelativeKeyPath = beatmapRelativeKeyPath.Replace('/', '\\');
 
-            string targetPackageFullPath = CustomPackageHelper.GetLocalFolderFromServerPackageURL(
+            string targetPackageFullPath = zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(
                 Config.Mod.ServerPackagesDir, serverPackageURL);
             targetPackageFullPath = Path.GetFullPath(targetPackageFullPath);
 
@@ -223,7 +223,7 @@ namespace CustomBeatmaps.CustomPackages
             folder = Path.GetFullPath(folder);
             if (folder == _folder)
                 return;
-            
+
             _folder = folder;
             _category = category;
 
@@ -277,15 +277,15 @@ namespace CustomBeatmaps.CustomPackages
                     {
                         await Task.Delay(400);
                         RefreshQueuedPackages();
-                        
+
                     }).ContinueWith(task => ScheduleHelper.SafeInvoke(() => {
                         _loadQueue.Clear();
                         ArcadeHelper.ReloadArcadeList();
                     }));
-                    
+
                 }
             }
-            
+
         }
 
         private void RefreshQueuedPackages()

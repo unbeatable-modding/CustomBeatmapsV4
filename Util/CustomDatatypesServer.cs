@@ -17,7 +17,7 @@ namespace CustomBeatmaps.Util
         */
     }
 
-    public class CustomServerPackage : ICustomPackage<CustomServerBeatmap>
+    public class CustomServerPackage : ICustomLocalPackage<CustomServerBeatmap>
     {
         [JsonProperty("filePath")]
         public string ServerURL;

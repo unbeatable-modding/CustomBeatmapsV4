@@ -6,13 +6,15 @@ using CustomBeatmaps.UI;
 using CustomBeatmaps.Util;
 namespace CustomBeatmaps.CustomPackages
 {
-    public class CustomPackageHandler : IPackageInterface<CustomLocalPackage>
+    [Obsolete]
+    public class zzzCustomPackageHandler : IPackageInterface<CustomLocalPackage>
     {
+
         protected List<LocalPackageManager> Managers;
 
         public Action<CustomLocalPackage> PackageUpdated { get; set; }
 
-        public CustomPackageHandler(List<LocalPackageManager> managers)
+        public zzzCustomPackageHandler(List<LocalPackageManager> managers)
         {
             Managers = managers;
             foreach (LocalPackageManager m in managers)

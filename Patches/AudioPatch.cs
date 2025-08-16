@@ -15,6 +15,7 @@ using static Rhythm.BeatmapIndex;
 using Arcade.UI;
 using FMOD;
 using System.Linq;
+using CustomBeatmaps.CustomData;
 
 namespace CustomBeatmaps.Patches
 {
@@ -29,7 +30,8 @@ namespace CustomBeatmaps.Patches
             if (key.StartsWith("CUSTOM__"))
             {
                 BeatmapIndex.defaultIndex.TryGetSong(key, out Song songTest);
-                key = ((CustomSongInfo)songTest).AudioPath;
+                if (songTest is CustomSong)
+                    key = ((CustomSong)songTest).Data.AudioPath;
 
                 if (File.Exists(key))
                 {
@@ -39,11 +41,13 @@ namespace CustomBeatmaps.Patches
                 else
                 {
                     CustomBeatmaps.Log.LogDebug("Custom audio not found: " + key);
+                    return false;
                 }
             }
             return true;
         }
 
+        // Make the miniplayer work with custom songs which magicially fixes other issues
         [HarmonyPatch(typeof(ArcadeBGMManager), "OnProgrammerSoundCreated")]
         [HarmonyPostfix]
         public static void MadeSound(ref PROGRAMMER_SOUND_PROPERTIES properties)

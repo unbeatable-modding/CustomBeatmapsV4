@@ -1,6 +1,7 @@
 ﻿
 using System.Collections.Generic;
 using System.Linq;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.Util;
 using HarmonyLib;
@@ -52,28 +53,28 @@ namespace CustomBeatmaps.UI
             Package = package;
         }
 
-        public PackageHeader(CustomLocalPackage package)
+        public PackageHeader(CustomPackage package)
         {
             ConvertLocal(package);
         }
 
-        public PackageHeader(CustomLocalPackage package, bool @new)
+        public PackageHeader(CustomPackage package, bool @new)
         {
             ConvertLocal(package);
             New = @new;
         }
 
-        private void ConvertLocal(CustomLocalPackage package)
+        private void ConvertLocal(CustomPackage package)
         {
             var songs = new HashSet<string>();
             var names = new HashSet<string>();
             var creators = new HashSet<string>();
             var beatmaps = 0;
-            foreach (CustomBeatmapInfo bmap in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
+            foreach (BeatmapData bmap in package.PkgSongs.SelectMany(s => s.BeatmapDatas))
             {
-                songs.Add(bmap.Info.InternalName);
-                names.Add(bmap.Info.SongName);
-                creators.Add(bmap.Info.Creator);
+                songs.Add(bmap.InternalName);
+                names.Add(bmap.SongName);
+                creators.Add(bmap.Creator);
                 beatmaps++;
             }
 
@@ -113,17 +114,17 @@ namespace CustomBeatmaps.UI
             Package = package;
         }
 
-        public NewPackageHeader(CustomLocalPackage package)
+        public NewPackageHeader(CustomPackage package)
         {
             var songs = new HashSet<string>();
             var names = new HashSet<string>();
             var creators = new HashSet<string>();
             var beatmaps = 0;
-            foreach (CustomBeatmapInfo bmap in package.PkgSongs.SelectMany(s => s.CustomBeatmaps))
+            foreach (BeatmapData bmap in package.PkgSongs.SelectMany(s => s.BeatmapDatas))
             {
-                songs.Add(bmap.Info.InternalName);
-                names.Add(bmap.Info.SongName);
-                creators.Add(bmap.Info.Creator);
+                songs.Add(bmap.InternalName);
+                names.Add(bmap.SongName);
+                creators.Add(bmap.Creator);
                 beatmaps++;
             }
 

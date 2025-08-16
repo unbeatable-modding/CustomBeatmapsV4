@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Arcade.UI.SongSelect;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using HarmonyLib;
@@ -13,26 +14,26 @@ namespace CustomBeatmaps.Util
 {
     public static class UIConversionHelper
     {
-        public static BeatmapHeader CustomBeatmapInfoToBeatmapHeader(CustomBeatmapInfo bmap)
+        public static BeatmapHeader CustomBeatmapInfoToBeatmapHeader(BeatmapData bmap)
         {
             return new BeatmapHeader(
-                bmap.Info.SongName,
-                bmap.Info.Artist,
-                bmap.Info.Creator,
-                bmap.Info.RealDifficulty,
+                bmap.SongName,
+                bmap.Artist,
+                bmap.Creator,
+                bmap.Difficulty,
                 null,
-                bmap.Info.Level,
-                bmap.Info.FlavorText,
+                bmap.Level,
+                bmap.FlavorText,
                 bmap.Attributes
             );
         }
 
-        public static List<BeatmapHeader> CustomBeatmapInfosToBeatmapHeaders(List<CustomSongInfo> customBeatmaps)
+        public static List<BeatmapHeader> CustomBeatmapInfosToBeatmapHeaders(List<SongData> customBeatmaps)
         {
             List<BeatmapHeader> headers = new List<BeatmapHeader>(customBeatmaps.Count);
             foreach (var song in customBeatmaps)
             {
-                foreach (var bmap in song.CustomBeatmaps)
+                foreach (var bmap in song.BeatmapDatas)
                 {
                     headers.Add(CustomBeatmapInfoToBeatmapHeader(bmap));
                 }
@@ -45,9 +46,9 @@ namespace CustomBeatmaps.Util
         {
             return package.Beatmaps.Join(beatmap => beatmap.Value.SongName, " | ");
         }
-        private static string GetLocalPackageName(CustomLocalPackage package)
+        private static string GetLocalPackageName(CustomPackage package)
         {
-            return package.PkgSongs.Join(beatmap => beatmap.name, " | ");
+            return package.PkgSongs.Join(beatmap => beatmap.Name, " | ");
         }
 
         public static void SortServerPackages(List<CustomServerPackage> headers, SortMode sortMode)
@@ -84,7 +85,7 @@ namespace CustomBeatmaps.Util
                 ;
             });
         }
-        public static void SortLocalPackages(List<CustomLocalPackage> packages, SortMode sortMode)
+        public static void SortLocalPackages(List<CustomPackage> packages, SortMode sortMode)
         {
             packages.Sort((left, right) =>
             {
@@ -115,7 +116,7 @@ namespace CustomBeatmaps.Util
             });
         }
 
-        public static bool PackageHasDifficulty(CustomLocalPackage package, Difficulty diff)
+        public static bool PackageHasDifficulty(CustomPackage package, Difficulty diff)
         {
             if (diff == Difficulty.All)
                 return true;
@@ -216,7 +217,7 @@ namespace CustomBeatmaps.Util
             return false;
         }
 
-        public static bool PackageMatchesFilter(CustomLocalPackage serverPackage, string filterQuery)
+        public static bool PackageMatchesFilter(CustomPackage serverPackage, string filterQuery)
         {
             if (string.IsNullOrEmpty(filterQuery))
             {
@@ -224,14 +225,14 @@ namespace CustomBeatmaps.Util
             }
 
             bool caseSensitive = filterQuery.ToLower() != filterQuery;
-            foreach (var bmap in serverPackage.PkgSongs.SelectMany(s => s.CustomBeatmaps).ToList())
+            foreach (var bmap in serverPackage.PkgSongs.SelectMany(s => s.BeatmapDatas).ToList())
             {
                 string[] possibleMatches = new[]
                 {
-                    bmap.Info.SongName,
-                    bmap.Info.Artist,
-                    bmap.Info.Creator,
-                    bmap.Info.Difficulty
+                    bmap.SongName,
+                    bmap.Artist,
+                    bmap.Creator,
+                    bmap.InternalDifficulty
                 };
                 foreach (var possibleMatch in possibleMatches)
                 {

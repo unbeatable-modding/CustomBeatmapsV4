@@ -7,7 +7,7 @@ using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
 using UnityEngine;
-
+/*
 namespace CustomBeatmaps.UI
 {
     public class PackageListUIOSU : AbstractPackageList<LocalPackageManager, CustomLocalPackage, CustomLocalBeatmap>
@@ -100,3 +100,4 @@ namespace CustomBeatmaps.UI
 
     }
 }
+*/

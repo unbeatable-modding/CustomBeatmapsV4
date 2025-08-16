@@ -14,9 +14,15 @@ namespace CustomBeatmaps.UI
 {
     public static class CustomBeatmapsUI
     {
-        private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
-        private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
-        private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
+        //private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
+        //private static PackageListUILocal LocalPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
+        ////private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
+        //private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
+
+        private static PackageListUILocal OnlinePackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
+        private static PackageListUILocal LocalPackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
+        //private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
+        private static PackageListUILocal OsuPackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
 
         public static void Render()
         {

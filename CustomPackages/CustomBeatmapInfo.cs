@@ -11,6 +11,8 @@ using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.CustomPackages
 {
+
+    [Obsolete]
     public class CustomBeatmapInfo : BeatmapInfo
     {
         public CustomLocalBeatmap Info;

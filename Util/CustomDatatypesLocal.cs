@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using HarmonyLib;
@@ -12,7 +14,39 @@ using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.Util
 {
-    public class CustomLocalPackage : ICustomPackage<CustomLocalBeatmap>
+    public class CustomPackageLocal : CustomPackage
+    {
+        //public string FolderName { get; set; }
+        //public List<CustomSongInfo> PkgSongs;
+
+        
+        public CustomBeatmap[] CustomBeatmaps => PkgSongs.SelectMany(p => p.BeatmapInfos).ToArray();
+
+        public List<string> Difficulties
+        {
+            get
+            {
+                return BeatmapDatas.Select(b => b.Difficulty).ToList();
+            }
+        }
+        public override PackageType PkgType => PackageType.Local;
+
+        public override BeatmapData[] BeatmapDatas => PkgSongs.SelectMany(p => p.BeatmapDatas).ToArray();
+
+        public override string ToString()
+        {
+            //return $"{{{Path.GetFileName(FolderName)}: [{Beatmaps.Join()}]}}";
+            return $"{{{Path.GetFileName(FolderName)}: [\n  {PkgSongs.ToArray().Select(song => 
+            new 
+            { 
+                Song = song.Name,
+                Difficulties = song.InternalDifficulties.Join()
+            }).Join(delimiter: ",\n  ")}\n]}}";
+        }
+    }
+
+    [Obsolete]
+    public class CustomLocalPackage : ICustomLocalPackage<CustomLocalBeatmap>
     {
         public string FolderName { get; set; }
         public List<CustomSongInfo> PkgSongs;
@@ -59,6 +93,7 @@ namespace CustomBeatmaps.Util
         public Dictionary<string, bool> Attributes;
     }
 
+    [Obsolete]
     public interface IPackageInterface<T>
     {
         List<T> Packages { get; }
@@ -69,13 +104,14 @@ namespace CustomBeatmaps.Util
 
     }
 
-    public interface ICustomPackage<T> where T : ICustomBeatmap
+    [Obsolete]
+    public interface ICustomLocalPackage<T> where T : ICustomBeatmap
     {
         string FolderName { get; }
         T[] CustomBeatmaps { get; } 
 
     }
-
+    [Obsolete]
     public class CustomLocalBeatmap : ICustomBeatmap
     {
         public string SongName { get; }
@@ -121,7 +157,7 @@ namespace CustomBeatmaps.Util
 
 
     }
-
+    [Obsolete]
     public interface ICustomBeatmap
     {
         string SongName { get; }

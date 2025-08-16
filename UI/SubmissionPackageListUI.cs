@@ -93,19 +93,19 @@ namespace CustomBeatmaps.UI
                         {
                             if (selectedBeatmapIndex >= package.PkgSongs.Count)
                                 selectedBeatmapIndex = package.PkgSongs.Count - 1;
-                            var selectedBeatmap = package.PkgSongs[selectedBeatmapIndex].CustomBeatmaps[0];
+                            var selectedBeatmap = package.PkgSongs[selectedBeatmapIndex].BeatmapDatas[0];
 
-                            BGM.PlaySongPreview(SongDatabase.GetBeatmapItemByPath(selectedBeatmap.Info.SongPath));
+                            BGM.PlaySongPreview(SongDatabase.GetBeatmapItemByPath(selectedBeatmap.SongPath));
 
                             PackageBeatmapPickerUI.Render(beatmaps, selectedBeatmapIndex, setSelectedBeatmapIndex);
 
                             if (PlayButtonUI.Render("PLAY",
-                                    $"{selectedBeatmap.Info.SongName}: {selectedBeatmap.Info.Difficulty}"))
+                                    $"{selectedBeatmap.SongName}: {selectedBeatmap.Difficulty}"))
                             {
                                 // Play a local beatmap
                                 //var customBeatmapInfo = package.Beatmaps[selectedBeatmapIndex];
                                 //UnbeatableHelper.PlayBeatmap(customBeatmapInfo, false, UnbeatableHelper.GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom));
-                                PlaySong(selectedBeatmap);
+                                PlaySong(selectedBeatmap.BeatmapPointer);
                             }
                         }
                         else

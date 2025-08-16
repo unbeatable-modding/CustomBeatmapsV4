@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CustomBeatmaps.CustomData;
+using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.Util;
@@ -11,15 +13,12 @@ using static CustomBeatmaps.Util.ArcadeHelper;
 namespace CustomBeatmaps.UISystem
 {
     // the horror
-    public abstract class AbstractPackageList<TManager, TPackage, TBeatmap> 
-        where TManager : IPackageInterface<CustomLocalPackage>
-        where TPackage : ICustomPackage<TBeatmap>
-        where TBeatmap : ICustomBeatmap
+    public abstract class AbstractPackageList
     {
-        protected TManager Manager;
+        protected PackageManagerGeneric Manager;
 
-        protected List<CustomLocalPackage> _localPackages = new();
-        protected List<CustomLocalPackage> LocalPackages => Manager.Packages;
+        protected List<CustomPackage> _localPackages = new();
+        protected List<CustomPackage> LocalPackages => Manager.Packages;
         protected string Folder => Manager.Folder;        
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
@@ -39,8 +38,8 @@ namespace CustomBeatmaps.UISystem
         protected Action<Difficulty> SetDifficulty;
 
         protected List<BeatmapHeader> _selectedBeatmaps;
-        protected TBeatmap _selectedBeatmap;
-        protected TPackage _selectedPackage;
+        protected BeatmapData _selectedBeatmap;
+        protected CustomPackage _selectedPackage;
 
         protected List<PackageHeader> _pkgHeaders = new();
 
@@ -48,13 +47,13 @@ namespace CustomBeatmaps.UISystem
         protected Action[] RightRenders;
         protected string _searchQuery;
 
-        public AbstractPackageList(TManager manager)
+        public AbstractPackageList(PackageManagerGeneric manager)
         {
             Manager = manager;
             Init(manager);
         }
 
-        protected virtual void Init(TManager manager)
+        protected virtual void Init(PackageManagerGeneric manager)
         {
             Manager.PackageUpdated += package =>
             {
@@ -122,7 +121,7 @@ namespace CustomBeatmaps.UISystem
         protected virtual void RegenerateHeaders()
         {
             var headers = new List<PackageHeader>(_localPackages.Count);
-            foreach (CustomLocalPackage p in _localPackages)
+            foreach (CustomPackage p in _localPackages)
             {
                 if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
                     continue;

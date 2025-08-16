@@ -11,11 +11,11 @@ using UnityEngine;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUILocal : AbstractPackageList<CustomPackageHandler, CustomLocalPackage, CustomLocalBeatmap>
+    public class PackageListUILocal : AbstractPackageList
     {
 
         //protected override List<CustomLocalPackage> _packages;
-        public PackageListUILocal(CustomPackageHandler pkgManager) : base(pkgManager)
+        public PackageListUILocal(PackageManagerLocal pkgManager) : base(pkgManager)
         {
 
             RightRenders = [
@@ -33,7 +33,7 @@ namespace CustomBeatmaps.UI
                         GUILayout.Label("<size=24><b>USING ASSISTS</b></size> (no high score)");
                     }
                     PackageBeatmapPickerUI.Render(_selectedBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
-                    if (PlayButtonUI.Render("Play", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.RealDifficulty}"))
+                    if (PlayButtonUI.Render("Play", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                     {
                         // Play a local beatmap
                         CustomBeatmaps.PlayedPackageManager.RegisterPlay(_selectedPackage.FolderName);
@@ -48,19 +48,19 @@ namespace CustomBeatmaps.UI
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomLocalPackage)_pkgHeaders[SelectedPackageIndex].Package;
+            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex].Package;
 
             _selectedBeatmaps =
                 UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
             if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
                 SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
 
-            _selectedBeatmap = _selectedPackage.CustomBeatmaps[SelectedBeatmapIndex];
+            _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
         }
 
         protected override void RunSong()
         {
-            ArcadeHelper.PlaySong(_selectedBeatmap.Beatmap);
+            ArcadeHelper.PlaySong(_selectedBeatmap.BeatmapPointer);
         }
 
         protected override void SortPackages()

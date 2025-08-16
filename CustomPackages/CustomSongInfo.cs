@@ -15,6 +15,7 @@ using CustomBeatmaps.UI;
 
 namespace CustomBeatmaps.CustomPackages
 {
+    [Obsolete]
     public class CustomSongInfo : Song
     {
         public string AudioPath { get; private set; }
