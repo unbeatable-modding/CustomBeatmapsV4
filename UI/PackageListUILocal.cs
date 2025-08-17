@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.UISystem;
@@ -46,7 +47,7 @@ namespace CustomBeatmaps.UI
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomPacakage)_pkgHeaders[SelectedPackageIndex];
+            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex];
 
             _selectedBeatmaps = _selectedPackage.BeatmapDatas.ToList();
 

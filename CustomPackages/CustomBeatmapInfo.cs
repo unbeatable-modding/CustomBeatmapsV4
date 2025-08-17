@@ -34,7 +34,7 @@ namespace CustomBeatmaps.CustomPackages
             string beatmapCreator, string name, string songName, string realDifficulty, string osuPath, Category category, CustomSongInfo song) : base(textAsset, difficulty)
         {
 
-            var tagTest = CustomPackageHelper.GetBeatmapProp(text, "Tags", osuPath);
+            var tagTest = zzzCustomPackageHelper.GetBeatmapProp(text, "Tags", osuPath);
             if (tagTest.StartsWith("{") && tagTest.EndsWith("}"))
             {
                 try

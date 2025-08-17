@@ -48,7 +48,7 @@ namespace CustomBeatmaps.Util
         {
             return package.Beatmaps.Join(beatmap => beatmap.Value.SongName, " | ");
         }
-        private static string GetLocalPackageName(CustomPacakage package)
+        private static string GetLocalPackageName(CustomPackage package)
         {
             return package.PkgSongs.Join(beatmap => beatmap.Name, " | ");
         }
@@ -75,10 +75,10 @@ namespace CustomBeatmaps.Util
                         return String.CompareOrdinal(creatorLeft, creatorRight);
                     case SortMode.Downloaded:
                         bool downloadedRight = CustomBeatmaps.LocalServerPackages.PackageExists(
-                            CustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir,
+                            zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir,
                                 left.ServerURL));
                         bool downloadedLeft = CustomBeatmaps.LocalServerPackages.PackageExists(
-                            CustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir,
+                            zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir,
                                 right.ServerURL));
                         return (downloadedLeft ? 1 : 0).CompareTo(downloadedRight ? 1 : 0);
                     default:
@@ -87,7 +87,7 @@ namespace CustomBeatmaps.Util
                 ;
             });
         }
-        public static void SortLocalPackages(List<CustomPacakage> packages, SortMode sortMode)
+        public static void SortLocalPackages(List<CustomPackage> packages, SortMode sortMode)
         {
             packages.Sort((left, right) =>
             {
@@ -118,7 +118,7 @@ namespace CustomBeatmaps.Util
             });
         }
 
-        public static bool PackageHasDifficulty(CustomPacakage package, Difficulty diff)
+        public static bool PackageHasDifficulty(CustomPackage package, Difficulty diff)
         {
             if (diff == Difficulty.All)
                 return true;
@@ -219,7 +219,7 @@ namespace CustomBeatmaps.Util
             return false;
         }
 
-        public static bool PackageMatchesFilter(CustomPacakage serverPackage, string filterQuery)
+        public static bool PackageMatchesFilter(CustomPackage serverPackage, string filterQuery)
         {
             if (string.IsNullOrEmpty(filterQuery))
             {

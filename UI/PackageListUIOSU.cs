@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
 using UnityEngine;
-/*
+
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOSU : AbstractPackageList<LocalPackageManager, CustomLocalPackage, CustomLocalBeatmap>
+    public class PackageListUIOSU : AbstractPackageList
     {
         private static bool _overrideCountdown = true;
-        public PackageListUIOSU(LocalPackageManager pkgManager) : base(pkgManager)
+        public PackageListUIOSU(PackageManagerLocal pkgManager) : base(pkgManager)
         {
             RightRenders = [
                 () =>
@@ -27,7 +28,7 @@ namespace CustomBeatmaps.UI
                                        "2) It should appear in this screen at the top. Open to test it.\n" +
                                        "3) While testing, the beatmap should automatically reload when you make changes and save in OSU"
                             );
-                        MetadataUI.Render(_selectedBeatmap.Beatmap);
+                        MetadataUI.Render(_selectedBeatmap);
                     },
                     () =>
                     {
@@ -36,10 +37,10 @@ namespace CustomBeatmaps.UI
                         {
                             string exportFolder = Config.Mod.OsuExportDirectory;
                             string exportName = _selectedBeatmap.SongName;
-                            OSUHelper.CreateExportZipFile(_selectedBeatmap.OsuPath, exportFolder);
+                            OSUHelper.CreateExportZipFile(_selectedBeatmap.BeatmapPath, exportFolder);
                         }
                         PackageBeatmapPickerUI.Render(_selectedBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
-                        if (PlayButtonUI.Render("EDIT", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.RealDifficulty}"))
+                        if (PlayButtonUI.Render("EDIT", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                         {
                             // Play a local beatmap
                             var package = _localPackages[SelectedPackageIndex];
@@ -52,8 +53,8 @@ namespace CustomBeatmaps.UI
 
         protected override void RegenerateHeaders()
         {
-            var headers = new List<PackageHeader>(_localPackages.Count);
-            var headersMap = new Dictionary<PackageHeader, CustomLocalPackage>(_localPackages.Count);
+            var headers = new List<CustomPackage>(_localPackages.Count);
+            //var headersMap = new Dictionary<PackageHeader, CustomLocalPackage>(_localPackages.Count);
             foreach (var p in _localPackages)
             {
 
@@ -63,9 +64,9 @@ namespace CustomBeatmaps.UI
                 if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
                     continue;
 
-                var toAdd = new PackageHeader(p, false);
-                headers.Add(toAdd);
-                headersMap.Add(toAdd, p);
+                //var toAdd = new PackageHeader(p, false);
+                headers.Add(p);
+                //headersMap.Add(toAdd, p);
             }
 
             _pkgHeaders = headers;
@@ -81,23 +82,24 @@ namespace CustomBeatmaps.UI
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomLocalPackage)_pkgHeaders[SelectedPackageIndex].Package;
+            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex];
 
-            _selectedBeatmaps =
-                UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
+            //_selectedBeatmaps =
+            //    UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
+            _selectedBeatmaps = _selectedPackage.BeatmapDatas.ToList();
+
             if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
             {
                 SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
             }
 
-            _selectedBeatmap = _selectedPackage.CustomBeatmaps[SelectedBeatmapIndex];
+            _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
         }
 
         protected override void RunSong()
         {
-            ArcadeHelper.PlaySongEdit(_selectedBeatmap.Beatmap, _overrideCountdown);
+            ArcadeHelper.PlaySongEdit(_selectedBeatmap.BeatmapPointer, _overrideCountdown);
         }
 
     }
 }
-*/

@@ -17,6 +17,8 @@ using UnityEngine.SceneManagement;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using CustomBeatmaps.CustomData;
+using CustomBeatmaps.Util.CustomData;
 
 
 namespace CustomBeatmaps
@@ -61,7 +63,7 @@ namespace CustomBeatmaps
             // Log inner exceptions by default
             EventBus.ExceptionThrown += ex => ScheduleHelper.SafeInvoke(() => Debug.LogException(ex));
 
-            CustomPackageHelper.TryAddCustomCategory();
+            PackageHelper.TryAddCustomCategory();
 
             // Anything with Static access should be ALWAYS present.
             LocalUserPackages = new PackageManagerLocal(OnError);
@@ -154,7 +156,7 @@ namespace CustomBeatmaps
                 }
             }
 
-            CustomPackageHelper.TryAddCustomCategory();
+            PackageHelper.TryAddCustomCategory();
         }
 
         public void Start()
@@ -178,7 +180,7 @@ namespace CustomBeatmaps
             }
 
             // Add images to songs at later timing because the game will crash if loaded any earlier
-            CustomPackageHelper.GetAllCustomSongInfos.ForEach(s => s.GetTexture());
+            PackageHelper.GetAllCustomSongInfos.ForEach(s => s.GetTexture());
             ArcadeHelper.LoadCustomSongs();
         }
 

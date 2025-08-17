@@ -11,11 +11,13 @@ using Rhythm;
 using static Rhythm.BeatmapIndex;
 using System.Linq;
 using CustomBeatmaps.CustomData;
-/*
+using CustomBeatmaps.Util.CustomData;
+
 namespace CustomBeatmaps.Util
 {
     public static class OSUHelper
     {
+        /*
         public static CustomSong[] LoadOsuBeatmaps(string path, int category, out string failMessage)
         {
             failMessage = "";
@@ -53,7 +55,7 @@ namespace CustomBeatmaps.Util
             }
             return null;
         }
-
+        */
         public static string GetOsuPath(string overridePath)
         {
             if (string.IsNullOrEmpty(overridePath))
@@ -67,7 +69,7 @@ namespace CustomBeatmaps.Util
         private static string LoadPackageNameFromOsu(string osuPath)
         {
             string text = File.ReadAllText(osuPath);
-            return zzzCustomPackageHelper.GetBeatmapProp(text, "Title", osuPath);
+            return BeatmapHelper.GetBeatmapProp(text, "Title", osuPath);
         }
 
         public static string CreateExportZipFile(string osuPath, string temporaryFolderLocation)
@@ -89,4 +91,3 @@ namespace CustomBeatmaps.Util
         }
     }
 }
-*/

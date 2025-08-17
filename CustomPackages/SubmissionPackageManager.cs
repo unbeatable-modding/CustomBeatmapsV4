@@ -41,10 +41,10 @@ namespace CustomBeatmaps.CustomPackages
         {
             string submissionPackageFolder = Config.Mod.TemporarySubmissionPackageFolder;
 
-            await CustomPackageHelper.DownloadTemporarySubmissionPackage(url, submissionPackageFolder);
+            await zzzCustomPackageHelper.DownloadTemporarySubmissionPackage(url, submissionPackageFolder);
 
             // Load the local package after downloading
-            if (CustomPackageHelper.TryLoadLocalPackage(submissionPackageFolder, ".",
+            if (zzzCustomPackageHelper.TryLoadLocalPackage(submissionPackageFolder, ".",
                     out _localPackage, 8, true, _onLoadException))
             {
                 _downloadedPackageURL = url;
@@ -66,7 +66,7 @@ namespace CustomBeatmaps.CustomPackages
                 ListLoaded = false;
                 ListLoadFailures.Clear();
                 _fetching = true;
-                var list = await CustomPackageHelper.FetchServerSubmissions(Config.Backend.ServerSubmissionList);
+                var list = await zzzCustomPackageHelper.FetchServerSubmissions(Config.Backend.ServerSubmissionList);
                 lock (_submissionPackages)
                 {
                     _submissionPackages.Clear();

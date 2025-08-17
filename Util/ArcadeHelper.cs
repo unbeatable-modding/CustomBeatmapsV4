@@ -18,6 +18,7 @@ using CustomBeatmaps.Patches;
 using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using CustomBeatmaps.CustomData;
+using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.Util
 {
@@ -94,7 +95,7 @@ namespace CustomBeatmaps.Util
         {
             CleanSongs();
 
-            foreach (Song s in CustomPackageHelper.GetAllCustomSongInfos)
+            foreach (Song s in PackageHelper.GetAllCustomSongInfos)
             {
                 //CustomBeatmaps.Log.LogDebug($"{s.name}");
 
@@ -116,7 +117,12 @@ namespace CustomBeatmaps.Util
         {
             var killList = new List<string>();
 
-            songs.DoIf((Song s) => s is CustomSong, s => killList.Add(s.name));
+            //songs.DoIf((Song s) => s is CustomSong, s => killList.Add(s.name));
+            songs.ForEach(s =>
+            {
+                if (s is CustomSong)
+                    killList.Add(s.name);
+            });
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
             killList.ForEach((string k) => songs.Remove(_songs[k]));
@@ -124,11 +130,6 @@ namespace CustomBeatmaps.Util
             killList.ForEach((string k) => _songs.Remove(k));
             killList.ForEach((string k) => songNames.Remove(k));
             return;
-            foreach (Category c in CustomPackageHelper.customCategories)
-            {
-                _categorySongs.Keys.Where(k => k.Name == c.Name).ToList().ForEach(k => _categorySongs[k].Clear());
-                //_categorySongs[c].Clear();
-            }
         }
 
         public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;

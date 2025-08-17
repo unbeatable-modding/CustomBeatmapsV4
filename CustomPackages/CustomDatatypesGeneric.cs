@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CustomBeatmaps.CustomData;
+using Arcade.UI;
+using System.Text.RegularExpressions;
 using CustomBeatmaps.Util;
 using Rhythm;
+using CustomBeatmaps.CustomData;
 
 namespace CustomBeatmaps.CustomPackages
 {
@@ -13,9 +15,9 @@ namespace CustomBeatmaps.CustomPackages
         Local,
         Server,
         Temp
-
     }
-    public abstract class CustomPacakage
+
+    public abstract class CustomPackage
     {
         public string FolderName { get; set; }
         public virtual BeatmapData[] BeatmapDatas { get; protected set; }
@@ -33,5 +35,5 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
     }
-
+    
 }

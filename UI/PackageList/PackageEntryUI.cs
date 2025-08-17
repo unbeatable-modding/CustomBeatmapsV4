@@ -20,7 +20,7 @@ namespace CustomBeatmaps.UI.PackageList
             return singular ? $"{count} {unitSingular}" : $"{count} {unitSingular}s";
         }
 
-        public static Rect Render(CustomPacakage header, bool selected, Action onSelect, BeatmapDownloadStatus status=BeatmapDownloadStatus.Downloaded)
+        public static Rect Render(CustomPackage header, bool selected, Action onSelect, BeatmapDownloadStatus status=BeatmapDownloadStatus.Downloaded)
         {
             var name = header.BeatmapDatas[0].SongName;
             string label = $"{name} (FIXME)";

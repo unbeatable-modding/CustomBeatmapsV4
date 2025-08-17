@@ -31,18 +31,18 @@ namespace CustomBeatmaps.CustomPackages
             var text = File.ReadAllText(bmapPath);
             FilePath = bmapPath;
             DirectoryPath = Path.GetDirectoryName(bmapPath);
-            name = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[category]}__{CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath)}";
-            var audio = CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
+            name = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[category]}__{zzzCustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath)}";
+            var audio = zzzCustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
             var realPath = audio.Contains("/") ? audio.Substring((audio.LastIndexOf("/") + 1), audio.Length - (audio.LastIndexOf("/")+1)) : audio;
             AudioPath = $"{DirectoryPath}\\{realPath}";
 
-            TrueName = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
-            Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", bmapPath);
-            Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", bmapPath);
+            TrueName = zzzCustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
+            Artist = zzzCustomPackageHelper.GetBeatmapProp(text, "Artist", bmapPath);
+            Creator = zzzCustomPackageHelper.GetBeatmapProp(text, "Creator", bmapPath);
             
             // Difficulty Logic
             var difficulty = "Star";
-            var bmapVer = CustomPackageHelper.GetBeatmapProp(text, "Version", bmapPath);
+            var bmapVer = zzzCustomPackageHelper.GetBeatmapProp(text, "Version", bmapPath);
             Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
             {
                 {"beginner", "Beginner"},
@@ -100,10 +100,10 @@ namespace CustomBeatmaps.CustomPackages
             var traverse = Traverse.Create(this);
             var text = File.ReadAllText(FilePath);
 
-            if (CustomPackageHelper.GetBeatmapImage(text, FilePath) != null && File.Exists($"{DirectoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, FilePath)}"))
+            if (zzzCustomPackageHelper.GetBeatmapImage(text, FilePath) != null && File.Exists($"{DirectoryPath}\\{zzzCustomPackageHelper.GetBeatmapImage(text, FilePath)}"))
             {
                 var texture = new Texture2D(2, 2);
-                var bytes = File.ReadAllBytes($"{DirectoryPath}\\{CustomPackageHelper.GetBeatmapImage(text, FilePath)}");
+                var bytes = File.ReadAllBytes($"{DirectoryPath}\\{zzzCustomPackageHelper.GetBeatmapImage(text, FilePath)}");
                 ImageConversion.LoadImage(texture, bytes);
                 var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                 traverse.Field("coverArt").SetValue(sprite);

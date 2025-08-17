@@ -53,11 +53,11 @@ namespace CustomBeatmaps.CustomPackages
                 {
                     InitialLoadState.Loading = true;
                     InitialLoadState.Loaded = 0;
-                    InitialLoadState.Total = PackageTypesGeneric.EstimatePackageCount(_folder);
+                    InitialLoadState.Total = zzzPackageTypesGeneric.EstimatePackageCount(_folder);
                     ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folder}");
 
                     _packages.Clear();
-                    var packages = PackageTypesGeneric.zzzLoadLocalPackages(_folder, _category, loadedPackage =>
+                    var packages = zzzPackageTypesGeneric.zzzLoadLocalPackages(_folder, _category, loadedPackage =>
                     {
                         InitialLoadState.Loaded++;
                     }, _onLoadException);
@@ -86,7 +86,7 @@ namespace CustomBeatmaps.CustomPackages
                     _packages.RemoveAt(toRemove);
             }
 
-            if (PackageTypesGeneric.zzzTryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
+            if (zzzPackageTypesGeneric.zzzTryLoadLocalPackage(folderPath, _folder, out CustomLocalPackage package, _category, true,
                     _onLoadException))
             {
                 ScheduleHelper.SafeInvoke(() => package.PkgSongs.ForEach(s => s.GetTexture()));
@@ -183,7 +183,7 @@ namespace CustomBeatmaps.CustomPackages
         {
             beatmapRelativeKeyPath = beatmapRelativeKeyPath.Replace('/', '\\');
 
-            string targetPackageFullPath = PackageTypesGeneric.GetLocalFolderFromServerPackageURL(
+            string targetPackageFullPath = zzzPackageTypesGeneric.GetLocalFolderFromServerPackageURL(
                 Config.Mod.ServerPackagesDir, serverPackageURL);
             targetPackageFullPath = Path.GetFullPath(targetPackageFullPath);
 

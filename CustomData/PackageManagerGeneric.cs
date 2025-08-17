@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util;
+using static CustomBeatmaps.Util.CustomData.PackageHelper;
 
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using CustomBeatmaps.CustomPackages;
 
-namespace CustomBeatmaps.CustomPackages
+namespace CustomBeatmaps.CustomData
 {
     /// <summary>
     /// To stop myself from losing my mind, most things for packages should be defined here
@@ -20,10 +21,10 @@ namespace CustomBeatmaps.CustomPackages
         /// <summary>
         /// Action that is invoked after a package is updated
         /// </summary>
-        public Action<CustomPacakage> PackageUpdated;
+        public Action<CustomPackage> PackageUpdated;
         public string Folder { get; protected set; }
 
-        protected readonly List<CustomPacakage> _packages = new List<CustomPacakage>();
+        protected readonly List<CustomPackage> _packages = new List<CustomPackage>();
         protected readonly HashSet<string> _downloadedFolders = new HashSet<string>();
 
         protected readonly Action<BeatmapException> _onLoadException;
@@ -58,7 +59,7 @@ namespace CustomBeatmaps.CustomPackages
         /// <summary>
         /// List of all Packages this manager can see
         /// </summary>
-        public virtual List<CustomPacakage> Packages { get; private set; }
+        public virtual List<CustomPackage> Packages { get; private set; }
         /// <summary>
         /// List of all Songs inside all Packages this manager can see
         /// (Songs contain beatmaps)

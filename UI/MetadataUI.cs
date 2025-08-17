@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Arcade.UI.SongSelect;
+using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UISystem;
-using CustomBeatmaps.Util;
+using CustomBeatmaps.Util.CustomData;
 using UnityEngine;
 
 namespace CustomBeatmaps.UI
@@ -18,7 +19,7 @@ namespace CustomBeatmaps.UI
         private static bool MotionWarning;
         private static bool FourKey;
 
-        public static void Render(CustomBeatmapInfo bmap)
+        public static void Render(BeatmapData bmap)
         {
             Reacc.UseEffect(() => SetBeatmap(bmap), new object[] { bmap });
 
@@ -64,11 +65,11 @@ namespace CustomBeatmaps.UI
                 bmap.Tags.Attributes["BT"] = BlindTurn;
                 bmap.Tags.Attributes["MW"] = MotionWarning;
                 bmap.Tags.Attributes["4K"] = FourKey;
-                PackageTypesGeneric.SetBeatmapJson(bmap.text, bmap.Tags, bmap.Info.OsuPath);
+                BeatmapHelper.SetBeatmapJson(bmap.BeatmapPointer.text, bmap.Tags, bmap.BeatmapPath);
             }
         }
 
-        private static void SetBeatmap(CustomBeatmapInfo bmap)
+        private static void SetBeatmap(BeatmapData bmap)
         {
             Level = bmap.Level.ToString();
             FlavorText = bmap.FlavorText;

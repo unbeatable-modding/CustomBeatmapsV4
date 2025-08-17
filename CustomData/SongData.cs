@@ -13,6 +13,7 @@ using HarmonyLib;
 using RewiredConsts;
 using CustomBeatmaps.UI;
 using UnityEngine;
+using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.CustomData
 {
@@ -87,12 +88,12 @@ namespace CustomBeatmaps.CustomData
             var text = File.ReadAllText(bmapPath);
             DirectoryPath = Path.GetDirectoryName(bmapPath);
 
-            Name = CustomPackageHelper.GetBeatmapProp(text, "Title", bmapPath);
-            Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", bmapPath);
-            Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", bmapPath);
+            Name = BeatmapHelper.GetBeatmapProp(text, "Title", bmapPath);
+            Artist = BeatmapHelper.GetBeatmapProp(text, "Artist", bmapPath);
+            Creator = BeatmapHelper.GetBeatmapProp(text, "Creator", bmapPath);
 
             InternalName = $"CUSTOM__{defaultIndex.Categories[category]}__{Name}";
-            var audio = CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
+            var audio = BeatmapHelper.GetBeatmapProp(text, "AudioFilename", bmapPath);
 
             // realPath fixes some issues with old beatmaps, don't remove
             var realPath = audio.Contains("/") ? audio.Substring(audio.LastIndexOf("/") + 1, audio.Length - (audio.LastIndexOf("/") + 1)) : audio;
@@ -135,7 +136,7 @@ namespace CustomBeatmaps.CustomData
             Song = new CustomSong(InternalName, this);
             Traverse = Traverse.Create(Song);
             Traverse.Field("visibleInArcade").SetValue(true);
-            Traverse.Field("_category").SetValue(BeatmapIndex.defaultIndex.Categories[TMPCategory]);
+            Traverse.Field("_category").SetValue(defaultIndex.Categories[TMPCategory]);
             Traverse.Field("category").SetValue(TMPCategory);
 
             Traverse.Field("_difficulties").SetValue(new List<string>());
@@ -195,7 +196,7 @@ namespace CustomBeatmaps.CustomData
             {
                 var texture = new Texture2D(2, 2);
                 var bytes = File.ReadAllBytes($"{Data.DirectoryPath}\\{Data.CoverPath}");
-                ImageConversion.LoadImage(texture, bytes);
+                texture.LoadImage(bytes);
                 var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                 traverse.Field("coverArt").SetValue(sprite);
             }

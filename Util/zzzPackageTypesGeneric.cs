@@ -21,7 +21,7 @@ using Arcade.UI;
 namespace CustomBeatmaps.Util
 {
     [Obsolete("DO NOT USE")]
-    public static class PackageTypesGeneric
+    public static class zzzPackageTypesGeneric
     {
 
         // TODO: make this not hardcoded
@@ -31,38 +31,6 @@ namespace CustomBeatmaps.Util
             new Category("osu", "click the circle", 9),
             new Category("server", "online", 10)
             };
-
-        [Obsolete]
-        public static string GetBeatmapProp(string beatmapText, string prop, string beatmapPath)
-        {
-            var match = Regex.Match(beatmapText, $"{prop}: *(.+?)\r?\n");
-            if (match.Groups.Count > 1)
-            {
-                return match.Groups[1].Value;
-            }
-            throw new BeatmapException($"{prop} property not found.", beatmapPath);
-        }
-
-        [Obsolete]
-        public static string GetBeatmapImage(string beatmapText, string beatmapPath)
-        {
-            var match = Regex.Match(beatmapText, $"Background and Video events\r?\n.*\"(.+?)\"");
-            if (match.Groups.Count > 1)
-            {
-                return match.Groups[1].Value;
-            }
-            return null;
-            //throw new BeatmapException($"Image property not found.", beatmapPath);
-        }
-
-        [Obsolete]
-        public static void SetBeatmapJson(string beatmapText, TagData data, string beatmapPath)
-        {
-            data.SongLength = ArcadeBGMManager.SongDuration;
-            var beatmapSave = SerializeHelper.SerializeJSON(data);
-            var match = Regex.Replace(beatmapText, $"(?<=Tags:)(.+?)\r?\n", beatmapSave + "\r\n");
-            File.WriteAllText(beatmapPath, match);
-        }
 
         [Obsolete]
         private static bool IsBeatmapFile(string beatmapPath)

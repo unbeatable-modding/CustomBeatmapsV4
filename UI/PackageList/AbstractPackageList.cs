@@ -17,8 +17,8 @@ namespace CustomBeatmaps.UISystem
     {
         protected PackageManagerGeneric Manager;
 
-        protected List<CustomPacakage> _localPackages = new();
-        protected List<CustomPacakage> LocalPackages => Manager.Packages;
+        protected List<CustomPackage> _localPackages = new();
+        protected List<CustomPackage> LocalPackages => Manager.Packages;
         protected string Folder => Manager.Folder;        
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
@@ -39,9 +39,9 @@ namespace CustomBeatmaps.UISystem
 
         protected List<BeatmapData> _selectedBeatmaps;
         protected BeatmapData _selectedBeatmap;
-        protected CustomPacakage _selectedPackage;
+        protected CustomPackage _selectedPackage;
 
-        protected List<CustomPacakage> _pkgHeaders = new();
+        protected List<CustomPackage> _pkgHeaders = new();
 
         protected Action LeftRender;
         protected Action[] RightRenders;
@@ -120,8 +120,8 @@ namespace CustomBeatmaps.UISystem
         protected abstract void SortPackages();
         protected virtual void RegenerateHeaders()
         {
-            var headers = new List<CustomPacakage>(_localPackages.Count);
-            foreach (CustomPacakage p in _localPackages)
+            var headers = new List<CustomPackage>(_localPackages.Count);
+            foreach (CustomPackage p in _localPackages)
             {
                 if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
                     continue;

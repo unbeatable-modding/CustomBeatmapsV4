@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CustomBeatmaps.Util
+namespace CustomBeatmaps.CustomData
 {
-    public class PackageHelperCustom
+    internal class PackageDefinitions
     {
     }
 }

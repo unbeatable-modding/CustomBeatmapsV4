@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Arcade.UI;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
@@ -10,7 +12,7 @@ namespace CustomBeatmaps.UI.PackageList
 {
     public static class BeatmapInfoCardUI
     {
-        public static void Render(BeatmapData beatmapHeader)
+        public static async Task Render(BeatmapData beatmapHeader)
         {
 
             var cardStyle = new GUIStyle(GUI.skin.box);
@@ -40,9 +42,18 @@ namespace CustomBeatmaps.UI.PackageList
                         GUILayout.Label($"{beatmapHeader.Difficulty} ({beatmapHeader.Level})");
                     else
                         GUILayout.Label($"{beatmapHeader.Difficulty}");
-                GUILayout.Label($"mapper: {beatmapHeader.Creator}");
-                if (beatmapHeader.Attributes.Any())
-                GUILayout.Label($"{string.Join(",", beatmapHeader.Attributes)}");
+                GUILayout.Label($"Mapper: {beatmapHeader.Creator}");
+                if (beatmapHeader.Attributes.Where(a => a.Value).Any())
+            {
+                var attrs = new List<string>();
+                foreach (var i in beatmapHeader.Attributes)
+                {
+                    if (i.Value)
+                        attrs.Add(i.Key);
+                }
+                GUILayout.Label($"Attributes: [{string.Join(",", attrs )}]");
+            }
+                    
 
                 GUILayout.EndVertical();
 

@@ -13,7 +13,7 @@ namespace CustomBeatmaps.CustomPackages
         public BeatmapDownloadStatus GetDownloadStatus(string serverPackageURL)
         {
             // Check the local package folder, if it exists then we've downloaded it
-            string packageFolder = CustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir, serverPackageURL);
+            string packageFolder = zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir, serverPackageURL);
 
             if (CustomBeatmaps.LocalServerPackages.PackageExists(packageFolder))
                 return BeatmapDownloadStatus.Downloaded;
@@ -36,7 +36,7 @@ namespace CustomBeatmaps.CustomPackages
 
             try
             {
-                await CustomPackageHelper.DownloadPackage(Config.Backend.ServerStorageURL,
+                await zzzCustomPackageHelper.DownloadPackage(Config.Backend.ServerStorageURL,
                     Config.Backend.ServerPackageRoot,
                     Config.Mod.ServerPackagesDir, serverPackageURL);
             }

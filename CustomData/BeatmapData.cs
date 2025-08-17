@@ -6,12 +6,14 @@ using CustomBeatmaps.Util;
 using Rhythm;
 using Steamworks;
 using UnityEngine;
-
+using static CustomBeatmaps.Util.CustomData.BeatmapHelper;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 using System.Linq;
 using static Rhythm.BeatmapIndex;
+using Newtonsoft.Json;
+using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.CustomData
 {
@@ -89,7 +91,7 @@ namespace CustomBeatmaps.CustomData
         }
 
         public int Category { get; private set; }
-        private int Offset = 1;
+        private int Offset = 0;
 
 
 
@@ -135,7 +137,7 @@ namespace CustomBeatmaps.CustomData
         {
             BeatmapPath = bmapPath;
             Category = category;
-            BeatmapCategory = BeatmapIndex.defaultIndex.Categories[category];
+            BeatmapCategory = defaultIndex.Categories[category];
             DirectoryPath = Path.GetDirectoryName(bmapPath);
 
             IsLocal = CreateLocalBeatmap();
@@ -147,16 +149,16 @@ namespace CustomBeatmaps.CustomData
             {
                 var text = File.ReadAllText(BeatmapPath);
 
-                SongName = CustomPackageHelper.GetBeatmapProp(text, "Title", BeatmapPath);
-                InternalName = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[Category]}__{SongName}";
-                Artist = CustomPackageHelper.GetBeatmapProp(text, "Artist", BeatmapPath);
-                Creator = CustomPackageHelper.GetBeatmapProp(text, "Creator", BeatmapPath);
+                SongName = GetBeatmapProp(text, "Title", BeatmapPath);
+                InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
+                Artist = GetBeatmapProp(text, "Artist", BeatmapPath);
+                Creator = GetBeatmapProp(text, "Creator", BeatmapPath);
 
-                CoverPath = CustomPackageHelper.GetBeatmapImage(text, BeatmapPath);
+                CoverPath = GetBeatmapImage(text, BeatmapPath);
 
                 // Difficulty Logic
                 var difficulty = "Star";
-                var bmapVer = CustomPackageHelper.GetBeatmapProp(text, "Version", BeatmapPath);
+                var bmapVer = GetBeatmapProp(text, "Version", BeatmapPath);
                 Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
             {
                 {"beginner", "Beginner"},
@@ -182,10 +184,23 @@ namespace CustomBeatmaps.CustomData
                 Difficulty = bmapVer;
                 InternalDifficulty = difficulty;
 
-                var audio = CustomPackageHelper.GetBeatmapProp(text, "AudioFilename", BeatmapPath);
+                var audio = GetBeatmapProp(text, "AudioFilename", BeatmapPath);
                 // realPath fixes some issues with old beatmaps, don't remove
                 var realPath = audio.Contains("/") ? audio.Substring(audio.LastIndexOf("/") + 1, audio.Length - (audio.LastIndexOf("/") + 1)) : audio;
                 AudioPath = $"{DirectoryPath}\\{realPath}";
+
+                var tagTest = GetBeatmapProp(text, "Tags", BeatmapPath);
+                if (tagTest.StartsWith("{") && tagTest.EndsWith("}"))
+                {
+                    try
+                    {
+                        Tags = JsonConvert.DeserializeObject<TagData>(tagTest);
+                    }
+                    catch (Exception e)
+                    {
+                        ScheduleHelper.SafeLog("INVALID JSON");
+                    }
+                }
 
                 BeatmapPointer = new CustomBeatmap(this, new TextAsset(text), InternalDifficulty);
             }
@@ -199,26 +214,37 @@ namespace CustomBeatmaps.CustomData
         }
 
         /// <summary>
-        /// Smart way of adding a Beatmap to a Song, ensuring duplicates are only made when needed
+        /// Smart way of adding a Beatmap to a Song, ensuring duplicates are only made when needed.<br/>
+        /// Don't stare at it for too long...
         /// </summary>
-        /// <param name="songDatas">do not try to comprehend these inner workings</param>
-        public void TryAttachSong(ref Dictionary<string,SongData> songDatas)
+        /// <param name="songDatas">Songs for this package we're making right now</param>
+        /// <param name="songNames">InternalNames of all relevant songs</param>
+        public void TryAttachSong(ref Dictionary<string,SongData> songDatas, Func<HashSet<string>> songNames = null)
         {
             try
             {
+                // somewhat fixes songs without characters, still breaks the vanilla menu
+                if (SongName.Count() < 1)
+                    InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}{Offset}";
+
+                if (songNames.Invoke().Contains(InternalName))
+                    throw new FakeException();
+
                 songDatas.Add(InternalName, new SongData(this));
                 return;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                if (songDatas[InternalName].TryAddToThisSong(this))
+                if (e is not FakeException && songDatas[InternalName].TryAddToThisSong(this))
                     return;
                 while (true)
                 {
                     try
                     {
-                        InternalName = $"CUSTOM__{BeatmapIndex.defaultIndex.Categories[Category]}__{SongName}{Offset}";
+                        InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}{Offset}";
                         Offset++;
+                        if (songNames.Invoke().Contains(InternalName))
+                            continue;
                         songDatas.Add(InternalName, new SongData(this));
                         return;
                     }
@@ -229,6 +255,11 @@ namespace CustomBeatmaps.CustomData
                     }
                 }
             }
+        }
+
+        private class FakeException : Exception
+        {
+            // I just need a specialized exception to throw
         }
 
         public override string ToString()

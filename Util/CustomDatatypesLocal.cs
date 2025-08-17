@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using HarmonyLib;
@@ -15,10 +14,11 @@ using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using CustomBeatmaps.CustomData;
 
 namespace CustomBeatmaps.Util
 {
-    public class CustomPackageLocal : CustomPacakage
+    public class CustomPackageLocal : CustomPackage
     {
         //public string FolderName { get; set; }
         //public List<CustomSongInfo> PkgSongs;

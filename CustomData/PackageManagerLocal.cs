@@ -5,15 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util;
-
-
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
+using CustomBeatmaps.CustomPackages;
+using CustomBeatmaps.Util.CustomData;
 
-namespace CustomBeatmaps.CustomPackages
+namespace CustomBeatmaps.CustomData
 {
     public class PackageManagerLocal : PackageManagerGeneric
     {
@@ -31,11 +30,11 @@ namespace CustomBeatmaps.CustomPackages
                 {
                     InitialLoadState.Loading = true;
                     InitialLoadState.Loaded = 0;
-                    InitialLoadState.Total = CustomPackageHelper.EstimatePackageCount(_folder);
+                    InitialLoadState.Total = PackageHelper.EstimatePackageCount(_folder);
                     ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folder}");
 
                     _packages.Clear();
-                    var packages = CustomPackageHelper.LoadLocalPackages(_folder, _category, loadedPackage =>
+                    var packages = PackageHelper.LoadLocalPackages(_folder, _category, loadedPackage =>
                     {
                         InitialLoadState.Loaded++;
                     }, _onLoadException);
@@ -64,7 +63,8 @@ namespace CustomBeatmaps.CustomPackages
                     _packages.RemoveAt(toRemove);
             }
 
-            if (CustomPackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomPackageLocal package, _category, true,
+
+            if (PackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomPackageLocal package, _category, true,
                     _onLoadException))
             {
                 ScheduleHelper.SafeInvoke(() => package.PkgSongs.ForEach(s => s.Song.GetTexture()));
@@ -195,13 +195,13 @@ namespace CustomBeatmaps.CustomPackages
 
         }
 
-        public override List<CustomPacakage> Packages
+        public override List<CustomPackage> Packages
         {
             get
             {
                 if (InitialLoadState.Loading)
                 {
-                    return new List<CustomPacakage>();
+                    return new List<CustomPackage>();
                 }
                 lock (_packages)
                 {
