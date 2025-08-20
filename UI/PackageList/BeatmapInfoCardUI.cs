@@ -12,7 +12,7 @@ namespace CustomBeatmaps.UI.PackageList
 {
     public static class BeatmapInfoCardUI
     {
-        public static async Task Render(BeatmapData beatmapHeader)
+        public static void Render(BeatmapData beatmapHeader)
         {
 
             var cardStyle = new GUIStyle(GUI.skin.box);

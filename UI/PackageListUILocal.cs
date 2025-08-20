@@ -35,7 +35,7 @@ namespace CustomBeatmaps.UI
                     if (PlayButtonUI.Render("Play", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                     {
                         // Play a local beatmap
-                        CustomBeatmaps.PlayedPackageManager.RegisterPlay(_selectedPackage.FolderName);
+                        CustomBeatmaps.PlayedPackageManager.RegisterPlay(_selectedPackage.BaseDirectory);
                         RunSong();
                     }
                 }

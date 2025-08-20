@@ -70,7 +70,7 @@ namespace CustomBeatmaps.UI
             var names = new HashSet<string>();
             var creators = new HashSet<string>();
             var beatmaps = 0;
-            foreach (BeatmapData bmap in package.PkgSongs.SelectMany(s => s.BeatmapDatas))
+            foreach (BeatmapData bmap in package.SongDatas.SelectMany(s => s.BeatmapDatas))
             {
                 songs.Add(bmap.InternalName);
                 names.Add(bmap.SongName);
@@ -80,7 +80,7 @@ namespace CustomBeatmaps.UI
 
             var creator = creators.Join(x => x, " | ");
             var name = names.Join(x => x, ", ");
-            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.FolderName);
+            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.BaseDirectory);
 
             Name = name;
             SongCount = songs.Count;
@@ -120,7 +120,7 @@ namespace CustomBeatmaps.UI
             var names = new HashSet<string>();
             var creators = new HashSet<string>();
             var beatmaps = 0;
-            foreach (BeatmapData bmap in package.PkgSongs.SelectMany(s => s.BeatmapDatas))
+            foreach (BeatmapData bmap in package.SongDatas.SelectMany(s => s.BeatmapDatas))
             {
                 songs.Add(bmap.InternalName);
                 names.Add(bmap.SongName);
@@ -130,7 +130,7 @@ namespace CustomBeatmaps.UI
 
             var creator = creators.Join(x => x, " | ");
             var name = names.Join(x => x, ", ");
-            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.FolderName);
+            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.BaseDirectory);
 
             
             Name = name;

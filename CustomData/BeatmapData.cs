@@ -143,6 +143,20 @@ namespace CustomBeatmaps.CustomData
             IsLocal = CreateLocalBeatmap();
         }
 
+        public BeatmapData(string internalName, InternalDifficulty internalDifficulty, string bmapPath, int category)
+        {
+            BeatmapPath = bmapPath;
+            Category = category;
+            BeatmapCategory = defaultIndex.Categories[category];
+            DirectoryPath = Path.GetDirectoryName(bmapPath);
+            InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{internalName}";
+
+            string[] difficultyIndex = ["Beginner", "Easy", "Normal", "Hard", "UNBEATABLE", "Star"];
+            InternalDifficulty = difficultyIndex[(int)internalDifficulty];
+
+            IsLocal = CreateLocalPackagedBeatmap();
+        }
+
         private bool CreateLocalBeatmap()
         {
             try
@@ -196,7 +210,52 @@ namespace CustomBeatmaps.CustomData
                     {
                         Tags = JsonConvert.DeserializeObject<TagData>(tagTest);
                     }
-                    catch (Exception e)
+                    catch (Exception)
+                    {
+                        ScheduleHelper.SafeLog("INVALID JSON");
+                    }
+                }
+
+                BeatmapPointer = new CustomBeatmap(this, new TextAsset(text), InternalDifficulty);
+            }
+            catch (Exception e)
+            {
+                //throw new BeatmapException("Failed to make local beatmap", SongPath);
+                throw e;
+                //return false;
+            }
+            return true;
+        }
+
+        bool CreateLocalPackagedBeatmap()
+        {
+            try
+            {
+                var text = File.ReadAllText(BeatmapPath);
+
+                SongName = GetBeatmapProp(text, "Title", BeatmapPath);
+                //InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
+                Artist = GetBeatmapProp(text, "Artist", BeatmapPath);
+                Creator = GetBeatmapProp(text, "Creator", BeatmapPath);
+
+                CoverPath = GetBeatmapImage(text, BeatmapPath);
+
+                var bmapVer = GetBeatmapProp(text, "Version", BeatmapPath);
+                Difficulty = bmapVer;
+
+                var audio = GetBeatmapProp(text, "AudioFilename", BeatmapPath);
+                // realPath fixes some issues with old beatmaps, don't remove
+                var realPath = audio.Contains("/") ? audio.Substring(audio.LastIndexOf("/") + 1, audio.Length - (audio.LastIndexOf("/") + 1)) : audio;
+                AudioPath = $"{DirectoryPath}\\{realPath}";
+
+                var tagTest = GetBeatmapProp(text, "Tags", BeatmapPath);
+                if (tagTest.StartsWith("{") && tagTest.EndsWith("}"))
+                {
+                    try
+                    {
+                        Tags = JsonConvert.DeserializeObject<TagData>(tagTest);
+                    }
+                    catch (Exception)
                     {
                         ScheduleHelper.SafeLog("INVALID JSON");
                     }
@@ -224,6 +283,7 @@ namespace CustomBeatmaps.CustomData
             try
             {
                 // somewhat fixes songs without characters, still breaks the vanilla menu
+                // TODO: Use a uuid for god's sake
                 if (SongName.Count() < 1)
                     InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}{Offset}";
 

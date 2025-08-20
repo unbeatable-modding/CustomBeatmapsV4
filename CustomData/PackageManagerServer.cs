@@ -49,7 +49,7 @@ namespace CustomBeatmaps.CustomData
                         _downloadedFolders.Clear();
                         foreach (var package in _packages)
                         {
-                            _downloadedFolders.Add(Path.GetFullPath(package.FolderName));
+                            _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                         }
                     }
                     InitialLoadState.Loading = false;

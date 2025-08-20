@@ -78,7 +78,7 @@ namespace CustomBeatmaps.Util
             string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
-            package.FolderName = rootSubFolder;
+            package.BaseDirectory = rootSubFolder;
             ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
             var songs = new Dictionary<string, SongData>();
@@ -111,7 +111,7 @@ namespace CustomBeatmaps.Util
             // This folder has some beatmaps!
             if (songs.Any())
             {
-                package.PkgSongs = songs.Values.ToList();
+                package.SongDatas = songs.Values.ToList();
                 return true;
             }
 

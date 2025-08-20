@@ -182,6 +182,24 @@ namespace CustomBeatmaps
             // Add images to songs at later timing because the game will crash if loaded any earlier
             PackageHelper.GetAllCustomSongInfos.ForEach(s => s.GetTexture());
             ArcadeHelper.LoadCustomSongs();
+
+            /*
+            ScheduleHelper.SafeInvoke(() =>
+            {
+                if (!File.Exists("USER_PACKAGES\\Chaos_Carnival.zip\\package.bmap"))
+                {
+                    //File.Create("USER_PACKAGES\\Chaos_Carnival.zip\\package.bmap");
+                    var pkgCore = PackageHelper.GeneratePackageCore("USER_PACKAGES\\Chaos_Carnival.zip");
+                    //SerializeHelper.SaveJSON("USER_PACKAGES\\Chaos_Carnival.zip\\package.bmap", pkgCore);
+                    var pkg = LocalUserPackages.Packages.First(p => p.GUID == Guid.Empty);
+                    if (pkg != null)
+                    {
+                        pkgCore = PackageHelper.GeneratePackageCore(pkg);
+                        SerializeHelper.SaveJSON($"{pkg.BaseDirectory}\\package.bmap", pkgCore);
+                    }
+                }
+            });
+            */
         }
 
         private static bool _quitted;

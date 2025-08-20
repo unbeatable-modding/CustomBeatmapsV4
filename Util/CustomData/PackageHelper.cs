@@ -30,25 +30,6 @@ namespace CustomBeatmaps.Util.CustomData
             new Category("server", "online", 10)
             };
 
-        public static string GetLocalBeatmapDirectory()
-        {
-            // Path of the game exe
-            var dataDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
-            // Get the directory of the custom songs
-            var songDir = $"{dataDir}/{Config.Mod.UserPackagesDir}";
-            return songDir;
-        }
-
-        public static string GetWhiteLabelBeatmapDirectory()
-        {
-            // Path of the game exe
-            var test = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
-            var dataDir = test.Substring(0, test.LastIndexOf('/'));
-            // Get the directory of the custom songs
-            var songDir = $"{dataDir}/UNBEATABLE [white label]/";
-            return songDir;
-        }
-
         public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, int category , bool recursive = false,
             Action<BeatmapException> onBeatmapFail = null, Func<HashSet<string>> songNames = null)
         {
@@ -61,41 +42,87 @@ namespace CustomBeatmaps.Util.CustomData
             string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
-            package.FolderName = rootSubFolder;
+            package.BaseDirectory = rootSubFolder;
             ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
             var songs = new Dictionary<string, SongData>();
 
-            foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
-            {
-                ScheduleHelper.SafeLog($"    {packageSubFile.Substring(packageFolder.Length)}");
-                if (BeatmapHelper.IsBeatmapFile(packageSubFile))
+            var subFiles = recursive ?
+                Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) :
+                Directory.EnumerateFiles(packageFolder);
+
+            if (subFiles.Where(s => s.ToLower().EndsWith(".bmap")).Any())
+            {                
+                foreach (string packageCoreFile in subFiles.Where(s => s.ToLower().EndsWith(".bmap")))
                 {
+                    ScheduleHelper.SafeLog($"    {packageCoreFile.Substring(packageFolder.Length)}");
                     try
                     {
-                        //var toLoad = new CustomSongInfo(packageSubFile, category);
-                        //AddSongToList(toLoad, ref songs, tmpPkg);
-                        //ScheduleHelper.SafeInvoke(() => { });
-                        var bmapInfo = new BeatmapData(packageSubFile, category);
-                        bmapInfo.TryAttachSong(ref songs, songNames);
+                        var pkgCore = SerializeHelper.LoadJSON<PackageCore>(packageCoreFile);
+                        package.GUID = pkgCore.GUID;
+                        var offset = 0;
+                        foreach (var songsSubFile in pkgCore.Songs)
+                        {
+                            foreach (var song in songsSubFile)
+                            {
+                                var bmapInfo = new BeatmapData($"{pkgCore.GUID}-{offset}", song.Key, $"{packageFolder}\\{song.Value}", category);
+                                bmapInfo.TryAttachSong(ref songs, songNames);
+                            }
+                            offset++;
+                        }
+
+                        if (pkgCore.Name != null)
+                            package.Name = pkgCore.Name;
+                        else
+                            package.Name = songs.Values.ToList()[0].Name;
                     }
-                    catch (BeatmapException e)
+                    catch (Exception f)
                     {
+                        BeatmapException e = new BeatmapException("Invalid Package formatting", packageCoreFile);
                         ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogError($"    BEATMAP FAIL: {e.Message}"));
+                        ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogError($"    Exception: {f}"));
                         onBeatmapFail?.Invoke(e);
                     }
-                    catch (Exception e)
-                    {
-                        ScheduleHelper.SafeInvoke(() => Debug.LogException(e));
-                    }
-
                 }
+                
             }
+            else
+            {
+                //foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
+                foreach (string packageSubFile in subFiles)
+                {
+                    ScheduleHelper.SafeLog($"    {packageSubFile.Substring(packageFolder.Length)}");
+                    if (BeatmapHelper.IsBeatmapFile(packageSubFile))
+                    {
+                        try
+                        {
+                            //var toLoad = new CustomSongInfo(packageSubFile, category);
+                            //AddSongToList(toLoad, ref songs, tmpPkg);
+                            //ScheduleHelper.SafeInvoke(() => { });
+                            var bmapInfo = new BeatmapData(packageSubFile, category);
+                            bmapInfo.TryAttachSong(ref songs, songNames);
+                            package.Name = bmapInfo.SongName;
+                        }
+                        catch (BeatmapException e)
+                        {
+                            ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogError($"    BEATMAP FAIL: {e.Message}"));
+                            onBeatmapFail?.Invoke(e);
+                        }
+                        catch (Exception e)
+                        {
+                            ScheduleHelper.SafeInvoke(() => Debug.LogException(e));
+                        }
+
+                    }
+                }
+                //package.Name = songs.Values.ToList()[0].Name;
+            }
+
 
             // This folder has some beatmaps!
             if (songs.Any())
             {
-                package.PkgSongs = songs.Values.ToList();
+                package.SongDatas = songs.Values.ToList();
                 return true;
             }
 
@@ -127,7 +154,7 @@ namespace CustomBeatmaps.Util.CustomData
                         //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
                         
                     });
-                    foreach (var s in potentialNewPackage.PkgSongs)
+                    foreach (var s in potentialNewPackage.SongDatas)
                     {
                         songNames.Add(s.InternalName);
                     }
@@ -231,6 +258,133 @@ namespace CustomBeatmaps.Util.CustomData
         public static int EstimatePackageCount(string folderPath)
         {
             return Directory.GetDirectories(folderPath).Length + Directory.GetFiles(folderPath).Length;
+        }
+
+        /// <summary>
+        /// Auto generate a new valid PackageCore from a folder
+        /// </summary>
+        /// <param name="folderPath">Directory to generate package from</param>
+        /// <param name="recursive">Bool to check recursively for beatmaps</param>
+        /// <returns></returns>
+        public static PackageCore GeneratePackageCore(string folderPath, bool recursive = true)
+        {
+            PackageCore pkgCore = new();
+            pkgCore.GUID = Guid.NewGuid();
+            pkgCore.Songs = new();
+
+            var subFiles = recursive ?
+                Directory.EnumerateFiles(folderPath, "*.osu", SearchOption.AllDirectories) :
+                Directory.EnumerateFiles(folderPath, "*.osu", SearchOption.TopDirectoryOnly);
+
+            var songs = new List<string>();
+            
+            foreach (var file in subFiles)
+            {
+                var bmap = new BeatmapData(file, 0);
+                var diffIndex = new Dictionary<string, InternalDifficulty>
+                {
+                    {"Beginner", InternalDifficulty.Beginner},
+                    {"Easy", InternalDifficulty.Normal},
+                    {"Normal", InternalDifficulty.Hard},
+                    {"Hard", InternalDifficulty.Expert},
+                    {"UNBEATABLE", InternalDifficulty.UNBEATABLE},
+                    {"Star", InternalDifficulty.Star},
+                };
+
+                var offset = 0;
+                while (true)
+                {
+                    if (!songs.Contains($"{bmap.SongName}{offset}"))
+                    {
+                        songs.Add($"{bmap.SongName}{offset}");
+                        pkgCore.Songs.Add(new());
+                    }
+
+                    try
+                    {
+                        var relative = Path.GetFullPath(file).Substring(Path.GetFullPath(folderPath).Length + 1);
+                        pkgCore.Songs[songs.IndexOf($"{bmap.SongName}{offset}")].Add(diffIndex[bmap.InternalDifficulty], relative);
+                        break;
+                    }
+                    catch
+                    {
+                        offset++;
+                        continue;
+                    }
+                }
+                
+
+            }
+
+            return pkgCore;
+        }
+
+        /// <summary>
+        /// Auto generate a new valid PackageCore from an existing CustomPackage
+        /// </summary>
+        /// <param name="pkg">A loaded CustomPackage</param>
+        /// <returns></returns>
+        public static PackageCore GeneratePackageCore(CustomPackage pkg)
+        {
+            var pkgCore = new PackageCore();
+            pkgCore.GUID = Guid.NewGuid();
+            pkgCore.Songs = new();
+            //var offset = 0;
+            
+            var diffIndex = new Dictionary<string, InternalDifficulty>
+                {
+                    {"Beginner", InternalDifficulty.Beginner},
+                    {"Easy", InternalDifficulty.Normal},
+                    {"Normal", InternalDifficulty.Hard},
+                    {"Hard", InternalDifficulty.Expert},
+                    {"UNBEATABLE", InternalDifficulty.UNBEATABLE},
+                    {"Star", InternalDifficulty.Star},
+                };
+
+            foreach (var s in pkg.SongDatas)
+            {
+                pkgCore.Songs.Add(new());
+                foreach (var b in s.BeatmapDatas)
+                {
+                    var relative = Path.GetFullPath(b.BeatmapPath).Substring(pkg.BaseDirectory.Length + 1);
+                    pkgCore.Songs.Last().Add(diffIndex[b.InternalDifficulty], relative);
+                }
+            }
+
+            return pkgCore;
+        }
+
+        public static void PopulatePackageCores(string folderPath, Action onLoadPackage = null)
+        {
+            folderPath = Path.GetFullPath(folderPath);
+
+            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+            {
+                if (TryPopulatePackageCore(subDir, folderPath))
+                    continue;
+                    //onLoadPackage.Invoke();
+            }
+        }
+
+        public static bool TryPopulatePackageCore(string packageFolder, string outerFolderPath, bool recursive = false)
+        {
+            packageFolder = Path.GetFullPath(packageFolder);
+            if (!Directory.EnumerateFiles(packageFolder, "*.osu", SearchOption.TopDirectoryOnly).Any() || Directory.EnumerateFiles(packageFolder, "*.bmap", SearchOption.TopDirectoryOnly).Any())
+                return false;
+
+            try
+            {
+                //var relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1);
+                var pkgCore = GeneratePackageCore(packageFolder, recursive);
+                SerializeHelper.SaveJSON($"{packageFolder}\\package.bmap", pkgCore);
+                //return false;
+            }
+            catch (Exception e)
+            {
+                ScheduleHelper.SafeLog(e);
+                return false;
+            }
+            return true;
         }
     }
 }

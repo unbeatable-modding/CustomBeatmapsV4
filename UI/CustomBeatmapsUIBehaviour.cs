@@ -5,6 +5,7 @@ using Arcade.UI.MenuStates;
 using CustomBeatmaps.Patches;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
+using CustomBeatmaps.Util.CustomData;
 using DG.Tweening;
 using FMOD;
 using RJBuildScripts;

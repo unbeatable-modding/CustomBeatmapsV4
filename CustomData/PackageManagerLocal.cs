@@ -45,10 +45,26 @@ namespace CustomBeatmaps.CustomData
                         _downloadedFolders.Clear();
                         foreach (var package in _packages)
                         {
-                            _downloadedFolders.Add(Path.GetFullPath(package.FolderName));
+                            _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                         }
                     }
                     InitialLoadState.Loading = false;
+                }
+            }).Start();
+        }
+
+        protected void GenerateCorePackages()
+        {
+            if (_folder == null)
+                return;
+            ScheduleHelper.SafeLog($"LOADING CORES");
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                lock (_packages)
+                {
+                    PackageHelper.PopulatePackageCores(_folder);
+                    
                 }
             }).Start();
         }
@@ -58,16 +74,15 @@ namespace CustomBeatmaps.CustomData
             // Remove old package if there was one and update
             lock (_packages)
             {
-                int toRemove = _packages.FindIndex(check => check.FolderName == folderPath);
+                int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
                 if (toRemove != -1)
                     _packages.RemoveAt(toRemove);
             }
 
-
             if (PackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomPackageLocal package, _category, true,
-                    _onLoadException))
+                    _onLoadException, () => { return PackageHelper.GetAllCustomSongs.Select(s => s.InternalName).ToHashSet(); } ))
             {
-                ScheduleHelper.SafeInvoke(() => package.PkgSongs.ForEach(s => s.Song.GetTexture()));
+                ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
                 ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
                 lock (_packages)
                 {
@@ -78,7 +93,7 @@ namespace CustomBeatmaps.CustomData
                     _packages.Add(package);
                     lock (_downloadedFolders)
                     {
-                        _downloadedFolders.Add(Path.GetFullPath(package.FolderName));
+                        _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                     }
                 }
                 PackageUpdated?.Invoke(package);
@@ -94,7 +109,7 @@ namespace CustomBeatmaps.CustomData
             lock (_packages)
             {
                 string fullPath = Path.GetFullPath(folderPath);
-                int toRemove = _packages.FindIndex(check => check.FolderName == fullPath);
+                int toRemove = _packages.FindIndex(check => check.BaseDirectory == fullPath);
                 if (toRemove != -1)
                 {
                     var p = _packages[toRemove];
@@ -144,6 +159,8 @@ namespace CustomBeatmaps.CustomData
             {
                 _watcher.Dispose();
             }
+
+            //GenerateCorePackages();
 
             // Watch for changes
             _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
@@ -220,7 +237,7 @@ namespace CustomBeatmaps.CustomData
                 }
                 lock (_packages)
                 {
-                    return _packages.SelectMany(p => p.PkgSongs).ToList();
+                    return _packages.SelectMany(p => p.SongDatas).ToList();
                 }
             }
         }

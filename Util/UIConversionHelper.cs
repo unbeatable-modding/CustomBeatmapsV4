@@ -50,7 +50,7 @@ namespace CustomBeatmaps.Util
         }
         private static string GetLocalPackageName(CustomPackage package)
         {
-            return package.PkgSongs.Join(beatmap => beatmap.Name, " | ");
+            return package.SongDatas.Join(beatmap => beatmap.Name, " | ");
         }
 
         public static void SortServerPackages(List<CustomServerPackage> headers, SortMode sortMode)
@@ -94,18 +94,18 @@ namespace CustomBeatmaps.Util
                 switch (sortMode)
                 {
                     case SortMode.New:
-                        return DateTime.Compare(Directory.GetLastWriteTime(right.FolderName), Directory.GetLastWriteTime(left.FolderName));
+                        return DateTime.Compare(Directory.GetLastWriteTime(right.BaseDirectory), Directory.GetLastWriteTime(left.BaseDirectory));
                     case SortMode.Title:
                         string nameL = GetLocalPackageName(left),
                             nameR = GetLocalPackageName(right);
                         return String.CompareOrdinal(nameL, nameR);
                     case SortMode.Artist:
-                        string artistLeft = left.PkgSongs.Select(map => map.Artist).OrderBy(x => x).Join();
-                        string artistRight = right.PkgSongs.Select(map => map.Artist).OrderBy(x => x).Join();
+                        string artistLeft = left.SongDatas.Select(map => map.Artist).OrderBy(x => x).Join();
+                        string artistRight = right.SongDatas.Select(map => map.Artist).OrderBy(x => x).Join();
                         return String.CompareOrdinal(artistLeft, artistRight);
                     case SortMode.Creator:
-                        string creatorLeft = left.PkgSongs.Select(map => map.Creator).OrderBy(x => x).Join();
-                        string creatorRight = right.PkgSongs.Select(map => map.Creator).OrderBy(x => x).Join();
+                        string creatorLeft = left.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
+                        string creatorRight = right.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
                         return String.CompareOrdinal(creatorLeft, creatorRight);
                     case SortMode.Downloaded:
                         nameL = GetLocalPackageName(left);
@@ -227,7 +227,7 @@ namespace CustomBeatmaps.Util
             }
 
             bool caseSensitive = filterQuery.ToLower() != filterQuery;
-            foreach (var bmap in serverPackage.PkgSongs.SelectMany(s => s.BeatmapDatas).ToList())
+            foreach (var bmap in serverPackage.SongDatas.SelectMany(s => s.BeatmapDatas).ToList())
             {
                 string[] possibleMatches = new[]
                 {

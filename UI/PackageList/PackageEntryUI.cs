@@ -22,8 +22,8 @@ namespace CustomBeatmaps.UI.PackageList
 
         public static Rect Render(CustomPackage header, bool selected, Action onSelect, BeatmapDownloadStatus status=BeatmapDownloadStatus.Downloaded)
         {
-            var name = header.BeatmapDatas[0].SongName;
-            string label = $"{name} (FIXME)";
+            //var name = header.BeatmapDatas[0].SongName;
+            string label = $"{header.Name} (FIXME)";
             if (selected)
             {
                 label = $"<b><color=#fbff8fff>{label}</color></b>";
@@ -55,7 +55,7 @@ namespace CustomBeatmaps.UI.PackageList
 
             GUI.Label(new Rect(nameLeftCorner, br.size), label);
             GUI.Label(new Rect(br.xMax - MapCountRightPad, br.y, MapCountRightPad, br.height), $"{GetCount(header.BeatmapDatas.Count(), "Map")}");
-            GUI.Label(new Rect(br.xMax - SongCountRightPad, br.y, SongCountRightPad, br.height), $"{GetCount(header.PkgSongs.Count(), "Song")}");
+            GUI.Label(new Rect(br.xMax - SongCountRightPad, br.y, SongCountRightPad, br.height), $"{GetCount(header.SongDatas.Count(), "Song")}");
             if (header.New)
             {
                 GUI.Label(new Rect(br.xMax - NewTextRightPad, br.y, NewTextRightPad, br.height), "<color=#ffff00ff><i>NEW!</i></color>");
@@ -63,7 +63,7 @@ namespace CustomBeatmaps.UI.PackageList
 
             // At low resolutions, the creator name INTERSECTS w/ the name
             // Fix this by pushing it down
-            string creatorLabel = $"by {header.PkgSongs[0].Creator} (FIXME)";
+            string creatorLabel = $"by {header.SongDatas[0].Creator} (FIXME)";
             float creatorLeftTargetPos = br.xMax - CreatorRightPad;
             Vector2 nameSize =
                 GUIHelper.CalculateSize(new GUIContent(label), GUI.skin.label, GUILayout.ExpandWidth(false));

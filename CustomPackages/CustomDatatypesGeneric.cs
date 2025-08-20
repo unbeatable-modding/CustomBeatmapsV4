@@ -19,10 +19,21 @@ namespace CustomBeatmaps.CustomPackages
 
     public abstract class CustomPackage
     {
-        public string FolderName { get; set; }
+        public string Name = "If you see this, contact gold_me";
+
+        public CustomPackage() : this(Guid.Empty)
+        {
+            //GUID = Guid.Empty;
+        }
+        public CustomPackage(Guid guid)
+        {
+            GUID = guid;
+        }
+        public Guid GUID { get; set; }
+        public string BaseDirectory { get; set; }
         public virtual BeatmapData[] BeatmapDatas { get; protected set; }
 
-        public List<SongData> PkgSongs;
+        public List<SongData> SongDatas;
         public abstract PackageType PkgType { get; }
 
         public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.

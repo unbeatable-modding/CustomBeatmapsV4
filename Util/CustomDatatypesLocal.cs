@@ -23,8 +23,12 @@ namespace CustomBeatmaps.Util
         //public string FolderName { get; set; }
         //public List<CustomSongInfo> PkgSongs;
 
+        public CustomPackageLocal() : base()
+        {
+        }
+        public CustomPackageLocal(Guid guid) : base(guid) { }
         
-        public CustomBeatmap[] CustomBeatmaps => PkgSongs.SelectMany(p => p.BeatmapInfos).ToArray();
+        public CustomBeatmap[] CustomBeatmaps => SongDatas.SelectMany(p => p.BeatmapInfos).ToArray();
 
         /*
         public override List<string> Difficulties
@@ -35,15 +39,14 @@ namespace CustomBeatmaps.Util
             }
         }
         */
-
         public override PackageType PkgType => PackageType.Local;
 
-        public override BeatmapData[] BeatmapDatas => PkgSongs.SelectMany(p => p.BeatmapDatas).ToArray();
+        public override BeatmapData[] BeatmapDatas => SongDatas.SelectMany(p => p.BeatmapDatas).ToArray();
 
         public override string ToString()
         {
             //return $"{{{Path.GetFileName(FolderName)}: [{Beatmaps.Join()}]}}";
-            return $"{{{Path.GetFileName(FolderName)}: [\n  {PkgSongs.ToArray().Select(song => 
+            return $"{{{Path.GetFileName(BaseDirectory)}: [\n  {SongDatas.ToArray().Select(song => 
             new 
             { 
                 Song = song.Name,
