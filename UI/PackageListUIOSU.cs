@@ -7,6 +7,7 @@ using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
+using RJBuildScripts;
 using UnityEngine;
 
 namespace CustomBeatmaps.UI
@@ -32,6 +33,10 @@ namespace CustomBeatmaps.UI
                     },
                     () =>
                     {
+                        if (GUILayout.Button($"Init Packages"))
+                        {
+                            CustomBeatmaps.OSUSongManager.GenerateCorePackages();
+                        }
                         _overrideCountdown = GUILayout.Toggle(_overrideCountdown, "Do Countdown?");
                         if (GUILayout.Button($"EXPORT"))
                         {
@@ -48,7 +53,6 @@ namespace CustomBeatmaps.UI
                         }
                     }
             ];
-
         }
 
         protected override void RegenerateHeaders()

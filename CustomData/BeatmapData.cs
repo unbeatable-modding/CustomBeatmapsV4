@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CustomBeatmaps.CustomPackages;
+﻿using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.Util;
+using Newtonsoft.Json;
 using Rhythm;
-using Steamworks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 using static CustomBeatmaps.Util.CustomData.BeatmapHelper;
+using static CustomBeatmaps.Util.CustomData.PackageServerHelper;
+using static Rhythm.BeatmapIndex;
+using Directory = Pri.LongPath.Directory;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using System.Linq;
-using static Rhythm.BeatmapIndex;
-using Newtonsoft.Json;
-using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.CustomData
 {
@@ -157,6 +156,48 @@ namespace CustomBeatmaps.CustomData
             IsLocal = CreateLocalPackagedBeatmap();
         }
 
+        public BeatmapData(OnlineBeatmap oBmap, int category)
+        {
+            Category = category;
+            BeatmapCategory = defaultIndex.Categories[category];
+
+            SongName = oBmap.SongName;
+            InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
+            Artist = oBmap.Artist;
+            Creator = oBmap.Creator;
+
+            var iDifficulty = oBmap.Difficulty;
+            var difficulty = "Star";
+            Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
+            {
+                {"beginner", "Beginner"},
+                {"easy", "Easy"}, // easy is a lie shove the song into normal
+                {"normal", "Easy"},
+                {"hard", "Normal"},
+                {"expert", "Hard"},
+                {"beatable", "Hard"}, // A lot of maps like using this idk
+                {"unbeatable", "UNBEATABLE"}
+            };
+            // Check if the difficulty is in the default list
+            // If not, set it to one that can be found in the game
+            foreach (var i in difficultyIndex.Keys)
+            {
+                // Check if the start of the version field matches a difficulty and then set accordingly
+                // This is so songs that have (UNBEATABLE + 4k) get put in the UNBEATABLE difficulty
+                if (iDifficulty.ToLower().StartsWith(i))
+                {
+                    //difficultyIndex.TryGetValue(i, out difficulty);
+                    difficulty = difficultyIndex[i];
+                    break;
+                }
+            }
+
+            Difficulty = iDifficulty;
+            InternalDifficulty = difficulty;
+
+            IsLocal = false;
+        }
+
         private bool CreateLocalBeatmap()
         {
             try
@@ -191,7 +232,8 @@ namespace CustomBeatmaps.CustomData
                     // This is so songs that have (UNBEATABLE + 4k) get put in the UNBEATABLE difficulty
                     if (bmapVer.ToLower().StartsWith(i))
                     {
-                        difficultyIndex.TryGetValue(i, out difficulty);
+                        //difficultyIndex.TryGetValue(i, out difficulty);
+                        difficulty = difficultyIndex[i];
                         break;
                     }
                 }

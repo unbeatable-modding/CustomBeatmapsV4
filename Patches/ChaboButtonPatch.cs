@@ -31,7 +31,7 @@ namespace CustomBeatmaps.Patches
         [HarmonyPrefix]
         static void PreStart(WhiteLabelMainMenu __instance)
         {
-            _customBeatmapsUIBehaviour = new GameObject().AddComponent<CustomBeatmapsUIBehaviour>();
+            _customBeatmapsUIBehaviour = new GameObject("CustomBeatmaps UI").AddComponent<CustomBeatmapsUIBehaviour>();
         }
 
         [HarmonyPatch(typeof(FMODButton), "OnSubmit")]

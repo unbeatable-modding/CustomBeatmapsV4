@@ -108,9 +108,12 @@ namespace CustomBeatmaps.Util
                         string creatorRight = right.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
                         return String.CompareOrdinal(creatorLeft, creatorRight);
                     case SortMode.Downloaded:
-                        nameL = GetLocalPackageName(left);
-                        nameR = GetLocalPackageName(right);
-                        return String.CompareOrdinal(nameL, nameR); ; // um
+                        bool downloadedLeft = CustomBeatmaps.LocalServerPackages.PackageExists(left.BaseDirectory);
+                        bool downloadedRight = CustomBeatmaps.LocalServerPackages.PackageExists(right.BaseDirectory);
+                        //nameL = GetLocalPackageName(left);
+                        //nameR = GetLocalPackageName(right);
+                        //return String.CompareOrdinal(nameL, nameR); ; // um
+                        return (downloadedLeft ? 1 : 0).CompareTo(downloadedRight ? 1 : 0);
                     default:
                         throw new ArgumentOutOfRangeException(nameof(sortMode), sortMode, null);
                 }
@@ -122,6 +125,7 @@ namespace CustomBeatmaps.Util
         {
             if (diff == Difficulty.All)
                 return true;
+
             Dictionary<Difficulty, string> EdifficultyIndex = new Dictionary<Difficulty, string>
             {
                 {Difficulty.Beginner, "Beginner"},
@@ -131,7 +135,7 @@ namespace CustomBeatmaps.Util
                 {Difficulty.Unbeatable, "UNBEATABLE"},
                 {Difficulty.Star, "Star"},
             };
-            return package.Difficulties.Contains(EdifficultyIndex[diff]);
+            return package.InternalDifficulties.Contains(EdifficultyIndex[diff]);
         }
         
         public static readonly Dictionary<Difficulty, string[]> DifficultyIndex = 

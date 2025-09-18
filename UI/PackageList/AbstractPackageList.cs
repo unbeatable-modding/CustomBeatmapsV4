@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Arcade.UI;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.Util;
+using FMODUnity;
+using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using static CustomBeatmaps.Util.ArcadeHelper;
 
@@ -221,6 +225,10 @@ namespace CustomBeatmaps.UISystem
                 {
                     var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
                     BGM.PlaySongPreview(previewsong);
+                    //MethodInfo methodInfo = typeof(ArcadeBGMManager).GetMethod("UpdateTimingPoint", BindingFlags.NonPublic | BindingFlags.Instance);
+                    //var parameters = new object[] { 3 };
+                    //methodInfo.Invoke(BGM, parameters);
+                    //Traverse.Create(BGM).Field("customSongEmitter").GetValue<StudioEventEmitter>().EventInstance.setTimelinePosition(300);
                 }
             }
 

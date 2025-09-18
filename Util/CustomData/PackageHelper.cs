@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using Arcade.UI;
-using System.Text.RegularExpressions;
-using UnityEngine;
-
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
@@ -15,7 +10,6 @@ using System.Linq;
 using HarmonyLib;
 using Rhythm;
 using static Rhythm.BeatmapIndex;
-using Discord;
 
 namespace CustomBeatmaps.Util.CustomData
 {
@@ -71,10 +65,13 @@ namespace CustomBeatmaps.Util.CustomData
                             offset++;
                         }
 
+                        // Set using core data if it exists
                         if (pkgCore.Name != null)
                             package.Name = pkgCore.Name;
-                        else
-                            package.Name = songs.Values.ToList()[0].Name;
+                        if (pkgCore.Mappers != null)
+                            package.Mappers = pkgCore.Mappers;
+                        if (pkgCore.Artists != null)
+                            package.Artists = pkgCore.Artists;
                     }
                     catch (Exception f)
                     {
@@ -86,6 +83,7 @@ namespace CustomBeatmaps.Util.CustomData
                 }
                 
             }
+            /*
             else
             {
                 //foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
@@ -110,14 +108,14 @@ namespace CustomBeatmaps.Util.CustomData
                         }
                         catch (Exception e)
                         {
-                            ScheduleHelper.SafeInvoke(() => Debug.LogException(e));
+                            ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogError(e));
                         }
 
                     }
                 }
                 //package.Name = songs.Values.ToList()[0].Name;
             }
-
+            */
 
             // This folder has some beatmaps!
             if (songs.Any())
@@ -131,7 +129,7 @@ namespace CustomBeatmaps.Util.CustomData
             return false;
         }
 
-        public static CustomPackage[] LoadLocalPackages(string folderPath, int category, Action<CustomPackageLocal> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
+        public static CustomPackage[] LoadLocalPackages(string folderPath, int category, Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
             folderPath = Path.GetFullPath(folderPath);
 

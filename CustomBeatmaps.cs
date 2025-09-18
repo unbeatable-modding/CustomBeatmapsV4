@@ -1,24 +1,24 @@
-﻿using System;
-using System.Collections;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Logging;
+using CustomBeatmaps.CustomData;
+using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.Patches;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.Util;
-using System.Timers;
+using CustomBeatmaps.Util.CustomData;
 using HarmonyLib;
-using CustomBeatmaps.CustomPackages;
-using UnityEngine;
-using System.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
+using UnityEngine;
+using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
-
+using Directory = Pri.LongPath.Directory;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using CustomBeatmaps.CustomData;
-using CustomBeatmaps.Util.CustomData;
 
 
 namespace CustomBeatmaps
@@ -39,7 +39,7 @@ namespace CustomBeatmaps
 
         //public static List<LocalPackageManager> LocalUserPackages { get; private set; }
         public static PackageManagerLocal LocalUserPackages { get; private set; }
-        public static PackageManagerLocal LocalServerPackages { get; private set; }
+        public static PackageManagerServer LocalServerPackages { get; private set; }
         public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
         public static PackageManagerLocal OSUSongManager { get; private set; }
         public static PlayedPackageManager PlayedPackageManager { get; private set; }
@@ -67,7 +67,7 @@ namespace CustomBeatmaps
 
             // Anything with Static access should be ALWAYS present.
             LocalUserPackages = new PackageManagerLocal(OnError);
-            LocalServerPackages = new PackageManagerLocal(OnError);
+            LocalServerPackages = new PackageManagerServer(OnError);
             SubmissionPackageManager = new SubmissionPackageManager(OnError);
             OSUSongManager = new PackageManagerLocal(OnError);
             ServerHighScoreManager = new ServerHighScoreManager();
@@ -130,7 +130,6 @@ namespace CustomBeatmaps
             // Harmony Patching
             Type[] classesToPatch = {
                 typeof(DebugLogPatch),
-                //typeof(CustomBeatmapLoadingOverridePatch),
                 typeof(OsuEditorPatch),
                 //typeof(PauseMenuPatch),
                 //typeof(DisablePracticeRoomOpenerPatch),
@@ -183,23 +182,6 @@ namespace CustomBeatmaps
             PackageHelper.GetAllCustomSongInfos.ForEach(s => s.GetTexture());
             ArcadeHelper.LoadCustomSongs();
 
-            /*
-            ScheduleHelper.SafeInvoke(() =>
-            {
-                if (!File.Exists("USER_PACKAGES\\Chaos_Carnival.zip\\package.bmap"))
-                {
-                    //File.Create("USER_PACKAGES\\Chaos_Carnival.zip\\package.bmap");
-                    var pkgCore = PackageHelper.GeneratePackageCore("USER_PACKAGES\\Chaos_Carnival.zip");
-                    //SerializeHelper.SaveJSON("USER_PACKAGES\\Chaos_Carnival.zip\\package.bmap", pkgCore);
-                    var pkg = LocalUserPackages.Packages.First(p => p.GUID == Guid.Empty);
-                    if (pkg != null)
-                    {
-                        pkgCore = PackageHelper.GeneratePackageCore(pkg);
-                        SerializeHelper.SaveJSON($"{pkg.BaseDirectory}\\package.bmap", pkgCore);
-                    }
-                }
-            });
-            */
         }
 
         private static bool _quitted;

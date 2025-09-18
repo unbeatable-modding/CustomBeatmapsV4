@@ -166,6 +166,11 @@ namespace CustomBeatmaps.Util
             }
         }
 
+        public static void PlaySongTest(string path)
+        {
+            
+        }
+
         public static void PlaySongEdit(CustomBeatmap beatmap, bool enableCountdown = false)
         {
             //OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.Info.OsuPath, beatmap.Info.SongPath);

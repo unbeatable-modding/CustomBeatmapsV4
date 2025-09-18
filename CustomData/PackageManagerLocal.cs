@@ -51,9 +51,11 @@ namespace CustomBeatmaps.CustomData
                     InitialLoadState.Loading = false;
                 }
             }).Start();
+
+            //GenerateCorePackages();
         }
 
-        protected void GenerateCorePackages()
+        public void GenerateCorePackages()
         {
             if (_folder == null)
                 return;
@@ -101,6 +103,7 @@ namespace CustomBeatmaps.CustomData
             else
             {
                 ScheduleHelper.SafeLog($"CANNOT find package: {folderPath}");
+                PackageUpdated?.Invoke(package);
             }
         }
 
@@ -159,8 +162,6 @@ namespace CustomBeatmaps.CustomData
             {
                 _watcher.Dispose();
             }
-
-            //GenerateCorePackages();
 
             // Watch for changes
             _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);

@@ -192,6 +192,7 @@ namespace CustomBeatmaps.Util
         public static async Task<CustomServerPackageList> FetchServerPackageList(string url)
         {
             return await FetchHelper.GetJSON<CustomServerPackageList>(url);
+            CustomServerPackageList tmp = new();
         }
 
         public static async Task<Dictionary<string, ServerSubmissionPackage>> FetchServerSubmissions(string url)

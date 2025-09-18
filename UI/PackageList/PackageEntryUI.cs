@@ -23,7 +23,7 @@ namespace CustomBeatmaps.UI.PackageList
         public static Rect Render(CustomPackage header, bool selected, Action onSelect, BeatmapDownloadStatus status=BeatmapDownloadStatus.Downloaded)
         {
             //var name = header.BeatmapDatas[0].SongName;
-            string label = $"{header.Name} (FIXME)";
+            string label = $"{header.Name}";
             if (selected)
             {
                 label = $"<b><color=#fbff8fff>{label}</color></b>";
@@ -63,7 +63,7 @@ namespace CustomBeatmaps.UI.PackageList
 
             // At low resolutions, the creator name INTERSECTS w/ the name
             // Fix this by pushing it down
-            string creatorLabel = $"by {header.SongDatas[0].Creator} (FIXME)";
+            string creatorLabel = $"by {header.Mappers}";
             float creatorLeftTargetPos = br.xMax - CreatorRightPad;
             Vector2 nameSize =
                 GUIHelper.CalculateSize(new GUIContent(label), GUI.skin.label, GUILayout.ExpandWidth(false));

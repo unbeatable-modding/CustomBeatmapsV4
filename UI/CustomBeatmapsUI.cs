@@ -19,7 +19,7 @@ namespace CustomBeatmaps.UI
         ////private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
         //private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
 
-        private static PackageListUILocal OnlinePackageList = new PackageListUILocal(CustomBeatmaps.LocalServerPackages);
+        private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
         private static PackageListUILocal LocalPackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
         //private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
         private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
@@ -56,7 +56,7 @@ namespace CustomBeatmaps.UI
                         }
                         catch (Exception e)
                         {
-
+                            LocalPackageList.Render(() => RenderListTop(tab, setTab));
                         }
                         
                         break;
