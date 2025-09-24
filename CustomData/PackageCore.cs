@@ -27,20 +27,4 @@ namespace CustomBeatmaps.CustomData
         Star = 5
     }
 
-    public static class PackageCoreTest
-    {
-        public static PackageCore Package
-        {
-            get
-            {
-                PackageCore pkg = new PackageCore();
-                pkg.GUID = Guid.NewGuid();
-                pkg.Songs = new();
-                var testSong = new Dictionary<InternalDifficulty, string> { { InternalDifficulty.Beginner, "/example"} };
-                pkg.Songs.Add(testSong);
-                pkg.Name = "Example Package";
-                return pkg;
-            }
-        }
-    }
 }

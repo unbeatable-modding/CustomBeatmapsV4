@@ -37,6 +37,10 @@ namespace CustomBeatmaps.Util
     /// </summary>
     public struct OnlinePackage
     {
+        [JsonProperty("name")]
+        public String Name;
+        [JsonProperty("guid")]
+        public Guid GUID;
         [JsonProperty("filePath")]
         public string ServerURL;
         [JsonProperty("time")]
@@ -58,6 +62,44 @@ namespace CustomBeatmaps.Util
 
         [JsonProperty("difficulty")]
         public string Difficulty;
+
+        [JsonProperty("audioFileName")]
+        public string AudioFileName;
+
+        [JsonProperty("level")]
+        public int Level;
+
+        [JsonProperty("flavorText")]
+        public string FlavorText;
+    }
+
+
+    public struct NewOnlinePackage 
+    {
+        [JsonProperty("filePath")]
+        public string ServerURL;
+        [JsonProperty("time")]
+        public DateTime UploadTime;
+        [JsonProperty("songs")]
+        public List<NewOnlineBeatmap>[] Songs;
+    }
+
+    public struct NewOnlineBeatmap
+    {
+        [JsonProperty("name")]
+        public string SongName;
+
+        [JsonProperty("artist")]
+        public string Artist;
+
+        [JsonProperty("creator")]
+        public string Creator;
+
+        [JsonProperty("difficulty")]
+        public string Difficulty;
+
+        [JsonProperty("internalDifficulty")]
+        public string InternalDifficulty;
 
         [JsonProperty("audioFileName")]
         public string AudioFileName;

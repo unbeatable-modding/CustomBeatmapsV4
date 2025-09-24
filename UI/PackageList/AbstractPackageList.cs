@@ -22,7 +22,8 @@ namespace CustomBeatmaps.UISystem
         protected PackageManagerGeneric Manager;
 
         protected List<CustomPackage> _localPackages = new();
-        protected List<CustomPackage> LocalPackages => Manager.Packages;
+
+        protected Dictionary<Guid, CustomPackage> _pkgFetcher;
         protected string Folder => Manager.Folder;        
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
@@ -83,6 +84,7 @@ namespace CustomBeatmaps.UISystem
 
             SetSortMode = (val) => {
                 _sortMode = val;
+                SortPackages();
                 Reload(true);
             };
 
@@ -91,6 +93,8 @@ namespace CustomBeatmaps.UISystem
                 Reload(true);
             };
 
+            _localPackages = Manager.Packages;
+            SortPackages();
             Reload(false);
         }
 
@@ -98,8 +102,8 @@ namespace CustomBeatmaps.UISystem
         public virtual void Reload(bool retain)
         {
             var pkg = _selectedPackage;
-            _localPackages = LocalPackages;
-            SortPackages();
+            _localPackages = Manager.Packages;
+            //SortPackages();
             RegenerateHeaders();
 
             // Try to keep the same package selected when retain is true
@@ -225,10 +229,6 @@ namespace CustomBeatmaps.UISystem
                 {
                     var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
                     BGM.PlaySongPreview(previewsong);
-                    //MethodInfo methodInfo = typeof(ArcadeBGMManager).GetMethod("UpdateTimingPoint", BindingFlags.NonPublic | BindingFlags.Instance);
-                    //var parameters = new object[] { 3 };
-                    //methodInfo.Invoke(BGM, parameters);
-                    //Traverse.Create(BGM).Field("customSongEmitter").GetValue<StudioEventEmitter>().EventInstance.setTimelinePosition(300);
                 }
             }
 

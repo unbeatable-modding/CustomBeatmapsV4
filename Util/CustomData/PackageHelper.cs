@@ -10,6 +10,8 @@ using System.Linq;
 using HarmonyLib;
 using Rhythm;
 using static Rhythm.BeatmapIndex;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace CustomBeatmaps.Util.CustomData
 {
@@ -37,13 +39,13 @@ namespace CustomBeatmaps.Util.CustomData
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
             package.BaseDirectory = rootSubFolder;
-            ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
+            ScheduleHelper.SafeLog($"{relative}\\");
 
             var songs = new Dictionary<string, SongData>();
 
             var subFiles = recursive ?
                 Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) :
-                Directory.EnumerateFiles(packageFolder);
+                Directory.EnumerateFiles(packageFolder, "*.*");
 
             if (subFiles.Where(s => s.ToLower().EndsWith(".bmap")).Any())
             {                
@@ -143,22 +145,30 @@ namespace CustomBeatmaps.Util.CustomData
             foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
             {
                 CustomPackageLocal potentialNewPackage;
-                if (TryLoadLocalPackage(subDir, folderPath, out potentialNewPackage, category, false, onBeatmapFail, getNames))
+                try
                 {
-                    onLoadPackage?.Invoke(potentialNewPackage);
-                    // forcing SafeInvoke so things can see eachother properly
-                    // no i will not elaborate
-                    ScheduleHelper.SafeInvoke(() => {
-                        //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
-                        
-                    });
-                    foreach (var s in potentialNewPackage.SongDatas)
+                    if (TryLoadLocalPackage(subDir, folderPath, out potentialNewPackage, category, false, onBeatmapFail, getNames))
                     {
-                        songNames.Add(s.InternalName);
+                        onLoadPackage?.Invoke(potentialNewPackage);
+                        // forcing SafeInvoke so things can see eachother properly
+                        // no i will not elaborate
+                        ScheduleHelper.SafeInvoke(() => {
+                            //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
+
+                        });
+                        foreach (var s in potentialNewPackage.SongDatas)
+                        {
+                            songNames.Add(s.InternalName);
+                        }
+                        result.Add(potentialNewPackage);
+                        //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
                     }
-                    result.Add(potentialNewPackage);
-                    //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
                 }
+                catch (Exception e)
+                {
+                    CustomBeatmaps.Log.LogError(e);
+                }
+                
             }
 
             ScheduleHelper.SafeLog("step B");
@@ -328,7 +338,20 @@ namespace CustomBeatmaps.Util.CustomData
             pkgCore.GUID = Guid.NewGuid();
             pkgCore.Songs = new();
             //var offset = 0;
-            
+
+
+            List<string> diffIndextmp = ["Beginner", "Easy", "Normal", "Hard", "UNBEATABLE", "Star"];
+            foreach (var s in pkg.SongDatas)
+            {
+                pkgCore.Songs.Add(new());
+                foreach (var b in s.BeatmapDatas)
+                {
+                    var relative = Path.GetFullPath(b.BeatmapPath).Substring(pkg.BaseDirectory.Length + 1);
+                    InternalDifficulty diff = (InternalDifficulty)diffIndextmp.IndexOf(b.InternalDifficulty);
+                    pkgCore.Songs.Last().Add(diff, relative);
+                }
+            }
+            /*
             var diffIndex = new Dictionary<string, InternalDifficulty>
                 {
                     {"Beginner", InternalDifficulty.Beginner},
@@ -348,7 +371,7 @@ namespace CustomBeatmaps.Util.CustomData
                     pkgCore.Songs.Last().Add(diffIndex[b.InternalDifficulty], relative);
                 }
             }
-
+            */
             return pkgCore;
         }
 
@@ -361,6 +384,16 @@ namespace CustomBeatmaps.Util.CustomData
                 if (TryPopulatePackageCore(subDir, folderPath))
                     continue;
                     //onLoadPackage.Invoke();
+            }
+        }
+
+        public static async Task PopulatePackageCoresNew(string folderPath)
+        {
+            await Task.Delay(0);
+            folderPath = Path.GetFullPath(folderPath);
+            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+            {
+                TryPopulatePackageCore(subDir, folderPath);
             }
         }
 

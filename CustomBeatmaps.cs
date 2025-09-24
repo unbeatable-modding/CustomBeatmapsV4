@@ -39,7 +39,7 @@ namespace CustomBeatmaps
 
         //public static List<LocalPackageManager> LocalUserPackages { get; private set; }
         public static PackageManagerLocal LocalUserPackages { get; private set; }
-        public static PackageManagerServer LocalServerPackages { get; private set; }
+        public static PackageManagerLocal LocalServerPackages { get; private set; }
         public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
         public static PackageManagerLocal OSUSongManager { get; private set; }
         public static PlayedPackageManager PlayedPackageManager { get; private set; }
@@ -67,7 +67,7 @@ namespace CustomBeatmaps
 
             // Anything with Static access should be ALWAYS present.
             LocalUserPackages = new PackageManagerLocal(OnError);
-            LocalServerPackages = new PackageManagerServer(OnError);
+            LocalServerPackages = new PackageManagerLocal(OnError);
             SubmissionPackageManager = new SubmissionPackageManager(OnError);
             OSUSongManager = new PackageManagerLocal(OnError);
             ServerHighScoreManager = new ServerHighScoreManager();
@@ -78,6 +78,8 @@ namespace CustomBeatmaps
             // Load game memory from disk
             Memory = GameMemory.Load(MEMORY_LOCATION);
 
+            //LocalServerPackages.GenerateCorePackages();
+            
             ConfigHelper.LoadConfig("custombeatmaps_config.json", () => new ModConfig(), config =>
             {
                 ModConfig = config;

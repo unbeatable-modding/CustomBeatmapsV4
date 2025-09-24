@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Arcade.UI.SongSelect;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;

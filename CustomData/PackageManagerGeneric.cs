@@ -37,34 +37,25 @@ namespace CustomBeatmaps.CustomData
         protected FileSystemWatcher _watcher;
 
         public InitialLoadStateData InitialLoadState { get; protected set; } = new InitialLoadStateData();
-        
-        /*
-        public class InitialLoadStateData
-        {
-            public bool Loading;
-            public int Loaded;
-            public int Total;
-        }
-        */
 
         public PackageManagerGeneric(Action<BeatmapException> onLoadException)
         {
             _onLoadException = onLoadException;
         }
 
-        protected abstract void ReloadAll();
+        public abstract void ReloadAll();
         protected abstract void UpdatePackage(string folderPath = null);
         protected abstract void RemovePackage(string folderPath);
         
         /// <summary>
         /// List of all Packages this manager can see
         /// </summary>
-        public virtual List<CustomPackage> Packages { get; private set; }
+        public abstract List<CustomPackage> Packages { get; }
         /// <summary>
         /// List of all Songs inside all Packages this manager can see
         /// (Songs contain beatmaps)
         /// </summary>
-        public virtual List<SongData> Songs { get; private set; }
+        public abstract List<SongData> Songs { get; }
 
         public abstract bool PackageExists(string folder);
 

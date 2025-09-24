@@ -54,28 +54,21 @@ namespace CustomBeatmaps.Util.CustomData
 
             ScheduleHelper.SafeLog("step B (Loading Online)");
             
-            FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList).ContinueWith(r =>
+            ;
+            OnlinePackage[] oPkgList = FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList).Result;
+            foreach (var opkg in oPkgList)
             {
-                if (r.Exception != null)
+                if (TryLoadOnlineServerPackage(opkg, out var potentialNewPackage, category, onBeatmapFail, getNames))
                 {
-                    EventBus.ExceptionThrown?.Invoke(r.Exception);
-                    return;
-                }
-                OnlinePackage[] oPkgList = r.Result;
-                foreach (var opkg in oPkgList)
-                {
-                    if (TryLoadOnlineServerPackage(opkg, out var potentialNewPackage, category, onBeatmapFail, getNames))
+                    onLoadPackage?.Invoke(potentialNewPackage);
+                    foreach (var s in potentialNewPackage.SongDatas)
                     {
-                        onLoadPackage?.Invoke(potentialNewPackage);
-                        foreach (var s in potentialNewPackage.SongDatas)
-                        {
-                            songNames.Add(s.InternalName);
-                        }
-                        result.Add(potentialNewPackage);
+                        songNames.Add(s.InternalName);
                     }
+                    result.Add(potentialNewPackage);
                 }
-            });
-            
+            }
+
             ScheduleHelper.SafeLog($"LOADED {result.Count} PACKAGES");
             ScheduleHelper.SafeLog($"####### FULL PACKAGES LIST: #######\n{result.Join(delimiter: "\n")}");
 
@@ -95,7 +88,9 @@ namespace CustomBeatmaps.Util.CustomData
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
             package.BaseDirectory = rootSubFolder;
-            ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
+            package.DownloadStatus = BeatmapDownloadStatus.Downloaded;
+            ScheduleHelper.SafeLog($"{relative}\\");
+            //ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
             var songs = new Dictionary<string, SongData>();
 
@@ -166,11 +161,15 @@ namespace CustomBeatmaps.Util.CustomData
                 bmapInfo.TryAttachSong(ref songs, songNames);
             }
 
+            package.ServerURL = oPkg.ServerURL;
+            package.BaseDirectory = oPkg.ServerURL;
+            package.DownloadStatus = BeatmapDownloadStatus.NotDownloaded;
 
             // This folder has some beatmaps!
             if (songs.Any())
             {
                 package.SongDatas = songs.Values.ToList();
+                ScheduleHelper.SafeLog("FOUND ONLINE");
                 return true;
             }
 
@@ -208,5 +207,6 @@ namespace CustomBeatmaps.Util.CustomData
             string packageFolderId = GetPackageFolderIdFromServerPackageURL(serverPackageURL);
             return Path.Combine(localServerPackageDirectory, packageFolderId);
         }
+
     }
 }

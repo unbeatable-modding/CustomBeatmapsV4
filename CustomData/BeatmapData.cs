@@ -204,7 +204,7 @@ namespace CustomBeatmaps.CustomData
             {
                 var text = File.ReadAllText(BeatmapPath);
 
-                SongName = GetBeatmapProp(text, "Title", BeatmapPath);
+                SongName = GetBeatmapProp(text, "TitleUnicode", BeatmapPath);
                 InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
                 Artist = GetBeatmapProp(text, "Artist", BeatmapPath);
                 Creator = GetBeatmapProp(text, "Creator", BeatmapPath);
@@ -275,7 +275,7 @@ namespace CustomBeatmaps.CustomData
             {
                 var text = File.ReadAllText(BeatmapPath);
 
-                SongName = GetBeatmapProp(text, "Title", BeatmapPath);
+                SongName = GetBeatmapProp(text, "TitleUnicode", BeatmapPath);
                 //InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
                 Artist = GetBeatmapProp(text, "Artist", BeatmapPath);
                 Creator = GetBeatmapProp(text, "Creator", BeatmapPath);

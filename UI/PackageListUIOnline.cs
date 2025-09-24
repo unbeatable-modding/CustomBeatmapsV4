@@ -72,18 +72,11 @@ namespace CustomBeatmaps.UI
                         if (_selectedPackage.BeatmapDatas.Length != 0)
                         {
                             // LOCAL high score
-                            //var downloadStatus = CustomBeatmaps.Downloader.GetDownloadStatus((CustomPackageServer)_selectedPackage);
-                            //var downloadStatus = BeatmapDownloadStatus.Downloaded;
-                            //var selectedBeatmapKeyPath = _selectedServerBeatmapKVPairs[_selectedBeatmapIndex].Key;
-                            
+
                             if (DLStatus == BeatmapDownloadStatus.Downloaded)
                             {
                                 try
                                 {
-                                    //var (_, selectedBeatmap) =
-                                    //    localPackages.FindCustomBeatmapInfoFromServer(_selectedPackage.ServerURL,
-                                    //        selectedBeatmapKeyPath);
-                                    //string highScoreKey = _selectedBeatmap.SongPath;
                                     PersonalHighScoreUI.Render(_selectedBeatmap.SongPath);
                                 }
                                 catch (Exception e)
@@ -93,7 +86,7 @@ namespace CustomBeatmaps.UI
                                 }
                             }
                             // SERVER high scores
-                            //HighScoreListUI.Render(UserServerHelper.GetHighScoreBeatmapKeyFromServerBeatmap(((CustomPackageServer)_selectedPackage).ServerURL, _selectedBeatmap));
+                            //HighScoreListUI.Render(UserServerHelper.GetHighScoreBeatmapKeyFromServerBeatmap(ServerURL, _selectedBeatmap.DirectoryPath));
                         }
                     },
                     () =>
@@ -187,7 +180,8 @@ namespace CustomBeatmaps.UI
             if (GUILayout.Button("Reload", GUILayout.ExpandWidth(false)))
             {
                 //ReloadPackageList();
-                Reload(false);
+                //Reload(false);
+                Manager.ReloadAll();
             }
             GUILayout.Label(label, GUILayout.ExpandWidth(false));
 
@@ -313,7 +307,8 @@ namespace CustomBeatmaps.UI
 
             _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
 
-            CustomBeatmaps.Downloader.GetDownloadStatus((CustomPackageServer)_selectedPackage);
+            //DLStatus = CustomBeatmaps.Downloader.GetDownloadStatus((CustomPackageServer)_selectedPackage);
+            DLStatus = _selectedPackage.DownloadStatus;
         }
 
         /*

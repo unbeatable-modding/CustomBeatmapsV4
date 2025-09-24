@@ -19,7 +19,7 @@ namespace CustomBeatmaps.CustomData
         public PackageManagerLocal(Action<BeatmapException> onLoadException) : base(onLoadException)
         {
         }
-        protected override void ReloadAll()
+        public override void ReloadAll()
         {
             if (_folder == null)
                 return;
@@ -56,6 +56,22 @@ namespace CustomBeatmaps.CustomData
         }
 
         public void GenerateCorePackages()
+        {
+            if (_folder == null)
+                return;
+            ScheduleHelper.SafeLog($"LOADING CORES");
+            lock (_packages)
+            {
+                Task.Run(async () =>
+                {
+                    await PackageHelper.PopulatePackageCoresNew(_folder);
+                }).Wait();
+                
+
+            }
+        }
+
+        public void zzzGenerateCorePackages()
         {
             if (_folder == null)
                 return;
@@ -163,6 +179,8 @@ namespace CustomBeatmaps.CustomData
                 _watcher.Dispose();
             }
 
+            GenerateCorePackages();
+
             // Watch for changes
             _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
             // Reload now
@@ -174,6 +192,8 @@ namespace CustomBeatmaps.CustomData
             string changedFilePath = Path.GetFullPath(evt.FullPath);
             // The root folder within the packages folder we consider to be a "package"
             string basePackageFolder = Path.GetFullPath(Path.Combine(_folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(_folder.Length + 1))));
+
+            ScheduleHelper.SafeLog($"Base Package Folder IN LOCAL: {basePackageFolder}");
 
             // Special case: Root package folder is deleted, we delete a package.
             if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)

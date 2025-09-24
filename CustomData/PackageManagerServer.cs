@@ -23,7 +23,7 @@ namespace CustomBeatmaps.CustomData
         {
         }
 
-        protected override void ReloadAll()
+        public override void ReloadAll()
         {
             if (_folder == null)
                 return;
@@ -153,7 +153,8 @@ namespace CustomBeatmaps.CustomData
         {
             string changedFilePath = Path.GetFullPath(evt.FullPath);
             // The root folder within the packages folder we consider to be a "package"
-            string basePackageFolder = Path.GetFullPath(Path.Combine(_folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(_folder.Length + 1))));
+            //string basePackageFolder = Path.GetFullPath(Path.Combine(_folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(_folder.Length + 1))));
+            string basePackageFolder = Path.GetDirectoryName(Path.Combine(_folder, changedFilePath.Substring(_folder.Length + 1)));
 
             // Special case: Root package folder is deleted, we delete a package.
             if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)
@@ -163,7 +164,7 @@ namespace CustomBeatmaps.CustomData
                 return;
             }
 
-            ScheduleHelper.SafeLog($"Local Package Change: {evt.ChangeType}: {basePackageFolder} ");
+            ScheduleHelper.SafeLog($"Local Package Change: {evt.ChangeType}: {basePackageFolder} {_folder}");
 
             lock (_loadQueue)
             {
@@ -239,6 +240,22 @@ namespace CustomBeatmaps.CustomData
                     return _packages.SelectMany(p => p.SongDatas).ToList();
                 }
             }
+        }
+
+        public void GenerateCorePackages()
+        {
+            if (_folder == null)
+                return;
+            ScheduleHelper.SafeLog($"LOADING CORES");
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                lock (_packages)
+                {
+                    PackageHelper.PopulatePackageCoresNew(_folder);
+
+                }
+            }).Start();
         }
     }
 }

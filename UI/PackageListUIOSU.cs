@@ -36,6 +36,7 @@ namespace CustomBeatmaps.UI
                         if (GUILayout.Button($"Init Packages"))
                         {
                             CustomBeatmaps.OSUSongManager.GenerateCorePackages();
+                            //CustomBeatmaps.LocalServerPackages.GenerateCorePackages();
                         }
                         _overrideCountdown = GUILayout.Toggle(_overrideCountdown, "Do Countdown?");
                         if (GUILayout.Button($"EXPORT"))
