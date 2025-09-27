@@ -20,7 +20,7 @@ namespace CustomBeatmaps.CustomPackages
         public TagData Tags;
         public int Level => Tags.Level;
         public string FlavorText => Tags.FlavorText;
-        public Dictionary<string, bool> Attributes
+        public HashSet<string> Attributes
         {
             get
             {

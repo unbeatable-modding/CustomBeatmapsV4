@@ -41,7 +41,7 @@ namespace CustomBeatmaps.CustomData
                     var packages = PackageServerHelper.LoadServerPackages(_folder, _category, loadedPackage =>
                     {
                         InitialLoadState.Loaded++;
-                    }, _onLoadException);
+                    }, _onLoadException).ToList();
                     ScheduleHelper.SafeLog($"(step 2)");
                     _packages.AddRange(packages);
                     lock (_downloadedFolders)
@@ -49,6 +49,8 @@ namespace CustomBeatmaps.CustomData
                         _downloadedFolders.Clear();
                         foreach (var package in _packages)
                         {
+                            if (package.DownloadStatus != BeatmapDownloadStatus.Downloaded)
+                                continue;
                             _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                         }
                     }
@@ -67,8 +69,10 @@ namespace CustomBeatmaps.CustomData
                     _packages.RemoveAt(toRemove);
             }
 
+            //var dict = _packages.ToDictionary(p => p.GUID);
+
             if (PackageServerHelper.TryLoadLocalServerPackage(folderPath, _folder, out CustomPackageServer package, _category, true,
-                    _onLoadException, () => { return PackageHelper.GetAllCustomSongs.Select(s => s.InternalName).ToHashSet(); }))
+                    _onLoadException, () => _packages.ToDictionary(p => p.GUID)))
             {
                 ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
                 ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
@@ -77,7 +81,8 @@ namespace CustomBeatmaps.CustomData
                     _packages.Add(package);
                     lock (_downloadedFolders)
                     {
-                        _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
+                        if (package.DownloadStatus == BeatmapDownloadStatus.Downloaded)
+                            _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                     }
                 }
                 PackageUpdated?.Invoke(package);
@@ -121,7 +126,7 @@ namespace CustomBeatmaps.CustomData
                 return _downloadedFolders.Contains(targetFullPath);
             }
         }
-        public override void SetFolder(string folder, int category)
+        public override void SetFolder(string folder, CCategory category)
         {
             if (folder == null)
                 return;

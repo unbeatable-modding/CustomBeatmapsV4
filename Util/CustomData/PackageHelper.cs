@@ -26,8 +26,8 @@ namespace CustomBeatmaps.Util.CustomData
             new Category("server", "online", 10)
             };
 
-        public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, int category , bool recursive = false,
-            Action<BeatmapException> onBeatmapFail = null, Func<HashSet<string>> songNames = null)
+        public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, CCategory category , bool recursive = false,
+            Action<BeatmapException> onBeatmapFail = null, Func<HashSet<Guid>> GUIDs = null)
         {
             //ScheduleHelper.SafeLog($"{tmpPkg.Count}");
             package = new CustomPackageLocal();
@@ -39,6 +39,7 @@ namespace CustomBeatmaps.Util.CustomData
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
             package.BaseDirectory = rootSubFolder;
+            package.Time = Directory.GetLastWriteTime(relative);
             ScheduleHelper.SafeLog($"{relative}\\");
 
             var songs = new Dictionary<string, SongData>();
@@ -55,16 +56,32 @@ namespace CustomBeatmaps.Util.CustomData
                     try
                     {
                         var pkgCore = SerializeHelper.LoadJSON<PackageCore>(packageCoreFile);
-                        package.GUID = pkgCore.GUID;
-                        var offset = 0;
-                        foreach (var songsSubFile in pkgCore.Songs)
+                        
+                        // Duplicate Package returns false
+                        if (GUIDs.Invoke().Contains(pkgCore.GUID))
                         {
-                            foreach (var song in songsSubFile)
+                            package = new CustomPackageLocal();
+                            onBeatmapFail.Invoke(new BeatmapException("Duplicate Package Guid", packageCoreFile));
+                        }
+
+                        package.GUID = pkgCore.GUID;
+
+                        for (var i = 0; i < pkgCore.Songs.Count; i++)
+                        {
+                            foreach (var song in pkgCore.Songs[i])
                             {
-                                var bmapInfo = new BeatmapData($"{pkgCore.GUID}-{offset}", song.Key, $"{packageFolder}\\{song.Value}", category);
-                                bmapInfo.TryAttachSong(ref songs, songNames);
+                                var bmapInfo = new BeatmapData($"{pkgCore.GUID}-{i}", song.Key, $"{packageFolder}\\{song.Value}", category);
+
+                                if (songs.TryGetValue(bmapInfo.InternalName, out _))
+                                {
+                                    if (!songs[bmapInfo.InternalName].TryAddToThisSong(bmapInfo))
+                                        ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning($"FAILED TO ADD BEATMAP \"{bmapInfo.BeatmapPath}\" TO IT'S SONG"));
+                                }
+                                else
+                                {
+                                    songs.Add(bmapInfo.InternalName, new SongData(bmapInfo));
+                                }
                             }
-                            offset++;
                         }
 
                         // Set using core data if it exists
@@ -131,13 +148,14 @@ namespace CustomBeatmaps.Util.CustomData
             return false;
         }
 
-        public static CustomPackage[] LoadLocalPackages(string folderPath, int category, Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
+        public static CustomPackage[] LoadLocalPackages(string folderPath, CCategory category, 
+            Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
             folderPath = Path.GetFullPath(folderPath);
 
             var result = new List<CustomPackage>();
-            var songNames = new HashSet<string>();
-            Func<HashSet<string>> getNames = () => { return songNames; };
+            var songNames = new HashSet<Guid>();
+            Func<HashSet<Guid>> getNames = () => { return songNames; };
 
             ScheduleHelper.SafeLog("step A");
 
@@ -156,10 +174,7 @@ namespace CustomBeatmaps.Util.CustomData
                             //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
 
                         });
-                        foreach (var s in potentialNewPackage.SongDatas)
-                        {
-                            songNames.Add(s.InternalName);
-                        }
+                        songNames.Add(potentialNewPackage.GUID);
                         result.Add(potentialNewPackage);
                         //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
                     }
@@ -246,6 +261,20 @@ namespace CustomBeatmaps.Util.CustomData
             }
         }
 
+        public static HashSet<Guid> GetAllGUIDs
+        {
+            get
+            {
+                var songl = new List<Guid>();
+                //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
+                songl.AddRange(CustomBeatmaps.LocalUserPackages.Packages.Select(s => s.GUID));
+                //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
+                songl.AddRange(CustomBeatmaps.LocalServerPackages.Packages.Select(s => s.GUID));
+                songl.AddRange(CustomBeatmaps.OSUSongManager.Packages.Select(s => s.GUID));
+                return songl.ToHashSet();
+            }
+        }
+
         /// <summary>
         /// Return a list of all Custom Songs
         /// </summary>
@@ -255,10 +284,10 @@ namespace CustomBeatmaps.Util.CustomData
             {
                 var songl = new List<CustomSong>();
                 //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
-                songl.AddRange(CustomBeatmaps.LocalUserPackages.Songs.Select(s => s.Song));
+                songl.AddRange(CustomBeatmaps.LocalUserPackages.Songs.Where(s => s.Local).Select(s => s.Song));
                 //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
-                songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs.Select(s => s.Song));
-                songl.AddRange(CustomBeatmaps.OSUSongManager.Songs.Select(s => s.Song));
+                songl.AddRange(CustomBeatmaps.LocalServerPackages.Songs.Where(s => s.Local).Select(s => s.Song));
+                songl.AddRange(CustomBeatmaps.OSUSongManager.Songs.Where(s => s.Local).Select(s => s.Song));
                 return songl;
             }
         }
@@ -288,7 +317,7 @@ namespace CustomBeatmaps.Util.CustomData
             
             foreach (var file in subFiles)
             {
-                var bmap = new BeatmapData(file, 0);
+                var bmap = new BeatmapData(file, new CCategory(0));
                 var diffIndex = new Dictionary<string, InternalDifficulty>
                 {
                     {"Beginner", InternalDifficulty.Beginner},

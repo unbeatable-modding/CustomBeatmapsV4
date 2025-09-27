@@ -95,7 +95,8 @@ namespace CustomBeatmaps.Util
 
         public float SongLength;
 
-        public Dictionary<string, bool> Attributes;
+        //public Dictionary<string, bool> Attributes;
+        public HashSet<string> Attributes;
     }
 
     [Obsolete]

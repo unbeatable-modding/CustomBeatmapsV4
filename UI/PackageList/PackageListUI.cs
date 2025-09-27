@@ -83,14 +83,14 @@ namespace CustomBeatmaps.UI.PackageList
             {
                 if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S) || _rewired.GetNegativeButtonRepeating("Vertical"))
                 {
-                    onPackageHeaderSelect((selectedHeaderIndex + 1) % packageHeaders.Count);
+                    onPackageHeaderSelect?.Invoke((selectedHeaderIndex + 1) % packageHeaders.Count);
                 }
                 else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W) || _rewired.GetButtonRepeating("Vertical"))
                 {
                     int ind = selectedHeaderIndex - 1;
                     if (ind < 0)
                         ind = packageHeaders.Count - 1;
-                    onPackageHeaderSelect(ind);
+                    onPackageHeaderSelect?.Invoke(ind);
                 }
             }
         }

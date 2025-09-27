@@ -27,6 +27,8 @@ namespace CustomBeatmaps.CustomPackages
 
         public bool HasPlayed(string path)
         {
+            if (string.IsNullOrEmpty(path))
+                return false;
             return _played.Contains(Path.GetFullPath(path));
         }
 

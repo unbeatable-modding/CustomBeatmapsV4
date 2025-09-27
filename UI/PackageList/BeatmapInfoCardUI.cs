@@ -43,15 +43,17 @@ namespace CustomBeatmaps.UI.PackageList
                     else
                         GUILayout.Label($"{beatmapHeader.Difficulty}");
                 GUILayout.Label($"Mapper: {beatmapHeader.Creator}");
-                if (beatmapHeader.Attributes.Where(a => a.Value).Any())
+                if (beatmapHeader.Attributes.Any())
             {
+                /*
                 var attrs = new List<string>();
                 foreach (var i in beatmapHeader.Attributes)
                 {
                     if (i.Value)
                         attrs.Add(i.Key);
                 }
-                GUILayout.Label($"Attributes: [{string.Join(",", attrs )}]");
+                */
+                GUILayout.Label($"Attributes: [{string.Join(",", beatmapHeader.Attributes)}]");
             }
                     
 

@@ -69,7 +69,7 @@ namespace CustomBeatmaps.CustomData
         /// </summary>
         public string FlavorText => Tags.FlavorText;
 
-        public Dictionary<string, bool> Attributes
+        public HashSet<string> Attributes
         {
             get
             {
@@ -89,10 +89,9 @@ namespace CustomBeatmaps.CustomData
             }
         }
 
-        public int Category { get; private set; }
+        public CCategory Category { get; private set; }
+
         private int Offset = 0;
-
-
 
         // Stuff that currently only works locally but should work online later
 
@@ -101,8 +100,6 @@ namespace CustomBeatmaps.CustomData
         /// </summary>
         public string CoverPath { get; private set; }
 
-
-
         // Below are things that should only be getting set on downloaded Beatmaps
         // (even if they are server beatmaps)
 
@@ -110,10 +107,12 @@ namespace CustomBeatmaps.CustomData
         /// IS the beatmap local???
         /// </summary>
         public bool IsLocal { get; private set; }
+        
         /// <summary>
         /// File location of this Beatmap
         /// </summary>
         public string BeatmapPath { get; private set; }
+        
         /// <summary>
         /// The Directory this Beatmap is in
         /// </summary>
@@ -132,23 +131,23 @@ namespace CustomBeatmaps.CustomData
         public Category BeatmapCategory { get; private set; }
 
         // The groundwork for local beatmaps
-        public BeatmapData(string bmapPath, int category)
+        public BeatmapData(string bmapPath, CCategory category)
         {
             BeatmapPath = bmapPath;
+            //Category = category;
             Category = category;
-            BeatmapCategory = defaultIndex.Categories[category];
+            //BeatmapCategory = defaultIndex.Categories[category];
             DirectoryPath = Path.GetDirectoryName(bmapPath);
 
             IsLocal = CreateLocalBeatmap();
         }
 
-        public BeatmapData(string internalName, InternalDifficulty internalDifficulty, string bmapPath, int category)
+        public BeatmapData(string internalName, InternalDifficulty internalDifficulty, string bmapPath, CCategory category)
         {
             BeatmapPath = bmapPath;
             Category = category;
-            BeatmapCategory = defaultIndex.Categories[category];
             DirectoryPath = Path.GetDirectoryName(bmapPath);
-            InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{internalName}";
+            InternalName = $"CUSTOM__{Category.InternalCategory}__{internalName}";
 
             string[] difficultyIndex = ["Beginner", "Easy", "Normal", "Hard", "UNBEATABLE", "Star"];
             InternalDifficulty = difficultyIndex[(int)internalDifficulty];
@@ -156,13 +155,12 @@ namespace CustomBeatmaps.CustomData
             IsLocal = CreateLocalPackagedBeatmap();
         }
 
-        public BeatmapData(OnlineBeatmap oBmap, int category)
+        public BeatmapData(OnlineBeatmap oBmap, CCategory category)
         {
             Category = category;
-            BeatmapCategory = defaultIndex.Categories[category];
 
             SongName = oBmap.SongName;
-            InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
+            InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}-{Offset}";
             Artist = oBmap.Artist;
             Creator = oBmap.Creator;
 
@@ -198,6 +196,35 @@ namespace CustomBeatmaps.CustomData
             IsLocal = false;
         }
 
+        public BeatmapData(NewOnlineBeatmap oBmap, Guid guid, int offset, CCategory category)
+        {
+            Category = category;
+            Offset = offset;
+
+
+            SongName = oBmap.SongName;
+            InternalName = $"CUSTOM__{Category.InternalCategory}__{guid}-{Offset}";
+            Artist = oBmap.Artist;
+            Creator = oBmap.Creator;
+            Difficulty = oBmap.Difficulty;
+            InternalDifficulty = oBmap.InternalDifficulty;
+
+            var tagTest = oBmap.Tags;
+            if (tagTest.StartsWith("{") && tagTest.EndsWith("}"))
+            {
+                try
+                {
+                    Tags = JsonConvert.DeserializeObject<TagData>(tagTest);
+                }
+                catch (Exception)
+                {
+                    ScheduleHelper.SafeLog("INVALID TAG JSON");
+                }
+            }
+
+            IsLocal = false;
+        }
+
         private bool CreateLocalBeatmap()
         {
             try
@@ -205,7 +232,7 @@ namespace CustomBeatmaps.CustomData
                 var text = File.ReadAllText(BeatmapPath);
 
                 SongName = GetBeatmapProp(text, "TitleUnicode", BeatmapPath);
-                InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}";
+                InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}";
                 Artist = GetBeatmapProp(text, "Artist", BeatmapPath);
                 Creator = GetBeatmapProp(text, "Creator", BeatmapPath);
 
@@ -254,7 +281,7 @@ namespace CustomBeatmaps.CustomData
                     }
                     catch (Exception)
                     {
-                        ScheduleHelper.SafeLog("INVALID JSON");
+                        ScheduleHelper.SafeLog("INVALID TAG JSON");
                     }
                 }
 
@@ -299,7 +326,7 @@ namespace CustomBeatmaps.CustomData
                     }
                     catch (Exception)
                     {
-                        ScheduleHelper.SafeLog("INVALID JSON");
+                        ScheduleHelper.SafeLog("INVALID TAG JSON");
                     }
                 }
 
@@ -327,7 +354,7 @@ namespace CustomBeatmaps.CustomData
                 // somewhat fixes songs without characters, still breaks the vanilla menu
                 // TODO: Use a uuid for god's sake
                 if (SongName.Count() < 1)
-                    InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}{Offset}";
+                    InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}-{Offset}";
 
                 if (songNames.Invoke().Contains(InternalName))
                     throw new FakeException();
@@ -343,7 +370,46 @@ namespace CustomBeatmaps.CustomData
                 {
                     try
                     {
-                        InternalName = $"CUSTOM__{defaultIndex.Categories[Category]}__{SongName}{Offset}";
+                        InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}-{Offset}";
+                        Offset++;
+                        if (songNames.Invoke().Contains(InternalName))
+                            continue;
+                        songDatas.Add(InternalName, new SongData(this));
+                        return;
+                    }
+                    catch (Exception)
+                    {
+                        if (songDatas[InternalName].TryAddToThisSong(this))
+                            return;
+                    }
+                }
+            }
+        }
+
+        public void TryAttachSongNew(ref Dictionary<string, SongData> songDatas, Func<HashSet<string>> songNames = null)
+        {
+            try
+            {
+                // somewhat fixes songs without characters, still breaks the vanilla menu
+                // TODO: Use a uuid for god's sake
+                if (SongName.Count() < 1)
+                    InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}-{Offset}";
+
+                if (songNames != null && songNames.Invoke().Contains(InternalName))
+                    throw new FakeException();
+
+                songDatas.Add(InternalName, new SongData(this));
+                return;
+            }
+            catch (Exception e)
+            {
+                if (e is not FakeException && songDatas[InternalName].TryAddToThisSong(this))
+                    return;
+                while (true)
+                {
+                    try
+                    {
+                        InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}-{Offset}";
                         Offset++;
                         if (songNames.Invoke().Contains(InternalName))
                             continue;
@@ -370,6 +436,9 @@ namespace CustomBeatmaps.CustomData
         }
     }
 
+    /// <summary>
+    /// Basicially a vanilla BeatmapInfo, but using a different class so it's easier to seperate
+    /// </summary>
     public class CustomBeatmap : BeatmapInfo
     {
         public BeatmapData Data { get; private set; }

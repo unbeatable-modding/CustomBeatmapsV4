@@ -45,7 +45,7 @@ namespace CustomBeatmaps.CustomPackages
 
             // Load the local package after downloading
             if (zzzCustomPackageHelper.TryLoadLocalPackage(submissionPackageFolder, ".",
-                    out _localPackage, 8, true, _onLoadException))
+                    out _localPackage, new CustomData.CCategory(8), true, _onLoadException))
             {
                 _downloadedPackageURL = url;
             }

@@ -130,7 +130,7 @@ namespace CustomBeatmaps.UI
                             {
                                 GUILayout.Label("<size=24><b>USING ASSISTS</b></size> (no high score)");
                             }
-                            else if (!CustomBeatmaps.UserSession.LoggedIn != CustomBeatmaps.UserSession.LoginFailed)
+                            else if (!CustomBeatmaps.UserSession.LoggedIn != (CustomBeatmaps.UserSession.LocalSessionExists() != CustomBeatmaps.UserSession.LoginFailed))
                             {
                                 GUILayout.Label("<b>Register above to post your own high scores!<b>");
                             }
@@ -141,7 +141,6 @@ namespace CustomBeatmaps.UI
                                 case BeatmapDownloadStatus.Downloaded:
                                     try
                                     {
-                                        var localPackages = CustomBeatmaps.LocalServerPackages;
                                         if (buttonPressed)
                                         {
                                             CustomBeatmaps.PlayedPackageManager.RegisterPlay(_selectedPackage.BaseDirectory);
@@ -192,7 +191,7 @@ namespace CustomBeatmaps.UI
 
         protected override void RunSong()
         {
-            ArcadeHelper.PlaySong(_selectedBeatmap.BeatmapPointer);
+            ArcadeHelper.PlaySong(_selectedBeatmap);
         }
 
         protected override void SortPackages()
@@ -298,7 +297,7 @@ namespace CustomBeatmaps.UI
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex];
+            _selectedPackage = _pkgHeaders[SelectedPackageIndex];
 
             _selectedBeatmaps = _selectedPackage.BeatmapDatas.ToList();
 
@@ -307,8 +306,10 @@ namespace CustomBeatmaps.UI
 
             _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
 
-            //DLStatus = CustomBeatmaps.Downloader.GetDownloadStatus((CustomPackageServer)_selectedPackage);
             DLStatus = _selectedPackage.DownloadStatus;
+            //DLStatus = CustomBeatmaps.Downloader.GetDownloadStatus((CustomPackageServer)_selectedPackage);
+            //DLStatus = _selectedPackage.DownloadStatus = CustomBeatmaps.Downloader.GetDownloadStatus((CustomPackageServer)_selectedPackage);
+            //PreviewAudio();
         }
 
         /*

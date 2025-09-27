@@ -5,6 +5,7 @@
         Downloaded,
         CurrentlyDownloading,
         Queued,
-        NotDownloaded
+        NotDownloaded,
+        Invalid
     }
 }

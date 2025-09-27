@@ -31,67 +31,6 @@ namespace CustomBeatmaps.UI
         Star
     }
 
-    public struct PackageHeader
-    {
-        public string Name;
-        public int SongCount;
-        public int MapCount;
-        public string Creator;
-        public bool New { get; set; }
-        public BeatmapDownloadStatus DownloadStatus; // Kinda jank since this should only be for servers, but whatever.
-        public int Level;
-        public object Package;
-
-        public PackageHeader(string name, int songCount, int mapCount, string creator, bool @new, BeatmapDownloadStatus downloadStatus, object package = null)
-        {
-            Name = name;
-            SongCount = songCount;
-            MapCount = mapCount;
-            Creator = creator;
-            New = @new;
-            DownloadStatus = downloadStatus;
-            Package = package;
-        }
-
-        public PackageHeader(CustomPackage package)
-        {
-            ConvertLocal(package);
-        }
-
-        public PackageHeader(CustomPackage package, bool @new)
-        {
-            ConvertLocal(package);
-            New = @new;
-        }
-
-        private void ConvertLocal(CustomPackage package)
-        {
-            var songs = new HashSet<string>();
-            var names = new HashSet<string>();
-            var creators = new HashSet<string>();
-            var beatmaps = 0;
-            foreach (BeatmapData bmap in package.SongDatas.SelectMany(s => s.BeatmapDatas))
-            {
-                songs.Add(bmap.InternalName);
-                names.Add(bmap.SongName);
-                creators.Add(bmap.Creator);
-                beatmaps++;
-            }
-
-            var creator = creators.Join(x => x, " | ");
-            var name = names.Join(x => x, ", ");
-            var isNew = !CustomBeatmaps.PlayedPackageManager.HasPlayed(package.BaseDirectory);
-
-            Name = name;
-            SongCount = songs.Count;
-            MapCount = beatmaps;
-            Creator = creator;
-            New = isNew;
-            DownloadStatus = BeatmapDownloadStatus.Downloaded;
-            Package = package;
-        }
-    }
-
     public struct NewPackageHeader
     {
         public string Name;
@@ -154,7 +93,7 @@ namespace CustomBeatmaps.UI
         public string FlavorText;
         public string[] Attributes;
 
-        public BeatmapHeader(string name, string artist, string creator, string difficulty, string iconURL, int level, string flavorText, Dictionary<string,bool> attributes)
+        public BeatmapHeader(string name, string artist, string creator, string difficulty, string iconURL, int level, string flavorText, HashSet<string> attributes)
         {
             Name = name;
             Artist = artist;
@@ -163,6 +102,8 @@ namespace CustomBeatmaps.UI
             IconURL = iconURL;
             Level = level;
             FlavorText = flavorText;
+            Attributes = attributes.ToArray();
+            /*
             if (attributes != null)
             {
                 var trueValues = new List<string>();
@@ -173,6 +114,7 @@ namespace CustomBeatmaps.UI
                 }
                 Attributes = trueValues.ToArray();
             }
+            */
             
         }
     }

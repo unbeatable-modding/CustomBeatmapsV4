@@ -62,9 +62,12 @@ namespace CustomBeatmaps.UI
                 Int32.TryParse(Level, out var lvlInt);
                 bmap.Tags.Level = lvlInt;
                 bmap.Tags.FlavorText = FlavorText;
-                bmap.Tags.Attributes["BT"] = BlindTurn;
-                bmap.Tags.Attributes["MW"] = MotionWarning;
-                bmap.Tags.Attributes["4K"] = FourKey;
+                if (BlindTurn)
+                    bmap.Tags.Attributes.Add("BT");
+                if (MotionWarning)
+                    bmap.Tags.Attributes.Add("MW");
+                if (FourKey)
+                    bmap.Tags.Attributes.Add("4K");
                 BeatmapHelper.SetBeatmapJson(bmap.BeatmapPointer.text, bmap.Tags, bmap.BeatmapPath);
             }
         }
@@ -73,9 +76,9 @@ namespace CustomBeatmaps.UI
         {
             Level = bmap.Level.ToString();
             FlavorText = bmap.FlavorText;
-            bmap.Attributes.TryGetValue("BT", out BlindTurn);
-            bmap.Attributes.TryGetValue("MW", out MotionWarning);
-            bmap.Attributes.TryGetValue("4K", out FourKey);
+            BlindTurn = bmap.Attributes.Contains("BT");
+            MotionWarning = bmap.Attributes.Contains("MW");
+            FourKey = bmap.Attributes.Contains("4K");
         }
     }
 }

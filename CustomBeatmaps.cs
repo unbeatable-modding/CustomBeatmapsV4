@@ -39,7 +39,7 @@ namespace CustomBeatmaps
 
         //public static List<LocalPackageManager> LocalUserPackages { get; private set; }
         public static PackageManagerLocal LocalUserPackages { get; private set; }
-        public static PackageManagerLocal LocalServerPackages { get; private set; }
+        public static PackageManagerServer LocalServerPackages { get; private set; }
         public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
         public static PackageManagerLocal OSUSongManager { get; private set; }
         public static PlayedPackageManager PlayedPackageManager { get; private set; }
@@ -67,7 +67,7 @@ namespace CustomBeatmaps
 
             // Anything with Static access should be ALWAYS present.
             LocalUserPackages = new PackageManagerLocal(OnError);
-            LocalServerPackages = new PackageManagerLocal(OnError);
+            LocalServerPackages = new PackageManagerServer(OnError);
             SubmissionPackageManager = new SubmissionPackageManager(OnError);
             OSUSongManager = new PackageManagerLocal(OnError);
             ServerHighScoreManager = new ServerHighScoreManager();
@@ -91,9 +91,9 @@ namespace CustomBeatmaps
                     LocalUserPackages.Last().SetFolder(config.UserPackagesDir[i], 7);
                 }
                 */
-                LocalUserPackages.SetFolder(config.UserPackagesDir[0], 7);
-                LocalServerPackages.SetFolder(config.ServerPackagesDir, 10);
-                OSUSongManager.SetFolder(config.OsuSongsOverrideDirectory, 9);
+                LocalUserPackages.SetFolder(config.UserPackagesDir[0], new CCategory(7));
+                LocalServerPackages.SetFolder(config.ServerPackagesDir, new CCategory(10));
+                OSUSongManager.SetFolder(config.OsuSongsOverrideDirectory, new CCategory(9));
                 PlayedPackageManager = new PlayedPackageManager(config.PlayedBeatmapList);
             });
             ConfigHelper.LoadConfig("CustomBeatmapsV4-Data/custombeatmaps_backend.json", () => new BackendConfig(), config => BackendConfig = config);
@@ -180,6 +180,12 @@ namespace CustomBeatmaps
                 };
             }
 
+            
+            while (LocalUserPackages.InitialLoadState.Loading || LocalServerPackages.InitialLoadState.Loading ||
+                OSUSongManager.InitialLoadState.Loading) {
+                //CustomBeatmaps.Log.LogMessage("waiting...");
+                // Make sure everything is loaded
+            }
             // Add images to songs at later timing because the game will crash if loaded any earlier
             PackageHelper.GetAllCustomSongInfos.ForEach(s => s.GetTexture());
             ArcadeHelper.LoadCustomSongs();

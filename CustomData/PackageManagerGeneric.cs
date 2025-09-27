@@ -32,7 +32,7 @@ namespace CustomBeatmaps.CustomData
         protected readonly Queue<string> _loadQueue = new Queue<string>();
 
         protected string _folder;
-        protected int _category;
+        protected CCategory _category;
 
         protected FileSystemWatcher _watcher;
 
@@ -59,7 +59,7 @@ namespace CustomBeatmaps.CustomData
 
         public abstract bool PackageExists(string folder);
 
-        public abstract void SetFolder(string folder, int category);
+        public abstract void SetFolder(string folder, CCategory category);
 
         protected abstract void OnFileChange(FileSystemEventArgs evt);
 

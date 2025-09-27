@@ -135,25 +135,17 @@ namespace CustomBeatmaps.Util
         public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;
         public static ArcadeSongList SongList => ArcadeSongList.Instance;
         public static ArcadeBGMManager BGM => ArcadeBGMManager.Instance;
-        private static BeatmapIndex BeatmapIndex => BeatmapIndex.defaultIndex;
 
-        public static void ForceSelectSong(CustomBeatmap customBeatmapInfo)
+        public static void PlaySong(BeatmapData bmap)
         {
-            SongDatabase.SetCategory(customBeatmapInfo.Data.BeatmapCategory);
-            SongDatabase.SetDifficulty(customBeatmapInfo.difficulty);
-            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == customBeatmapInfo.Data.SongPath));
+            PlaySong(bmap, GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom));
         }
-
-        public static void PlaySong(CustomBeatmap customBeatmapInfo)
+        public static void PlaySong(BeatmapData bmap, string scene)
         {
-            PlaySong(customBeatmapInfo, GetSceneNameByIndex(CustomBeatmaps.Memory.SelectedRoom));
-        }
-        public static void PlaySong(CustomBeatmap customBeatmapInfo, string scene)
-        {
-            ForceSelectSong(customBeatmapInfo);
+            ForceSelectSong(bmap);
             var onSongPlaySound = Traverse.Create(SongDatabase).Field("onSongPlaySound").GetValue<EventReference>();
 
-            if (customBeatmapInfo != null)
+            if (bmap.BeatmapPointer != null)
             {
                 if (!onSongPlaySound.IsNull)
                 {
@@ -162,21 +154,20 @@ namespace CustomBeatmaps.Util
 
                 JeffBezosController.instance.DisableUIInputs();
                 JeffBezosController.returnFromArcade = true;
-                LevelManager.LoadArcadeLevel(customBeatmapInfo.Data.InternalName, customBeatmapInfo.difficulty);
+                LevelManager.LoadArcadeLevel(bmap.InternalName, bmap.InternalDifficulty);
             }
         }
-
-        public static void PlaySongTest(string path)
+        public static void ForceSelectSong(BeatmapData bmap)
         {
-            
+            SongDatabase.SetCategory(bmap.Category.InternalCategory);
+            SongDatabase.SetDifficulty(bmap.InternalDifficulty);
+            SongList.SetSelectedSongIndex(SongDatabase.SongList.FindIndex(b => b.Path == bmap.SongPath));
         }
-
-        public static void PlaySongEdit(CustomBeatmap beatmap, bool enableCountdown = false)
+        public static void PlaySongEdit(BeatmapData bmap, bool enableCountdown = false)
         {
             //OsuEditorPatch.SetEditMode(true, enableCountdown, beatmap.Info.OsuPath, beatmap.Info.SongPath);
-            PlaySong(beatmap, DefaultBeatmapScene);
+            PlaySong(bmap, DefaultBeatmapScene);
         }
-
 
 
         // CUSTOMBEATMAPS V3 STUFF TO CHANGE LATER BELOW
@@ -185,22 +176,6 @@ namespace CustomBeatmaps.Util
         public static HighScoreList LoadArcadeHighscores()
         {
             return HighScoreScreen.LoadHighScores(RhythmGameType.ArcadeMode);
-        }
-
-        /// <returns> whether <code>potentialSongPath</code> is in the format "[UNBEATABLE Song]/[DIFFICULTY] </returns>
-        public static bool IsValidUnbeatableSongPath(string potentialSongPath)
-        {
-            var whiteLabelSongs = BeatmapIndex.SongNames;
-
-            int lastDashIndex = potentialSongPath.LastIndexOf("/", StringComparison.Ordinal);
-            if (lastDashIndex != -1)
-            {
-                // Also check to make sure it's a valid UNBEATABLE song
-                string songName = potentialSongPath.Substring(0, lastDashIndex);
-                return whiteLabelSongs.Contains(songName);
-            }
-
-            return false;
         }
 
         public static float GetSongSpeed(int songSpeedIndex)

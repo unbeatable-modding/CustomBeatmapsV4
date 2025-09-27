@@ -55,7 +55,7 @@ namespace CustomBeatmaps.UI
                     }
             ];
         }
-
+        /*
         protected override void RegenerateHeaders()
         {
             var headers = new List<CustomPackage>(_localPackages.Count);
@@ -77,12 +77,12 @@ namespace CustomBeatmaps.UI
             _pkgHeaders = headers;
             //_pkgHeadersMap = headersMap;
         }
-
+        */
         protected override void SortPackages()
         {
             UIConversionHelper.SortLocalPackages(_localPackages, SortMode);
         }
-
+        
         protected override void MapPackages()
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
@@ -103,7 +103,7 @@ namespace CustomBeatmaps.UI
 
         protected override void RunSong()
         {
-            ArcadeHelper.PlaySongEdit(_selectedBeatmap.BeatmapPointer, _overrideCountdown);
+            ArcadeHelper.PlaySongEdit(_selectedBeatmap, _overrideCountdown);
         }
 
     }

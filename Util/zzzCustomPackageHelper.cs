@@ -67,7 +67,7 @@ namespace CustomBeatmaps.Util
             return beatmapPath.ToLower().EndsWith(".osu");
         }
 
-        public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, int category, bool recursive = false,
+        public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, CCategory category, bool recursive = false,
             Action<BeatmapException> onBeatmapFail = null, List<CustomPackageLocal> tmpPkg = null)
         {
             package = new CustomPackageLocal();
@@ -125,7 +125,7 @@ namespace CustomBeatmaps.Util
             return Directory.GetDirectories(folderPath).Length + Directory.GetFiles(folderPath).Length;
         }
 
-        public static CustomPackageLocal[] LoadLocalPackages(string folderPath, int category, Action<CustomPackageLocal> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
+        public static CustomPackageLocal[] LoadLocalPackages(string folderPath, CCategory category, Action<CustomPackageLocal> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
             folderPath = Path.GetFullPath(folderPath);
 

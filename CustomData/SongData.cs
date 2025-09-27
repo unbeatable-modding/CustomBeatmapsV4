@@ -68,6 +68,8 @@ namespace CustomBeatmaps.CustomData
         // NOTE: CHANGE ME
         public int TMPCategory { get; private set; }
 
+        public CCategory Category { get; private set; }
+
         private bool isLocal = false;
         public bool Local
         {
@@ -108,7 +110,7 @@ namespace CustomBeatmaps.CustomData
             // Sync up song stuff
             Name = bmapData.SongName;
             InternalName = bmapData.InternalName;
-            TMPCategory = bmapData.Category;
+            Category = bmapData.Category;
 
             Artist = bmapData.Artist;
             Creator = bmapData.Creator;
@@ -119,7 +121,8 @@ namespace CustomBeatmaps.CustomData
             {
                 DirectoryPath = bmapData.DirectoryPath;
                 AudioPath = bmapData.AudioPath;
-                CoverPath = bmapData.CoverPath;
+                if (bmapData.CoverPath != null)
+                    CoverPath = bmapData.CoverPath;
                 InitLocalSong(bmapData);
                 //TryAddToThisSong(bmapData);
             }
@@ -136,8 +139,8 @@ namespace CustomBeatmaps.CustomData
             Song = new CustomSong(InternalName, this);
             Traverse = Traverse.Create(Song);
             Traverse.Field("visibleInArcade").SetValue(true);
-            Traverse.Field("_category").SetValue(defaultIndex.Categories[TMPCategory]);
-            Traverse.Field("category").SetValue(TMPCategory);
+            Traverse.Field("_category").SetValue(Category.InternalCategory);
+            Traverse.Field("category").SetValue(Category.Index);
 
             Traverse.Field("_difficulties").SetValue(new List<string>());
             Traverse.Field("beatmaps").SetValue(new List<BeatmapInfo>());

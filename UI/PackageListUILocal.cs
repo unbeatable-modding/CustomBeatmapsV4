@@ -10,6 +10,8 @@ using CustomBeatmaps.Util;
 using Rhythm;
 using UnityEngine;
 
+using static CustomBeatmaps.Util.ArcadeHelper;
+
 namespace CustomBeatmaps.UI
 {
     public class PackageListUILocal : AbstractPackageList
@@ -59,7 +61,7 @@ namespace CustomBeatmaps.UI
 
         protected override void RunSong()
         {
-            ArcadeHelper.PlaySong(_selectedBeatmap.BeatmapPointer);
+            ArcadeHelper.PlaySong(_selectedBeatmap);
         }
 
         protected override void SortPackages()

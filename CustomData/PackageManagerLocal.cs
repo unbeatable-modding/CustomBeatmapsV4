@@ -71,22 +71,6 @@ namespace CustomBeatmaps.CustomData
             }
         }
 
-        public void zzzGenerateCorePackages()
-        {
-            if (_folder == null)
-                return;
-            ScheduleHelper.SafeLog($"LOADING CORES");
-            new Thread(() =>
-            {
-                Thread.CurrentThread.IsBackground = true;
-                lock (_packages)
-                {
-                    PackageHelper.PopulatePackageCores(_folder);
-                    
-                }
-            }).Start();
-        }
-
         protected override void UpdatePackage(string folderPath)
         {
             // Remove old package if there was one and update
@@ -98,7 +82,7 @@ namespace CustomBeatmaps.CustomData
             }
 
             if (PackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomPackageLocal package, _category, true,
-                    _onLoadException, () => { return PackageHelper.GetAllCustomSongs.Select(s => s.InternalName).ToHashSet(); } ))
+                    _onLoadException, () => { return CustomBeatmaps.LocalUserPackages.Packages.Select(s => s.GUID).ToHashSet(); } ))
             {
                 ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
                 ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
@@ -157,7 +141,7 @@ namespace CustomBeatmaps.CustomData
             }
         }
 
-        public override void SetFolder(string folder, int category)
+        public override void SetFolder(string folder, CCategory category)
         {
             if (folder == null)
                 return;

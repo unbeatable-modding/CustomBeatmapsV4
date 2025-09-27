@@ -62,11 +62,11 @@ namespace CustomBeatmaps.CustomPackages
             _artists = (() => string.Join(", ", SongDatas.Select(s => s.Artist).ToHashSet()));
         }
         public Guid GUID { get; set; }
-        
+
         /// <summary>
         /// Top level folder of Package
         /// </summary>
-        public string BaseDirectory { get; set; }
+        public string BaseDirectory { get; set; } = null;
         
         /// <summary>
         /// Array of All BeatmapDatas this package contains
@@ -96,6 +96,19 @@ namespace CustomBeatmaps.CustomPackages
             get
             {
                 return BeatmapDatas.Select(b => b.InternalDifficulty).ToList();
+            }
+        }
+
+        private Func<DateTime> _time;
+        public virtual DateTime Time
+        {
+            get
+            {
+                return _time.Invoke();
+            }
+            set
+            {
+                _time = () => value;
             }
         }
     }

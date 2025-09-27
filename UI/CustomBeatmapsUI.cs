@@ -19,7 +19,7 @@ namespace CustomBeatmaps.UI
         ////private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
         //private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
 
-        private static PackageListUILocal OnlinePackageList = new PackageListUILocal(CustomBeatmaps.LocalServerPackages);
+        private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
         private static PackageListUILocal LocalPackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
         //private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
         private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
@@ -54,7 +54,7 @@ namespace CustomBeatmaps.UI
                         {
                             OnlinePackageList.Render(() => RenderListTop(tab, setTab));
                         }
-                        catch (Exception e)
+                        catch
                         {
                             LocalPackageList.Render(() => RenderListTop(tab, setTab));
                         }
@@ -76,10 +76,12 @@ namespace CustomBeatmaps.UI
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
+                // NOTE: there are a fuck ton of errors, but somehow it still works
+                
                 //CustomBeatmaps.Log.LogError(e);
-                RenderListTop(tab, setTab);
+                //setTab.Invoke(Tab.Local);
             }
 
 

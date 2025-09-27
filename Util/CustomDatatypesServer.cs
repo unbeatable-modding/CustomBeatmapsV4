@@ -20,7 +20,7 @@ namespace CustomBeatmaps.Util
         public override PackageType PkgType => PackageType.Server;
         public override string ToString()
         {
-            return $"{{{Path.GetFileName(BaseDirectory)}: [\n  {SongDatas.ToArray().Select(song =>
+            return $"{{{GUID}: [\n  {SongDatas.ToArray().Select(song =>
             new
             {
                 Song = song.Name,
@@ -35,12 +35,9 @@ namespace CustomBeatmaps.Util
     /// <summary>
     /// Package formatted from server
     /// </summary>
-    public struct OnlinePackage
+    [Obsolete]
+    public struct zzzOnlinePackage
     {
-        [JsonProperty("name")]
-        public String Name;
-        [JsonProperty("guid")]
-        public Guid GUID;
         [JsonProperty("filePath")]
         public string ServerURL;
         [JsonProperty("time")]
@@ -48,7 +45,7 @@ namespace CustomBeatmaps.Util
         [JsonProperty("beatmaps")]
         public Dictionary<string, OnlineBeatmap> Beatmaps;
     }
-
+    [Obsolete]
     public struct OnlineBeatmap
     {
         [JsonProperty("name")]
@@ -74,8 +71,13 @@ namespace CustomBeatmaps.Util
     }
 
 
-    public struct NewOnlinePackage 
+    
+    public struct OnlinePackage 
     {
+        [JsonProperty("name")]
+        public string Name;
+        [JsonProperty("guid")]
+        public Guid GUID;
         [JsonProperty("filePath")]
         public string ServerURL;
         [JsonProperty("time")]
@@ -104,11 +106,8 @@ namespace CustomBeatmaps.Util
         [JsonProperty("audioFileName")]
         public string AudioFileName;
 
-        [JsonProperty("level")]
-        public int Level;
-
-        [JsonProperty("flavorText")]
-        public string FlavorText;
+        [JsonProperty("tags")]
+        public string Tags;
     }
 
     [Obsolete]

@@ -17,76 +17,9 @@ namespace CustomBeatmaps.Util
 {
     public static class UIConversionHelper
     {
-        public static BeatmapHeader CustomBeatmapInfoToBeatmapHeader(BeatmapData bmap)
-        {
-            return new BeatmapHeader(
-                bmap.SongName,
-                bmap.Artist,
-                bmap.Creator,
-                bmap.Difficulty,
-                null,
-                bmap.Level,
-                bmap.FlavorText,
-                bmap.Attributes
-            );
-        }
-
-        public static List<BeatmapHeader> CustomBeatmapInfosToBeatmapHeaders(List<SongData> customBeatmaps)
-        {
-            List<BeatmapHeader> headers = new List<BeatmapHeader>(customBeatmaps.Count);
-            foreach (var song in customBeatmaps)
-            {
-                foreach (var bmap in song.BeatmapDatas)
-                {
-                    headers.Add(CustomBeatmapInfoToBeatmapHeader(bmap));
-                }
-            }
-
-            return headers;
-        }
-
-        private static string GetServerPackageName(CustomServerPackage package)
-        {
-            return package.Beatmaps.Join(beatmap => beatmap.Value.SongName, " | ");
-        }
-        private static string GetLocalPackageName(CustomPackage package)
+        private static string GetPackageName(CustomPackage package)
         {
             return package.SongDatas.Join(beatmap => beatmap.Name, " | ");
-        }
-
-        public static void SortServerPackages(List<CustomServerPackage> headers, SortMode sortMode)
-        {
-            headers.Sort((left, right) =>
-            {
-                switch (sortMode)
-                {
-                    case SortMode.New:
-                        return DateTime.Compare(right.UploadTime, left.UploadTime);
-                    case SortMode.Title:
-                        string nameL = GetServerPackageName(left),
-                            nameR = GetServerPackageName(right);
-                        return String.CompareOrdinal(nameL, nameR);
-                    case SortMode.Artist:
-                        string artistLeft = left.Beatmaps.Values.Select(map => map.Artist).OrderBy(x => x).Join();
-                        string artistRight = right.Beatmaps.Values.Select(map => map.Artist).OrderBy(x => x).Join();
-                        return String.CompareOrdinal(artistLeft, artistRight);
-                    case SortMode.Creator:
-                        string creatorLeft = left.Beatmaps.Values.Select(map => map.Creator).OrderBy(x => x).Join();
-                        string creatorRight = right.Beatmaps.Values.Select(map => map.Creator).OrderBy(x => x).Join();
-                        return String.CompareOrdinal(creatorLeft, creatorRight);
-                    case SortMode.Downloaded:
-                        bool downloadedRight = CustomBeatmaps.LocalServerPackages.PackageExists(
-                            zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir,
-                                left.ServerURL));
-                        bool downloadedLeft = CustomBeatmaps.LocalServerPackages.PackageExists(
-                            zzzCustomPackageHelper.GetLocalFolderFromServerPackageURL(Config.Mod.ServerPackagesDir,
-                                right.ServerURL));
-                        return (downloadedLeft ? 1 : 0).CompareTo(downloadedRight ? 1 : 0);
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(sortMode), sortMode, null);
-                }
-                ;
-            });
         }
         public static void SortLocalPackages(List<CustomPackage> packages, SortMode sortMode)
         {
@@ -95,22 +28,24 @@ namespace CustomBeatmaps.Util
                 switch (sortMode)
                 {
                     case SortMode.New:
-                        return DateTime.Compare(Directory.GetLastWriteTime(right.BaseDirectory), Directory.GetLastWriteTime(left.BaseDirectory));
+                        return DateTime.Compare(right.Time, left.Time);
                     case SortMode.Title:
-                        string nameL = GetLocalPackageName(left),
-                            nameR = GetLocalPackageName(right);
+                        string nameL = left.Name,
+                            nameR = right.Name;
                         return String.CompareOrdinal(nameL, nameR);
                     case SortMode.Artist:
-                        string artistLeft = left.SongDatas.Select(map => map.Artist).OrderBy(x => x).Join();
-                        string artistRight = right.SongDatas.Select(map => map.Artist).OrderBy(x => x).Join();
-                        return String.CompareOrdinal(artistLeft, artistRight);
+                        //string artistLeft = left.SongDatas.Select(map => map.Artist).OrderBy(x => x).Join();
+                        //string artistRight = right.SongDatas.Select(map => map.Artist).OrderBy(x => x).Join();
+                        return String.CompareOrdinal(left.Artists, right.Artists);
                     case SortMode.Creator:
-                        string creatorLeft = left.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
-                        string creatorRight = right.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
-                        return String.CompareOrdinal(creatorLeft, creatorRight);
+                        //string creatorLeft = left.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
+                        //string creatorRight = right.SongDatas.Select(map => map.Creator).OrderBy(x => x).Join();
+                        return String.CompareOrdinal(left.Mappers, right.Mappers);
                     case SortMode.Downloaded:
-                        bool downloadedLeft = CustomBeatmaps.LocalServerPackages.PackageExists(left.BaseDirectory);
-                        bool downloadedRight = CustomBeatmaps.LocalServerPackages.PackageExists(right.BaseDirectory);
+                        //bool downloadedLeft = CustomBeatmaps.LocalServerPackages.PackageExists(left.BaseDirectory);
+                        //bool downloadedRight = CustomBeatmaps.LocalServerPackages.PackageExists(right.BaseDirectory);
+                        bool downloadedLeft = left.DownloadStatus == BeatmapDownloadStatus.Downloaded;
+                        bool downloadedRight = right.DownloadStatus == BeatmapDownloadStatus.Downloaded;
                         //nameL = GetLocalPackageName(left);
                         //nameR = GetLocalPackageName(right);
                         //return String.CompareOrdinal(nameL, nameR); ; // um
@@ -124,73 +59,28 @@ namespace CustomBeatmaps.Util
 
         public static bool PackageHasDifficulty(CustomPackage package, Difficulty diff)
         {
-            if (diff == Difficulty.All)
-                return true;
-
-            Dictionary<Difficulty, string> EdifficultyIndex = new Dictionary<Difficulty, string>
+            switch (diff)
             {
-                {Difficulty.Beginner, "Beginner"},
-                {Difficulty.Normal, "Easy"},
-                {Difficulty.Hard, "Normal"},
-                {Difficulty.Expert, "Hard"},
-                {Difficulty.Unbeatable, "UNBEATABLE"},
-                {Difficulty.Star, "Star"},
-            };
-            return package.InternalDifficulties.Contains(EdifficultyIndex[diff]);
-        }
-        
-        public static readonly Dictionary<Difficulty, string[]> DifficultyIndex = 
-            new Dictionary<Difficulty, string[]>
-            {
-                {Difficulty.Beginner, ["beginner"]},
-                {Difficulty.Normal, ["easy", "normal"]},
-                {Difficulty.Hard, ["hard"]},
-                {Difficulty.Expert, ["expert", "beatable"]},
-                {Difficulty.Unbeatable, ["unbeatable"]},
-            };
-        
-        public static bool PackageHasDifficulty(CustomServerPackage package, Difficulty diff)
-        {
-            if (diff == Difficulty.All)
-                return true;
-            try
-            {
-
-                foreach (var tryDiff in package.Difficulties)
-                {
-                    if (diff == Difficulty.Star)
-                    {
-                        
-                        foreach (string i in DifficultyIndex.Values.SelectMany(s => s.ToList()))
-                        {
-                            if (tryDiff.ToLower().StartsWith(i))
-                                return false;
-                        }
-                        
-                        return true;
-                    }
-                    else
-                    {
-                        foreach (string i in DifficultyIndex[diff].ToList())
-                        {
-                            if (tryDiff.ToLower().StartsWith(i))
-                                return true;
-                        }
-                    }
-                        
-                }
-            }
-            catch (Exception e)
-            {
-                CustomBeatmaps.Log.LogError(e);
-            }
-            
-
-
-            return false;
+                case Difficulty.All:
+                    return true;
+                case Difficulty.Beginner:
+                    return package.InternalDifficulties.Contains("Beginner");
+                case Difficulty.Normal:
+                    return package.InternalDifficulties.Contains("Easy");
+                case Difficulty.Hard:
+                    return package.InternalDifficulties.Contains("Normal");
+                case Difficulty.Expert:
+                    return package.InternalDifficulties.Contains("Hard");
+                case Difficulty.Unbeatable:
+                    return package.InternalDifficulties.Contains("UNBEATABLE");
+                case Difficulty.Star:
+                    return package.InternalDifficulties.Contains("Star");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(diff), diff, null);
+            } 
         }
 
-        public static bool PackageMatchesFilter(CustomServerPackage serverPackage, string filterQuery)
+        public static bool PackageMatchesFilter(CustomPackage pkg, string filterQuery)
         {
             if (string.IsNullOrEmpty(filterQuery))
             {
@@ -199,50 +89,44 @@ namespace CustomBeatmaps.Util
 
             bool caseSensitive = filterQuery.ToLower() != filterQuery;
 
-            foreach (var (bmapName, bmap) in serverPackage.Beatmaps)
-            {
-                string[] possibleMatches = new[]
+            // Check Package
+            string[] possibleMatches = new[]
                 {
-                    bmapName,
-                    bmap.SongName,
-                    bmap.Artist,
-                    bmap.Creator,
-                    bmap.Difficulty
+                    pkg.Name,
+                    pkg.Mappers,
+                    pkg.Artists
                 };
-                foreach (var possibleMatch in possibleMatches)
+            foreach (var possibleMatch in possibleMatches)
+            {
+                if (string.IsNullOrEmpty(possibleMatch))
+                    continue;
+
+                string toCheck = caseSensitive
+                    ? possibleMatch
+                    : possibleMatch.ToLower();
+                if (toCheck.Contains(filterQuery))
                 {
-                    string toCheck = caseSensitive
-                        ? possibleMatch
-                        : possibleMatch.ToLower();
-                    if (toCheck.Contains(filterQuery))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
-            return false;
-        }
-
-        public static bool PackageMatchesFilter(CustomPackage serverPackage, string filterQuery)
-        {
-            if (string.IsNullOrEmpty(filterQuery))
+            // Check Beatmaps
+            foreach (var bmap in pkg.BeatmapDatas.ToList())
             {
-                return true;
-            }
-
-            bool caseSensitive = filterQuery.ToLower() != filterQuery;
-            foreach (var bmap in serverPackage.SongDatas.SelectMany(s => s.BeatmapDatas).ToList())
-            {
-                string[] possibleMatches = new[]
+                possibleMatches = new[]
                 {
                     bmap.SongName,
                     bmap.Artist,
                     bmap.Creator,
-                    bmap.InternalDifficulty
+                    bmap.Difficulty,
+                    bmap.InternalDifficulty,
+                    bmap.FlavorText
                 };
                 foreach (var possibleMatch in possibleMatches)
                 {
+                    if (string.IsNullOrEmpty(possibleMatch))
+                        continue;
+
                     string toCheck = caseSensitive
                         ? possibleMatch
                         : possibleMatch.ToLower();

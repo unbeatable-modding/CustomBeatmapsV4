@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using static CustomBeatmaps.Util.ArcadeHelper;
 
@@ -141,6 +143,7 @@ namespace CustomBeatmaps.UISystem
                 headers.Add(p);
             }
 
+
             _pkgHeaders = headers;
         }
 
@@ -222,16 +225,7 @@ namespace CustomBeatmaps.UISystem
             if (SelectedPackageIndex > _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
 
-            // Preview audio
-            if (_selectedBeatmap != null)
-            {
-                if (_selectedBeatmap.SongPath != null)
-                {
-                    var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
-                    BGM.PlaySongPreview(previewsong);
-                }
-            }
-
+            PreviewAudio();
 
             // Render
             onRenderAboveList();
@@ -241,6 +235,18 @@ namespace CustomBeatmaps.UISystem
             PackageInfoUI.Render(RightRenders[0], RightRenders[1], RightRenders[2]);
 
             GUILayout.EndHorizontal();
+        }
+
+        protected void PreviewAudio()
+        {
+            if (_selectedBeatmap.BeatmapPointer != null)
+            {
+                if (_selectedBeatmap.SongPath != null)
+                {
+                    var previewsong = SongDatabase.GetBeatmapItemByPath(_selectedBeatmap.SongPath);
+                    BGM.PlaySongPreview(previewsong);
+                }
+            }
         }
     }
 }
