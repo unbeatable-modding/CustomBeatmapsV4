@@ -16,15 +16,16 @@ namespace CustomBeatmaps.CustomData
     /// <summary>
     /// To stop myself from losing my mind, most things for packages should be defined here
     /// </summary>
-    public abstract class PackageManagerGeneric
+    public abstract class PackageManagerGeneric<P>
+        where P : CustomPackage
     {
         /// <summary>
         /// Action that is invoked after a package is updated
         /// </summary>
-        public Action<CustomPackage> PackageUpdated;
+        public Action<P> PackageUpdated;
         public string Folder { get; protected set; }
 
-        protected readonly List<CustomPackage> _packages = new List<CustomPackage>();
+        protected readonly List<P> _packages = new List<P>();
         protected readonly HashSet<string> _downloadedFolders = new HashSet<string>();
 
         protected readonly Action<BeatmapException> _onLoadException;
@@ -50,7 +51,7 @@ namespace CustomBeatmaps.CustomData
         /// <summary>
         /// List of all Packages this manager can see
         /// </summary>
-        public abstract List<CustomPackage> Packages { get; }
+        public abstract List<P> Packages { get; }
         /// <summary>
         /// List of all Songs inside all Packages this manager can see
         /// (Songs contain beatmaps)

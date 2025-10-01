@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOSU : AbstractPackageList
+    public class PackageListUIOSU : AbstractPackageList<CustomPackageLocal>
     {
         private static bool _overrideCountdown = true;
         public PackageListUIOSU(PackageManagerLocal pkgManager) : base(pkgManager)
@@ -80,14 +80,14 @@ namespace CustomBeatmaps.UI
         */
         protected override void SortPackages()
         {
-            UIConversionHelper.SortLocalPackages(_localPackages, SortMode);
+            UIConversionHelper.SortPackages(_localPackages, SortMode);
         }
         
         protected override void MapPackages()
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex];
+            _selectedPackage = _pkgHeaders[SelectedPackageIndex];
 
             //_selectedBeatmaps =
             //    UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);

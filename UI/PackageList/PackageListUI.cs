@@ -12,7 +12,8 @@ namespace CustomBeatmaps.UI.PackageList
     {
         private static Player _rewired;
 
-        public static void Render(string header, List<CustomPackage> packageHeaders, int selectedHeaderIndex, Action<int> onPackageHeaderSelect)
+        public static void Render<T>(string header, List<T> packageHeaders, int selectedHeaderIndex, Action<int> onPackageHeaderSelect)
+            where T : CustomPackage
         {
             var (scrollPos, setScrollPos) = Reacc.UseState(Vector2.zero);
             var (prevSelectedHeaderIndex, setPrevSelectedHeaderIndex) = Reacc.UseState(-1);

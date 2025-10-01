@@ -19,14 +19,15 @@ using static CustomBeatmaps.Util.ArcadeHelper;
 namespace CustomBeatmaps.UISystem
 {
     // the horror
-    public abstract class AbstractPackageList
+    public abstract class AbstractPackageList<P>
+        where P : CustomPackage
     {
-        protected PackageManagerGeneric Manager;
+        protected PackageManagerGeneric<P> Manager;
 
-        protected List<CustomPackage> _localPackages = new();
+        protected List<P> _localPackages = new();
 
-        protected Dictionary<Guid, CustomPackage> _pkgFetcher;
-        protected string Folder => Manager.Folder;        
+        protected Dictionary<Guid, P> _pkgFetcher;
+        protected string Folder => Manager.Folder;
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
         protected int _selectedPackageIndex = 0;
@@ -46,24 +47,26 @@ namespace CustomBeatmaps.UISystem
 
         protected List<BeatmapData> _selectedBeatmaps;
         protected BeatmapData _selectedBeatmap;
-        protected CustomPackage _selectedPackage;
+        protected P _selectedPackage;
 
-        protected List<CustomPackage> _pkgHeaders = new();
+        protected List<P> _pkgHeaders = new();
 
         protected Action LeftRender;
         protected Action[] RightRenders;
         protected string _searchQuery;
 
-        public AbstractPackageList(PackageManagerGeneric manager)
+        public AbstractPackageList(PackageManagerGeneric<P> manager)
         {
             Manager = manager;
             Init(manager);
         }
 
-        protected virtual void Init(PackageManagerGeneric manager)
+        protected virtual void Init(PackageManagerGeneric<P> manager)
         {
             Manager.PackageUpdated += package =>
             {
+                _localPackages = Manager.Packages;
+                SortPackages();
                 Reload(true);
             };
 
@@ -130,8 +133,8 @@ namespace CustomBeatmaps.UISystem
         protected abstract void SortPackages();
         protected virtual void RegenerateHeaders()
         {
-            var headers = new List<CustomPackage>(_localPackages.Count);
-            foreach (CustomPackage p in _localPackages)
+            var headers = new List<P>(_localPackages.Count);
+            foreach (P p in _localPackages)
             {
                 if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
                     continue;

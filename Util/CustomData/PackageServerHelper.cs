@@ -21,8 +21,8 @@ namespace CustomBeatmaps.Util.CustomData
     public static class PackageServerHelper
     {
 
-        public static CustomPackage[] LoadServerPackages(string folderPath, CCategory category, Action<CustomPackage> onLoadPackage = null, 
-            Action<BeatmapException> onBeatmapFail = null)
+        public static CustomPackageServer[] LoadServerPackages(string folderPath, CCategory category, List<OnlinePackage> opkgs,
+            Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
             /*  Intended order for reference:
              *  1. Fetch all server packages and make them into a list
@@ -34,14 +34,14 @@ namespace CustomBeatmaps.Util.CustomData
              */
             folderPath = Path.GetFullPath(folderPath);
 
-            var pkgs = new Dictionary<Guid, CustomPackage>();
-            Func<Dictionary<Guid, CustomPackage>> getPkgs = () => { return pkgs; };
+            var pkgs = new Dictionary<Guid, CustomPackageServer>();
+            Func<Dictionary<Guid, CustomPackageServer>> getPkgs = () => { return pkgs; };
 
 
             // Get online Packages first (if we can)
             ScheduleHelper.SafeLog("step A (Loading Online)");
-            var r = FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList);
-            foreach (var opkg in r.Result)
+            //var r = FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList);
+            foreach (var opkg in opkgs)
             {
                 if (TryLoadOnlineServerPackage(opkg, out var potentialNewPackage, category, onBeatmapFail, getPkgs))
                 {
@@ -69,19 +69,20 @@ namespace CustomBeatmaps.Util.CustomData
         }
 
         public static bool TryLoadLocalServerPackage(string packageFolder, string outerFolderPath, out CustomPackageServer package, CCategory category, bool recursive = false,
-            Action<BeatmapException> onBeatmapFail = null, Func<Dictionary<Guid, CustomPackage>> pkgs = null)
+            Action<BeatmapException> onBeatmapFail = null, Func<Dictionary<Guid, CustomPackageServer>> pkgs = null)
         {
             //ScheduleHelper.SafeLog($"{tmpPkg.Count}");
             package = new CustomPackageServer();
+
             packageFolder = Path.GetFullPath(packageFolder);
             outerFolderPath = Path.GetFullPath(outerFolderPath);
 
             // We can't do Path.GetRelativePath, Path.GetPathRoot, or string.Split so this works instead.
             string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
             // We also only want the stub (lowest directory)
-            //string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
-            package.BaseDirectory = relative;
-            package.Time = Directory.GetLastWriteTime(relative);
+            string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
+            package.BaseDirectory = rootSubFolder;
+            package.Time = Directory.GetLastWriteTime(packageFolder);
             package.DownloadStatus = BeatmapDownloadStatus.Downloaded;
             ScheduleHelper.SafeLog($"{relative}\\");
             //ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
@@ -90,7 +91,7 @@ namespace CustomBeatmaps.Util.CustomData
 
             var subFiles = recursive ?
                 Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) :
-                Directory.EnumerateFiles(packageFolder);
+                Directory.EnumerateFiles(packageFolder, "*.*");
 
             if (subFiles.Where(s => s.ToLower().EndsWith(".bmap")).Any())
             {
@@ -120,14 +121,17 @@ namespace CustomBeatmaps.Util.CustomData
                             }
                         }
 
-                        // Duplicate Package returns false
-                        if (pkgs.Invoke().TryGetValue(pkgCore.GUID, out CustomPackage pkgFetch) && songs.Any())
+                        // We want to attach to an existing package
+                        if (pkgs != null)
                         {
-                            pkgFetch.SongDatas = songs.Values.ToList();
-                            pkgFetch.DownloadStatus = BeatmapDownloadStatus.Downloaded;
-                            pkgFetch.BaseDirectory = package.BaseDirectory;
-                            package = new CustomPackageServer();
-                            return false;
+                            if (pkgs.Invoke().TryGetValue(pkgCore.GUID, out CustomPackageServer pkgFetch) && songs.Any())
+                            {
+                                pkgFetch.SongDatas = songs.Values.ToList();
+                                pkgFetch.DownloadStatus = BeatmapDownloadStatus.Downloaded;
+                                pkgFetch.BaseDirectory = package.BaseDirectory;
+                                package = new CustomPackageServer();
+                                return false;
+                            }
                         }
 
                         // Set using core data if it exists
@@ -168,12 +172,12 @@ namespace CustomBeatmaps.Util.CustomData
         }
 
         public static bool TryLoadOnlineServerPackage(OnlinePackage oPkg, out CustomPackageServer package, CCategory category,
-            Action<BeatmapException> onBeatmapFail = null, Func<Dictionary<Guid, CustomPackage>> GUIDs = null)
+            Action<BeatmapException> onBeatmapFail = null, Func<Dictionary<Guid, CustomPackageServer>> GUIDs = null)
         {
             package = new CustomPackageServer();
 
             // ???
-            if (GUIDs.Invoke().ContainsKey(oPkg.GUID))
+            if (GUIDs != null && GUIDs.Invoke().ContainsKey(oPkg.GUID))
             {
                 package = new CustomPackageServer();
                 onBeatmapFail.Invoke(new BeatmapException("Duplicate Package Guid", oPkg.ServerURL));
@@ -181,7 +185,6 @@ namespace CustomBeatmaps.Util.CustomData
 
             var songs = new Dictionary<string, SongData>();
 
-            package.Name = oPkg.Name;
             package.GUID = oPkg.GUID;
             package.ServerURL = oPkg.ServerURL;
             //package.BaseDirectory = oPkg.ServerURL;
@@ -205,6 +208,13 @@ namespace CustomBeatmaps.Util.CustomData
                 }
             }
 
+            if (oPkg.Name != null)
+                package.Name = oPkg.Name;
+            if (oPkg.Mappers != null)
+                package.Mappers = oPkg.Mappers;
+            if (oPkg.Artists != null)
+                package.Artists = oPkg.Artists;
+
             // This folder has some beatmaps!
             if (songs.Any())
             {
@@ -220,8 +230,15 @@ namespace CustomBeatmaps.Util.CustomData
 
         public static async Task<OnlinePackage[]> FetchOnlinePackageList(string url)
         {
-            var pkgList = await FetchHelper.GetJSON<OnlinePackageList>(url);
-            return pkgList.Packages;
+            try
+            {
+                var pkgList = await FetchHelper.GetJSON<OnlinePackageList>(url);
+                return pkgList.Packages;
+            }
+            catch
+            {
+                return [];
+            }
         }
 
         private struct OnlinePackageList

@@ -155,48 +155,7 @@ namespace CustomBeatmaps.CustomData
             IsLocal = CreateLocalPackagedBeatmap();
         }
 
-        public BeatmapData(OnlineBeatmap oBmap, CCategory category)
-        {
-            Category = category;
-
-            SongName = oBmap.SongName;
-            InternalName = $"CUSTOM__{Category.InternalCategory}__{SongName}-{Offset}";
-            Artist = oBmap.Artist;
-            Creator = oBmap.Creator;
-
-            var iDifficulty = oBmap.Difficulty;
-            var difficulty = "Star";
-            Dictionary<string, string> difficultyIndex = new Dictionary<string, string>
-            {
-                {"beginner", "Beginner"},
-                {"easy", "Easy"}, // easy is a lie shove the song into normal
-                {"normal", "Easy"},
-                {"hard", "Normal"},
-                {"expert", "Hard"},
-                {"beatable", "Hard"}, // A lot of maps like using this idk
-                {"unbeatable", "UNBEATABLE"}
-            };
-            // Check if the difficulty is in the default list
-            // If not, set it to one that can be found in the game
-            foreach (var i in difficultyIndex.Keys)
-            {
-                // Check if the start of the version field matches a difficulty and then set accordingly
-                // This is so songs that have (UNBEATABLE + 4k) get put in the UNBEATABLE difficulty
-                if (iDifficulty.ToLower().StartsWith(i))
-                {
-                    //difficultyIndex.TryGetValue(i, out difficulty);
-                    difficulty = difficultyIndex[i];
-                    break;
-                }
-            }
-
-            Difficulty = iDifficulty;
-            InternalDifficulty = difficulty;
-
-            IsLocal = false;
-        }
-
-        public BeatmapData(NewOnlineBeatmap oBmap, Guid guid, int offset, CCategory category)
+        public BeatmapData(OnlineBeatmap oBmap, Guid guid, int offset, CCategory category)
         {
             Category = category;
             Offset = offset;

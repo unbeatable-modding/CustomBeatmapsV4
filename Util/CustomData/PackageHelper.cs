@@ -26,11 +26,21 @@ namespace CustomBeatmaps.Util.CustomData
             new Category("server", "online", 10)
             };
 
-        public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, CCategory category , bool recursive = false,
+        /// <summary>
+        /// Returns true or false depending on if the out package should be loaded
+        /// </summary>
+        /// <param name="packageFolder">Folder we are trying to find packages in (ex: ./USER_PACKAGES/ExamplePackage)</param>
+        /// <param name="outerFolderPath">Folder associated with the package manager (ex: ./USER_PACKAGES)</param>
+        /// <param name="package">The returned package</param>
+        /// <param name="category">Category to put the package in</param>
+        /// <param name="recursive">Bool to dictate searching for .bmap files in subdirectories</param>
+        /// <param name="onBeatmapFail"></param>
+        /// <param name="GUIDs">Func to return a set of GUID's currently being used by other packages</param>
+        /// <returns></returns>
+        public static bool TryLoadLocalPackage(string packageFolder, string outerFolderPath, out CustomPackageLocal package, CCategory category, bool recursive = false,
             Action<BeatmapException> onBeatmapFail = null, Func<HashSet<Guid>> GUIDs = null)
         {
-            //ScheduleHelper.SafeLog($"{tmpPkg.Count}");
-            package = new CustomPackageLocal();
+            // Get full paths
             packageFolder = Path.GetFullPath(packageFolder);
             outerFolderPath = Path.GetFullPath(outerFolderPath);
 
@@ -38,8 +48,10 @@ namespace CustomBeatmaps.Util.CustomData
             string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
+
+            package = new CustomPackageLocal();
             package.BaseDirectory = rootSubFolder;
-            package.Time = Directory.GetLastWriteTime(relative);
+            package.Time = Directory.GetLastWriteTime(packageFolder);
             ScheduleHelper.SafeLog($"{relative}\\");
 
             var songs = new Dictionary<string, SongData>();
@@ -55,6 +67,9 @@ namespace CustomBeatmaps.Util.CustomData
                     ScheduleHelper.SafeLog($"    {packageCoreFile.Substring(packageFolder.Length)}");
                     try
                     {
+                        // Init package and correct folder
+
+
                         var pkgCore = SerializeHelper.LoadJSON<PackageCore>(packageCoreFile);
                         
                         // Duplicate Package returns false
@@ -148,19 +163,19 @@ namespace CustomBeatmaps.Util.CustomData
             return false;
         }
 
-        public static CustomPackage[] LoadLocalPackages(string folderPath, CCategory category, 
+        public static CustomPackageLocal[] LoadLocalPackages(string folderPath, CCategory category, 
             Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
             folderPath = Path.GetFullPath(folderPath);
 
-            var result = new List<CustomPackage>();
+            var result = new List<CustomPackageLocal>();
             var songNames = new HashSet<Guid>();
             Func<HashSet<Guid>> getNames = () => { return songNames; };
 
             ScheduleHelper.SafeLog("step A");
 
             // Folders = packages
-            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
             {
                 CustomPackageLocal potentialNewPackage;
                 try

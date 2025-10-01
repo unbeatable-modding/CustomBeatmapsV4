@@ -20,12 +20,9 @@ namespace CustomBeatmaps.Util
 {
     public class CustomPackageLocal : CustomPackage
     {
-        public CustomPackageLocal() : base()
-        {
-        }
+        public CustomPackageLocal() : base() { }
         public CustomPackageLocal(Guid guid) : base(guid) { }
         
-        //public CustomBeatmap[] CustomBeatmaps => SongDatas.SelectMany(p => p.BeatmapInfos).ToArray();
 
         /*
         public override List<string> Difficulties

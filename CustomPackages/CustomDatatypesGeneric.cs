@@ -58,7 +58,7 @@ namespace CustomBeatmaps.CustomPackages
         {
             GUID = guid;
             _name = (() => string.Join(", ", SongDatas.Select(s => s.Name).ToHashSet()));
-            _mappers = (() => string.Join(", ", SongDatas.Select(s => s.Creator).ToHashSet()));
+            _mappers = (() => string.Join(", ", BeatmapDatas.Select(s => s.Creator).ToHashSet()));
             _artists = (() => string.Join(", ", SongDatas.Select(s => s.Artist).ToHashSet()));
         }
         public Guid GUID { get; set; }

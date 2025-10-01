@@ -14,7 +14,7 @@ using static CustomBeatmaps.Util.ArcadeHelper;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUILocal : AbstractPackageList
+    public class PackageListUILocal : AbstractPackageList<CustomPackageLocal>
     {
         public PackageListUILocal(PackageManagerLocal pkgManager) : base(pkgManager)
         {
@@ -49,7 +49,7 @@ namespace CustomBeatmaps.UI
         {
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = (CustomPackage)_pkgHeaders[SelectedPackageIndex];
+            _selectedPackage = _pkgHeaders[SelectedPackageIndex];
 
             _selectedBeatmaps = _selectedPackage.BeatmapDatas.ToList();
 
@@ -66,7 +66,7 @@ namespace CustomBeatmaps.UI
 
         protected override void SortPackages()
         {
-            UIConversionHelper.SortLocalPackages(_localPackages, SortMode);
+            UIConversionHelper.SortPackages(_localPackages, SortMode);
         }
     }
 }

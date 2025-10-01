@@ -33,49 +33,16 @@ namespace CustomBeatmaps.Util
     }
 
     /// <summary>
-    /// Package formatted from server
+    /// Server Formatted Package
     /// </summary>
-    [Obsolete]
-    public struct zzzOnlinePackage
-    {
-        [JsonProperty("filePath")]
-        public string ServerURL;
-        [JsonProperty("time")]
-        public DateTime UploadTime;
-        [JsonProperty("beatmaps")]
-        public Dictionary<string, OnlineBeatmap> Beatmaps;
-    }
-    [Obsolete]
-    public struct OnlineBeatmap
-    {
-        [JsonProperty("name")]
-        public string SongName;
-
-        [JsonProperty("artist")]
-        public string Artist;
-
-        [JsonProperty("creator")]
-        public string Creator;
-
-        [JsonProperty("difficulty")]
-        public string Difficulty;
-
-        [JsonProperty("audioFileName")]
-        public string AudioFileName;
-
-        [JsonProperty("level")]
-        public int Level;
-
-        [JsonProperty("flavorText")]
-        public string FlavorText;
-    }
-
-
-    
     public struct OnlinePackage 
     {
         [JsonProperty("name")]
         public string Name;
+        [JsonProperty("mappers")]
+        public string Mappers;
+        [JsonProperty("artists")]
+        public string Artists;
         [JsonProperty("guid")]
         public Guid GUID;
         [JsonProperty("filePath")]
@@ -83,10 +50,13 @@ namespace CustomBeatmaps.Util
         [JsonProperty("time")]
         public DateTime UploadTime;
         [JsonProperty("songs")]
-        public List<NewOnlineBeatmap>[] Songs;
+        public List<OnlineBeatmap>[] Songs;
     }
 
-    public struct NewOnlineBeatmap
+    /// <summary>
+    /// Server Formatted Beatmap
+    /// </summary>
+    public struct OnlineBeatmap
     {
         [JsonProperty("name")]
         public string SongName;

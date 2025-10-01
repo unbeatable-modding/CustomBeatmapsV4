@@ -180,15 +180,10 @@ namespace CustomBeatmaps
                 };
             }
 
-            
-            while (LocalUserPackages.InitialLoadState.Loading || LocalServerPackages.InitialLoadState.Loading ||
-                OSUSongManager.InitialLoadState.Loading) {
-                //CustomBeatmaps.Log.LogMessage("waiting...");
-                // Make sure everything is loaded
-            }
+            //ArcadeHelper.LoadCustomSongs();
+            //ArcadeHelper.LoadCustomSongs();
             // Add images to songs at later timing because the game will crash if loaded any earlier
-            PackageHelper.GetAllCustomSongInfos.ForEach(s => s.GetTexture());
-            ArcadeHelper.LoadCustomSongs();
+
 
         }
 

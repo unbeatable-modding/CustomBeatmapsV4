@@ -17,11 +17,8 @@ namespace CustomBeatmaps.Util
 {
     public static class UIConversionHelper
     {
-        private static string GetPackageName(CustomPackage package)
-        {
-            return package.SongDatas.Join(beatmap => beatmap.Name, " | ");
-        }
-        public static void SortLocalPackages(List<CustomPackage> packages, SortMode sortMode)
+        public static void SortPackages<T>(List<T> packages, SortMode sortMode)
+            where T : CustomPackage
         {
             packages.Sort((left, right) =>
             {
@@ -49,7 +46,7 @@ namespace CustomBeatmaps.Util
                         //nameL = GetLocalPackageName(left);
                         //nameR = GetLocalPackageName(right);
                         //return String.CompareOrdinal(nameL, nameR); ; // um
-                        return (downloadedLeft ? 1 : 0).CompareTo(downloadedRight ? 1 : 0);
+                        return (downloadedRight ? 1 : 0).CompareTo(downloadedLeft ? 1 : 0);
                     default:
                         throw new ArgumentOutOfRangeException(nameof(sortMode), sortMode, null);
                 }

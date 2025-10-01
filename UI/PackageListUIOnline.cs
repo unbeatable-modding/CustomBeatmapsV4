@@ -14,10 +14,13 @@ using Pri.LongPath;
 using UnityEngine;
 
 using static CustomBeatmaps.Util.ArcadeHelper;
+using File = Pri.LongPath.File;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOnline : AbstractPackageList
+    public class PackageListUIOnline : AbstractPackageList<CustomPackageServer>
     {
 
         //private CustomServerPackageList _list = new();
@@ -57,7 +60,8 @@ namespace CustomBeatmaps.UI
                     SortModePickerUI.Render(SortMode, SetSortMode);
                 });
                 RenderSearchbar();
-                PackageListUI.Render($"Server Packages", _pkgHeaders, SelectedPackageIndex, SetSelectedPackageIndex);
+                if (_pkgHeaders.Count != 0)
+                    PackageListUI.Render($"Server Packages", _pkgHeaders, SelectedPackageIndex, SetSelectedPackageIndex);
                 AssistAreaUI.Render();
                 GUILayout.EndVertical();
             };
@@ -196,7 +200,7 @@ namespace CustomBeatmaps.UI
 
         protected override void SortPackages()
         {
-            UIConversionHelper.SortLocalPackages(_localPackages, SortMode);
+            UIConversionHelper.SortPackages(_localPackages, SortMode);
         }
 
         /*
@@ -295,6 +299,9 @@ namespace CustomBeatmaps.UI
 
         protected override void MapPackages()
         {
+            if (_pkgHeaders.Count < 1)
+                return;
+
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
             _selectedPackage = _pkgHeaders[SelectedPackageIndex];

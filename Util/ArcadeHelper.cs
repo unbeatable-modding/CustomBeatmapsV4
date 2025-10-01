@@ -19,6 +19,7 @@ using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util.CustomData;
+using System.Threading.Tasks;
 
 namespace CustomBeatmaps.Util
 {
@@ -91,45 +92,49 @@ namespace CustomBeatmaps.Util
             arcade.Method("RefreshSongList").GetValue();
         }
 
+        private static bool _loadingSongs = false;
         public static void LoadCustomSongs()
         {
+            while (_loadingSongs) { }
+            _loadingSongs = true;
+
             CleanSongs();
-
-            foreach (Song s in PackageHelper.GetAllCustomSongInfos)
+            var fetch = PackageHelper.GetAllCustomSongInfos.ToList();
+            lock (fetch)
             {
-                //CustomBeatmaps.Log.LogDebug($"{s.name}");
-
-                if (!_songs.ContainsKey(s.name))
+                foreach (Song s in fetch)
                 {
-                    songs.Add(s);
-                    _songs.Add(s.name, s);
-                    _visibleSongs.Add(s);
-                    songNames.Add(s.name);
-                    songList.Add(s);
-                    //_categorySongs[s.Category].Add(s);
-                }
-            }
+                    //CustomBeatmaps.Log.LogDebug($"{s.name}");
 
+                    if (!_songs.ContainsKey(s.name))
+                    {
+                        songs.Add(s);
+                        _songs.Add(s.name, s);
+                        _visibleSongs.Add(s);
+                        songNames.Add(s.name);
+                        songList.Add(s);
+                        //_categorySongs[s.Category].Add(s);
+                    }
+                }
+                _loadingSongs = false;
+            }
+            
         }
 
         // Remove all modded songs for when we want to reload the database
         private static void CleanSongs()
         {
-            var killList = new List<string>();
 
-            //songs.DoIf((Song s) => s is CustomSong, s => killList.Add(s.name));
-            songs.ForEach(s =>
-            {
-                if (s is CustomSong)
-                    killList.Add(s.name);
-            });
+            var killList = songs.Where(s => s is CustomSong).Select(s => s.name).ToList();
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
-            killList.ForEach((string k) => songs.Remove(_songs[k]));
-            killList.ForEach((string k) => _visibleSongs.Remove(_songs[k]));
-            killList.ForEach((string k) => _songs.Remove(k));
-            killList.ForEach((string k) => songNames.Remove(k));
-            return;
+            foreach (string k in killList)
+            {
+                songs.Remove(_songs[k]);
+                _visibleSongs.Remove(_songs[k]);
+                _songs.Remove(k);
+                songNames.Remove(k);
+            }
         }
 
         public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;

@@ -14,7 +14,7 @@ using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.CustomData
 {
-    public class PackageManagerLocal : PackageManagerGeneric
+    public class PackageManagerLocal : PackageManagerGeneric<CustomPackageLocal>
     {
         public PackageManagerLocal(Action<BeatmapException> onLoadException) : base(onLoadException)
         {
@@ -50,6 +50,12 @@ namespace CustomBeatmaps.CustomData
                     }
                     InitialLoadState.Loading = false;
                 }
+
+                ScheduleHelper.SafeInvoke(() =>
+                {
+                    Songs.ForEach(s => s.Song.GetTexture());
+                    ArcadeHelper.LoadCustomSongs();
+                });
             }).Start();
 
             //GenerateCorePackages();
@@ -81,30 +87,37 @@ namespace CustomBeatmaps.CustomData
                     _packages.RemoveAt(toRemove);
             }
 
-            if (PackageHelper.TryLoadLocalPackage(folderPath, _folder, out CustomPackageLocal package, _category, true,
-                    _onLoadException, () => { return CustomBeatmaps.LocalUserPackages.Packages.Select(s => s.GUID).ToHashSet(); } ))
+            if (!Directory.Exists(folderPath))
+                return;
+
+            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
             {
-                ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
-                ScheduleHelper.SafeLog($"UPDATING PACKAGE: {folderPath}");
-                lock (_packages)
+                if (PackageHelper.TryLoadLocalPackage(subDir, _folder, out CustomPackageLocal package, _category, false,
+                    _onLoadException, () => { return Packages.Select(s => s.GUID).ToHashSet(); }))
                 {
-                    // Remove old package if there was one and update
-                    //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
-                    //if (toRemove != -1)
-                    //    _packages.RemoveAt(toRemove);
-                    _packages.Add(package);
-                    lock (_downloadedFolders)
+                    ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
+                    ScheduleHelper.SafeLog($"UPDATING PACKAGE: {subDir}");
+                    lock (_packages)
                     {
-                        _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
+                        // Remove old package if there was one and update
+                        //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
+                        //if (toRemove != -1)
+                        //    _packages.RemoveAt(toRemove);
+                        _packages.Add(package);
+                        lock (_downloadedFolders)
+                        {
+                            _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
+                        }
                     }
+                    PackageUpdated?.Invoke(package);
                 }
-                PackageUpdated?.Invoke(package);
+                else
+                {
+                    ScheduleHelper.SafeLog($"CANNOT find package: {subDir}");
+                }
             }
-            else
-            {
-                ScheduleHelper.SafeLog($"CANNOT find package: {folderPath}");
-                PackageUpdated?.Invoke(package);
-            }
+
+            
         }
 
         protected override void RemovePackage(string folderPath)
@@ -207,23 +220,25 @@ namespace CustomBeatmaps.CustomData
                         await Task.Delay(400);
                         RefreshQueuedPackages();
 
-                    }).ContinueWith(task => ScheduleHelper.SafeInvoke(() => {
-                        _loadQueue.Clear();
+                    })
+                        .ContinueWith(task => {
+                        // VERY hacky
+                        task.RunSynchronously();
                         ArcadeHelper.ReloadArcadeList();
-                    }));
+                    });
 
                 }
             }
 
         }
 
-        public override List<CustomPackage> Packages
+        public override List<CustomPackageLocal> Packages
         {
             get
             {
                 if (InitialLoadState.Loading)
                 {
-                    return new List<CustomPackage>();
+                    return new List<CustomPackageLocal>();
                 }
                 lock (_packages)
                 {
