@@ -158,7 +158,7 @@ namespace CustomBeatmaps.UI
                                         {
                                             // Delete + redownload
                                             Directory.Delete(_selectedPackage.BaseDirectory);
-                                            CustomBeatmaps.Downloader.QueueDownloadPackage(ServerURL);
+                                            CustomBeatmaps.Downloader.QueueDownloadPackage(_selectedPackage);
                                         }
                                     }
 
@@ -167,7 +167,7 @@ namespace CustomBeatmaps.UI
                                     BGM.StopSongPreview();
                                     if (buttonPressed)
                                     {
-                                        CustomBeatmaps.Downloader.QueueDownloadPackage(ServerURL);
+                                        CustomBeatmaps.Downloader.QueueDownloadPackage(_selectedPackage);
                                     }
                                     break;
                             }

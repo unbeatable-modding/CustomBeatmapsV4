@@ -45,7 +45,7 @@ namespace CustomBeatmaps.Util.CustomData
             outerFolderPath = Path.GetFullPath(outerFolderPath);
 
             // We can't do Path.GetRelativePath, Path.GetPathRoot, or string.Split so this works instead.
-            string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
+            string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start 
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
 
@@ -67,20 +67,19 @@ namespace CustomBeatmaps.Util.CustomData
                     ScheduleHelper.SafeLog($"    {packageCoreFile.Substring(packageFolder.Length)}");
                     try
                     {
-                        // Init package and correct folder
-
-
                         var pkgCore = SerializeHelper.LoadJSON<PackageCore>(packageCoreFile);
                         
-                        // Duplicate Package returns false
+                        // Duplicate Package Guid returns false
                         if (GUIDs.Invoke().Contains(pkgCore.GUID))
                         {
                             package = new CustomPackageLocal();
-                            onBeatmapFail.Invoke(new BeatmapException("Duplicate Package Guid", packageCoreFile));
+                            onBeatmapFail.Invoke(new BeatmapException("Package Guid already exists...", packageCoreFile));
+                            return false;
                         }
 
                         package.GUID = pkgCore.GUID;
 
+                        // Add BeatmapDatas to SongDatas
                         for (var i = 0; i < pkgCore.Songs.Count; i++)
                         {
                             foreach (var song in pkgCore.Songs[i])
@@ -117,39 +116,6 @@ namespace CustomBeatmaps.Util.CustomData
                 }
                 
             }
-            /*
-            else
-            {
-                //foreach (string packageSubFile in recursive ? Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) : Directory.EnumerateFiles(packageFolder))
-                foreach (string packageSubFile in subFiles)
-                {
-                    ScheduleHelper.SafeLog($"    {packageSubFile.Substring(packageFolder.Length)}");
-                    if (BeatmapHelper.IsBeatmapFile(packageSubFile))
-                    {
-                        try
-                        {
-                            //var toLoad = new CustomSongInfo(packageSubFile, category);
-                            //AddSongToList(toLoad, ref songs, tmpPkg);
-                            //ScheduleHelper.SafeInvoke(() => { });
-                            var bmapInfo = new BeatmapData(packageSubFile, category);
-                            bmapInfo.TryAttachSong(ref songs, songNames);
-                            package.Name = bmapInfo.SongName;
-                        }
-                        catch (BeatmapException e)
-                        {
-                            ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogError($"    BEATMAP FAIL: {e.Message}"));
-                            onBeatmapFail?.Invoke(e);
-                        }
-                        catch (Exception e)
-                        {
-                            ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogError(e));
-                        }
-
-                    }
-                }
-                //package.Name = songs.Values.ToList()[0].Name;
-            }
-            */
 
             // This folder has some beatmaps!
             if (songs.Any())
@@ -172,26 +138,21 @@ namespace CustomBeatmaps.Util.CustomData
             var songNames = new HashSet<Guid>();
             Func<HashSet<Guid>> getNames = () => { return songNames; };
 
-            ScheduleHelper.SafeLog("step A");
+            //ScheduleHelper.SafeLog("step A");
 
             // Folders = packages
             foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
             {
-                CustomPackageLocal potentialNewPackage;
                 try
                 {
-                    if (TryLoadLocalPackage(subDir, folderPath, out potentialNewPackage, category, false, onBeatmapFail, getNames))
+                    if (TryLoadLocalPackage(subDir, folderPath, out var potentialNewPackage, category, false, onBeatmapFail, getNames))
                     {
                         onLoadPackage?.Invoke(potentialNewPackage);
                         // forcing SafeInvoke so things can see eachother properly
                         // no i will not elaborate
-                        ScheduleHelper.SafeInvoke(() => {
-                            //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
-
-                        });
+                        ScheduleHelper.SafeInvoke(() => { });
                         songNames.Add(potentialNewPackage.GUID);
                         result.Add(potentialNewPackage);
-                        //potentialNewPackage.PkgSongs.ForEach(s => songs.Add(s.InternalName, null));
                     }
                 }
                 catch (Exception e)
@@ -203,28 +164,47 @@ namespace CustomBeatmaps.Util.CustomData
 
             ScheduleHelper.SafeLog("step B");
 
-            // Files = packages too! For compatibility with V1 (cause why not)
-            /*
-            foreach (string subFile in Directory.GetFiles(folderPath))
+            ScheduleHelper.SafeLog($"LOADED {result.Count} PACKAGES");
+            ScheduleHelper.SafeLog($"####### FULL PACKAGES LIST: #######\n{result.Join(delimiter: "\n")}");
+
+            return result.ToArray();
+        }
+
+        public static CustomPackageLocal[] LoadLocalPackagesMulti(List<string> folderPaths, CCategory category,
+            Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
+        {
+            var result = new List<CustomPackageLocal>();
+            var songNames = new HashSet<Guid>();
+            Func<HashSet<Guid>> getNames = () => { return songNames; };
+
+            //ScheduleHelper.SafeLog("step A");
+
+            foreach (string f in folderPaths)
             {
-                //if (IsBeatmapFile(subFile))
-                if (false)
+                string folderPath = Path.GetFullPath(f);
+
+                // Folders = packages
+                foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
                 {
                     try
                     {
-                        //var customBmap = LoadLocalBeatmap(subFile);
-                        var newPackage = new CustomLocalPackage();
-                        //newPackage.Beatmaps = new[] { customBmap };
-                        onLoadPackage?.Invoke(newPackage);
-                        result.Add(newPackage);
+                        if (TryLoadLocalPackage(subDir, folderPath, out var potentialNewPackage, category, false, onBeatmapFail, getNames))
+                        {
+                            onLoadPackage?.Invoke(potentialNewPackage);
+                            // forcing SafeInvoke so things can see eachother properly
+                            // no i will not elaborate
+                            ScheduleHelper.SafeInvoke(() => { });
+                            songNames.Add(potentialNewPackage.GUID);
+                            result.Add(potentialNewPackage);
+                        }
                     }
-                    catch (BeatmapException e)
+                    catch (Exception e)
                     {
-                        onBeatmapFail?.Invoke(e);
+                        CustomBeatmaps.Log.LogError(e);
                     }
+
                 }
             }
-            */
 
             ScheduleHelper.SafeLog($"LOADED {result.Count} PACKAGES");
             ScheduleHelper.SafeLog($"####### FULL PACKAGES LIST: #######\n{result.Join(delimiter: "\n")}");

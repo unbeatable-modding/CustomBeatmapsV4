@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static Rhythm.BeatmapIndex;
 using Directory = Pri.LongPath.Directory;
@@ -69,9 +70,8 @@ namespace CustomBeatmaps.Util.CustomData
         }
 
         public static bool TryLoadLocalServerPackage(string packageFolder, string outerFolderPath, out CustomPackageServer package, CCategory category, bool recursive = false,
-            Action<BeatmapException> onBeatmapFail = null, Func<Dictionary<Guid, CustomPackageServer>> pkgs = null)
+            Action<BeatmapException> onBeatmapFail = null, Func<Dictionary<Guid, CustomPackageServer>> getPkgs = null)
         {
-            //ScheduleHelper.SafeLog($"{tmpPkg.Count}");
             package = new CustomPackageServer();
 
             packageFolder = Path.GetFullPath(packageFolder);
@@ -81,17 +81,19 @@ namespace CustomBeatmaps.Util.CustomData
             string relative = Path.GetFullPath(packageFolder).Substring(outerFolderPath.Length + 1); // + 1 removes the start slash
             // We also only want the stub (lowest directory)
             string rootSubFolder = Path.Combine(outerFolderPath, StupidMissingTypesHelper.GetPathRoot(relative));
+
+
             package.BaseDirectory = rootSubFolder;
             package.Time = Directory.GetLastWriteTime(packageFolder);
             package.DownloadStatus = BeatmapDownloadStatus.Downloaded;
+
             ScheduleHelper.SafeLog($"{relative}\\");
-            //ScheduleHelper.SafeLog($"{packageFolder.Substring(AppDomain.CurrentDomain.BaseDirectory.Length)}");
 
             var songs = new Dictionary<string, SongData>();
 
             var subFiles = recursive ?
-                Directory.EnumerateFiles(packageFolder, "*.*", SearchOption.AllDirectories) :
-                Directory.EnumerateFiles(packageFolder, "*.*");
+                Directory.EnumerateFiles(packageFolder, "*", SearchOption.AllDirectories) :
+                Directory.EnumerateFiles(packageFolder, "*");
 
             if (subFiles.Where(s => s.ToLower().EndsWith(".bmap")).Any())
             {
@@ -121,10 +123,10 @@ namespace CustomBeatmaps.Util.CustomData
                             }
                         }
 
-                        // We want to attach to an existing package
-                        if (pkgs != null)
+                        // We want to attach to an existing package (if we can)
+                        if (getPkgs != null)
                         {
-                            if (pkgs.Invoke().TryGetValue(pkgCore.GUID, out CustomPackageServer pkgFetch) && songs.Any())
+                            if (getPkgs.Invoke().TryGetValue(pkgCore.GUID, out CustomPackageServer pkgFetch) && songs.Any())
                             {
                                 pkgFetch.SongDatas = songs.Values.ToList();
                                 pkgFetch.DownloadStatus = BeatmapDownloadStatus.Downloaded;
@@ -133,6 +135,7 @@ namespace CustomBeatmaps.Util.CustomData
                                 return false;
                             }
                         }
+                        
 
                         // Set using core data if it exists
                         if (pkgCore.Name != null)
@@ -180,7 +183,8 @@ namespace CustomBeatmaps.Util.CustomData
             if (GUIDs != null && GUIDs.Invoke().ContainsKey(oPkg.GUID))
             {
                 package = new CustomPackageServer();
-                onBeatmapFail.Invoke(new BeatmapException("Duplicate Package Guid", oPkg.ServerURL));
+                onBeatmapFail.Invoke(new BeatmapException("Online Package is Duplicate???", oPkg.ServerURL));
+                return false;
             }
 
             var songs = new Dictionary<string, SongData>();
@@ -218,7 +222,7 @@ namespace CustomBeatmaps.Util.CustomData
             // This folder has some beatmaps!
             if (songs.Any())
             {
-                ScheduleHelper.SafeLog("Loading ONLINE");
+                //ScheduleHelper.SafeLog("Loading ONLINE");
                 package.SongDatas = songs.Values.ToList();
                 return true;
             }
@@ -247,18 +251,70 @@ namespace CustomBeatmaps.Util.CustomData
             public OnlinePackage[] Packages;
         }
 
+        /// <summary>
+        /// Downloads a package from a server URL locally
+        /// </summary>
+        /// <param name="packageDownloadURL"> Hosted Directory above the package location ex. http://64.225.60.116:8080  </param>
+        /// <param name="serverPackageRoot"> Hosted Directory within above directory ex. packages, creating http://64.225.60.116:8080/packages) </param>
+        /// <param name="localServerPackageDirectory"> Local directory to save packages ex. SERVER_PACKAGES </param>
+        /// <param name="serverPackageURL">The url from the server (https or "packages/{something}.zip"</param>
+        /// <param name="callback"> Returns the local path of the downloaded file </param>
+        public static async Task DownloadPackage(CustomPackageServer pkg, string packageDownloadURL, string localServerPackageDirectory)
+        {
+            string serverDownloadURL = (packageDownloadURL + "/" + pkg.ServerURL);
+            string localDownloadExtractPath = Path.Combine(localServerPackageDirectory, pkg.GUID.ToString());
+
+            await DownloadPackageInner(serverDownloadURL, localDownloadExtractPath);
+        }
+
+        private static bool _dealingWithTempFile;
+
+        private static async Task DownloadPackageInner(string downloadURL, string targetFolder)
+        {
+            ScheduleHelper.SafeLog($"Downloading package from {downloadURL} to {targetFolder}");
+
+            string tempDownloadFilePath = ".TEMP.zip";
+
+            // Impromptu mutex, as per usual.
+            // Only let one download handle the temporary file at a time.
+            while (_dealingWithTempFile)
+            {
+                Thread.Sleep(200);
+            }
+
+            _dealingWithTempFile = true;
+            try
+            {
+                await FetchHelper.DownloadFile(downloadURL, tempDownloadFilePath);
+
+                // Extract
+                ZipHelper.ExtractToDirectory(tempDownloadFilePath, targetFolder);
+                // Delete old
+                File.Delete(tempDownloadFilePath);
+            }
+            catch (Exception)
+            {
+                _dealingWithTempFile = false;
+                throw;
+            }
+            _dealingWithTempFile = false;
+        }
+
+        [Obsolete]
         public static void FindPackageFromServer(string serverPackageURL, string beatmapRelativeKeyPath)
         {
             beatmapRelativeKeyPath = beatmapRelativeKeyPath.Replace('/', '\\');
         }
 
         // TODO: change server fetching
+        [Obsolete]
         private static string GetPackageFolderIdFromServerPackageURL(string serverPackageURL)
         {
             string endingName = Path.GetFileName(serverPackageURL);
             return endingName;
         }
 
+        [Obsolete]
         public static string GetLocalFolderFromServerPackageURL(string localServerPackageDirectory, string serverPackageURL)
         {
             string packageFolderId = GetPackageFolderIdFromServerPackageURL(serverPackageURL);

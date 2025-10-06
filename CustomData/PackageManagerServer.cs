@@ -60,7 +60,11 @@ namespace CustomBeatmaps.CustomData
 
                 ScheduleHelper.SafeInvoke(() =>
                 {
-                    Songs.ForEach(s => s.Song.GetTexture());
+                    Songs.ForEach(s =>
+                    {
+                        if (s.Local)
+                            s.Song.GetTexture();
+                    });
                     ArcadeHelper.LoadCustomSongs();
                 });
             }).Start();
@@ -80,9 +84,9 @@ namespace CustomBeatmaps.CustomData
                 }
 
                 if (!Directory.Exists(folderPath))
-                    return;
+                        return;
 
-                foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+                foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
                 {
                     if (PackageServerHelper.TryLoadLocalServerPackage(subDir, _folder, out CustomPackageServer package, _category, false,
                      _onLoadException, null))
@@ -94,6 +98,7 @@ namespace CustomBeatmaps.CustomData
                         ScheduleHelper.SafeLog($"UPDATING PACKAGE: {subDir}");
                         lock (_packages)
                         {
+                            /*
                             if (OnlinePackages.Any(o => o.GUID == package.GUID))
                             {
                                 var opkg = OnlinePackages.First(o => o.GUID == package.GUID);
@@ -101,14 +106,18 @@ namespace CustomBeatmaps.CustomData
                                 package.Time = opkg.UploadTime;
 
                                 var toReplace = _packages.FindIndex(o => o.GUID == package.GUID);
-                                _packages[toReplace] = package;
+                                _packages.RemoveAt(toReplace);
+                                _packages.Add(package);
+                                //_packages[toReplace] = package;
                             }
                             else
                             {
                                 _packages.Add(package);
                             }
+                            */
 
-                                
+                            _packages.Add(package);
+
                             lock (_downloadedFolders)
                             {
                                 if (package.DownloadStatus == BeatmapDownloadStatus.Downloaded)
@@ -116,6 +125,7 @@ namespace CustomBeatmaps.CustomData
                             }
                         }
                         PackageUpdated?.Invoke(package);
+                        Task.Run(() => ArcadeHelper.ReloadArcadeList());
                     }
                     else
                     {
@@ -240,8 +250,8 @@ namespace CustomBeatmaps.CustomData
                     })
                         .ContinueWith(task => {
                             // VERY hacky
-                            task.RunSynchronously();
-                            ArcadeHelper.ReloadArcadeList();
+                            //task.RunSynchronously();
+                            //ArcadeHelper.ReloadArcadeList();
                         });
 
                 }
@@ -300,5 +310,18 @@ namespace CustomBeatmaps.CustomData
             }
         }
 
+        public void GenerateCorePackages()
+        {
+            if (_folder == null)
+                return;
+            ScheduleHelper.SafeLog($"LOADING CORES");
+            lock (_packages)
+            {
+                Task.Run(async () =>
+                {
+                    await PackageHelper.PopulatePackageCoresNew(_folder);
+                }).Wait();
+            }
+        }
     }
 }

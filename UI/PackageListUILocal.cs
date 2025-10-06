@@ -16,7 +16,7 @@ namespace CustomBeatmaps.UI
 {
     public class PackageListUILocal : AbstractPackageList<CustomPackageLocal>
     {
-        public PackageListUILocal(PackageManagerLocal pkgManager) : base(pkgManager)
+        public PackageListUILocal(PackageManagerMulti pkgManager) : base(pkgManager)
         {
 
             RightRenders = [
@@ -47,6 +47,9 @@ namespace CustomBeatmaps.UI
 
         protected override void MapPackages()
         {
+            if (_pkgHeaders.Count < 1)
+                return;
+
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
             _selectedPackage = _pkgHeaders[SelectedPackageIndex];

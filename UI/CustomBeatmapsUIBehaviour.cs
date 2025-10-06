@@ -46,7 +46,8 @@ namespace CustomBeatmaps.UI
             // This is lazy but it works for now
             GameObject.Find("New Arcade Menu/ScreenArea/MainScreens").SetActive(false);
             GameObject.Find("New Arcade Menu/ScreenArea/OptionsCorner").SetActive(false);
-            ArcadeBGMManager.Instance.StopSongPreview();
+            //if (!ArcadeBGMManager.Paused)
+            //    ArcadeBGMManager.Instance.StopSongPreview();
 
             GUIHelper.AvoidInputOneFrame();
             _releaseInputTimer = 3;

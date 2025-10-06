@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CustomBeatmaps.Util;
 using CustomBeatmaps.Util.CustomData;
 
@@ -8,9 +9,9 @@ namespace CustomBeatmaps.CustomPackages
 {
     public class BeatmapDownloader
     {
-        private readonly Queue<string> _queuedIdsToDownload = new Queue<string>();
+        private readonly Queue<CustomPackageServer> _queuedIdsToDownload = new Queue<CustomPackageServer>();
         private string _currentlyDownloading;
-
+        /*
         public BeatmapDownloadStatus GetDownloadStatus(string serverPackageURL)
         {
             if (!FetchHelper.GetAvailable(Config.Backend.ServerPackageList).Result)
@@ -35,7 +36,7 @@ namespace CustomBeatmaps.CustomPackages
             // It's not in the queue
             return BeatmapDownloadStatus.NotDownloaded;
         }
-
+        */
         public BeatmapDownloadStatus GetDownloadStatus(CustomPackageServer package)
         {
 
@@ -48,7 +49,7 @@ namespace CustomBeatmaps.CustomPackages
                     {
                         if (_currentlyDownloading == package.ServerURL)
                             status = BeatmapDownloadStatus.CurrentlyDownloading;
-                        if (_queuedIdsToDownload.Contains(package.ServerURL))
+                        if (_queuedIdsToDownload.Where(p => p.ServerURL == package.ServerURL).Any())
                             status = BeatmapDownloadStatus.Queued;
                     }
                 }
@@ -66,15 +67,15 @@ namespace CustomBeatmaps.CustomPackages
             return BeatmapDownloadStatus.NotDownloaded;
         }
 
-        private async void DownloadPackageInner(string serverPackageURL)
+        private async void DownloadPackageInner(CustomPackageServer package)
         {
-            _currentlyDownloading = serverPackageURL;
+            _currentlyDownloading = package.ServerURL;
 
             try
             {
-                await zzzCustomPackageHelper.DownloadPackage(Config.Backend.ServerStorageURL,
-                    Config.Backend.ServerPackageRoot,
-                    Config.Mod.ServerPackagesDir, serverPackageURL);
+                await PackageServerHelper.DownloadPackage(package,
+                    Config.Backend.ServerStorageURL,
+                    Config.Mod.ServerPackagesDir);
             }
             catch (Exception e)
             {
@@ -97,18 +98,18 @@ namespace CustomBeatmaps.CustomPackages
             }
         }
 
-        public void QueueDownloadPackage(string serverPackageURL)
+        public void QueueDownloadPackage(CustomPackageServer package)
         {
             lock (_queuedIdsToDownload)
             {
                 bool notDownloading = _currentlyDownloading == null;
                 if (notDownloading)
                 {
-                    DownloadPackageInner(serverPackageURL);
+                    DownloadPackageInner(package);
                 }
                 else
                 {
-                    _queuedIdsToDownload.Enqueue(serverPackageURL);
+                    _queuedIdsToDownload.Enqueue(package);
                 }
 
             }

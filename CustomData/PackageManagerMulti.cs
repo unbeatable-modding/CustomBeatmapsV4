@@ -1,28 +1,35 @@
-﻿using System;
+﻿using CustomBeatmaps.CustomPackages;
+using CustomBeatmaps.Util;
+using CustomBeatmaps.Util.CustomData;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CustomBeatmaps.Util;
+
+using Directory = Pri.LongPath.Directory;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using CustomBeatmaps.CustomPackages;
-using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.CustomData
 {
-    public class PackageManagerLocal : PackageManagerGeneric<CustomPackageLocal>
+    public class PackageManagerMulti : PackageManagerGeneric<CustomPackageLocal>
     {
-        public PackageManagerLocal(Action<BeatmapException> onLoadException) : base(onLoadException)
+        public PackageManagerMulti(Action<BeatmapException> onLoadException) : base(onLoadException)
         {
         }
+
+        private List<string> _folders = new();
+
+        private Dictionary<string, FileSystemWatcher> _watchers = new();
+
         public override void ReloadAll()
         {
-            if (_folder == null)
+            if (!_folders.Any())
                 return;
+            
             new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
@@ -30,14 +37,18 @@ namespace CustomBeatmaps.CustomData
                 {
                     InitialLoadState.Loading = true;
                     InitialLoadState.Loaded = 0;
-                    InitialLoadState.Total = PackageHelper.EstimatePackageCount(_folder);
-                    ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folder}");
+                    InitialLoadState.Total = 0;
+                    _folders.ForEach(f => InitialLoadState.Total += PackageHelper.EstimatePackageCount(f));
+                    //InitialLoadState.Total += PackageHelper.EstimatePackageCount(_folders[0]);
+                    ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folders[0]}");
 
                     _packages.Clear();
-                    var packages = PackageHelper.LoadLocalPackages(_folder, _category, loadedPackage =>
+                    var packages = PackageHelper.LoadLocalPackagesMulti(_folders, _category, loadedPackage =>
                     {
                         InitialLoadState.Loaded++;
                     }, _onLoadException);
+
+
                     ScheduleHelper.SafeLog($"(step 2)");
                     _packages.AddRange(packages);
                     lock (_downloadedFolders)
@@ -53,32 +64,34 @@ namespace CustomBeatmaps.CustomData
 
                 ScheduleHelper.SafeInvoke(() =>
                 {
-                    //Songs.ForEach(s => s.Song.GetTexture());
-                    //ArcadeHelper.LoadCustomSongs();
+                    Songs.ForEach(s => s.Song.GetTexture());
+                    ArcadeHelper.LoadCustomSongs();
                 });
             }).Start();
-
-            //GenerateCorePackages();
         }
 
         public void GenerateCorePackages()
         {
-            if (_folder == null)
+            if (!_folders.Any())
                 return;
             ScheduleHelper.SafeLog($"LOADING CORES");
             lock (_packages)
             {
                 Task.Run(async () =>
                 {
-                    await PackageHelper.PopulatePackageCoresNew(_folder);
+                    foreach (var folder in _folders)
+                        await PackageHelper.PopulatePackageCoresNew(folder);
                 }).Wait();
-                
+
 
             }
         }
 
         protected override void UpdatePackage(string folderPath)
         {
+            if (!Directory.Exists(folderPath))
+                return;
+
             // Remove old package if there was one and update
             lock (_packages)
             {
@@ -87,22 +100,20 @@ namespace CustomBeatmaps.CustomData
                     _packages.RemoveAt(toRemove);
             }
 
-            if (!Directory.Exists(folderPath))
+            // ???
+            if (!_folders.Where(f => folderPath.Contains(f)).Any())
                 return;
+            var folder = _folders.Where(f => folderPath.Contains(f)).First();
 
-            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
             {
-                if (PackageHelper.TryLoadLocalPackage(subDir, _folder, out CustomPackageLocal package, _category, false,
+                if (PackageHelper.TryLoadLocalPackage(subDir, folder, out CustomPackageLocal package, _category, false,
                     _onLoadException, () => { return Packages.Select(s => s.GUID).ToHashSet(); }))
                 {
                     ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
                     ScheduleHelper.SafeLog($"UPDATING PACKAGE: {subDir}");
                     lock (_packages)
                     {
-                        // Remove old package if there was one and update
-                        //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
-                        //if (toRemove != -1)
-                        //    _packages.RemoveAt(toRemove);
                         _packages.Add(package);
                         lock (_downloadedFolders)
                         {
@@ -117,7 +128,7 @@ namespace CustomBeatmaps.CustomData
                 }
             }
 
-            
+
         }
 
         protected override void RemovePackage(string folderPath)
@@ -154,41 +165,91 @@ namespace CustomBeatmaps.CustomData
             }
         }
 
+        public void SetFolders(string[] folders, CCategory category)
+        {
+            _category = category;
+
+            foreach (var f in folders)
+            {
+                if (f == null)
+                    continue;
+                string folder = Path.GetFullPath(f);
+                if (_folders.Contains(folder))
+                    continue;
+
+                _folders.Add(folder);
+
+
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                // Clear previous watcher
+                if (_watchers.TryGetValue(folder, out var watcher))
+                {
+                    watcher.Dispose();
+                    _watchers.Remove(folder);
+                }
+
+            }
+
+            GenerateCorePackages();
+
+            // Watch for changes
+            foreach (var f in _folders)
+            {
+                if (!_watchers.TryAdd(f, FileWatchHelper.WatchFolder(f, true, OnFileChange)))
+                    ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning($"FAILED TO MAKE {f} A WATCHER"));
+            }
+
+            ReloadAll();
+        }
+
         public override void SetFolder(string folder, CCategory category)
         {
             if (folder == null)
                 return;
             folder = Path.GetFullPath(folder);
-            if (folder == _folder)
+            if (_folders.Contains(folder))
                 return;
-
-            _folder = folder;
+            
+            _folders.Add(folder);
             _category = category;
+            
 
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
             }
-
+            
             // Clear previous watcher
-            if (_watcher != null)
+            if (_watchers.TryGetValue(folder, out var watcher))
             {
-                _watcher.Dispose();
+                watcher.Dispose();
+                _watchers.Remove(folder);
             }
 
             //GenerateCorePackages();
 
             // Watch for changes
-            _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
+            _watchers.Add(folder, FileWatchHelper.WatchFolder(folder, true, OnFileChange));
+            //_watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
             // Reload now
-            ReloadAll();
+            //ReloadAll();
         }
 
         protected override void OnFileChange(FileSystemEventArgs evt)
         {
             string changedFilePath = Path.GetFullPath(evt.FullPath);
+
+            // ???
+            if (!_folders.Where(f => changedFilePath.Contains(f)).Any())
+                return;
+            var folder = _folders.Where(f => changedFilePath.Contains(f)).First();
+
             // The root folder within the packages folder we consider to be a "package"
-            string basePackageFolder = Path.GetFullPath(Path.Combine(_folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(_folder.Length + 1))));
+            string basePackageFolder = Path.GetFullPath(Path.Combine(folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(folder.Length + 1))));
 
             ScheduleHelper.SafeLog($"Base Package Folder IN LOCAL: {basePackageFolder}");
 
@@ -222,10 +283,10 @@ namespace CustomBeatmaps.CustomData
 
                     })
                         .ContinueWith(task => {
-                        // VERY hacky
-                        task.RunSynchronously();
-                        ArcadeHelper.ReloadArcadeList();
-                    });
+                            // VERY hacky
+                            task.RunSynchronously();
+                            ArcadeHelper.ReloadArcadeList();
+                        });
 
                 }
             }

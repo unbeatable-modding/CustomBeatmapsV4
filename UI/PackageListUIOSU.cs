@@ -30,14 +30,20 @@ namespace CustomBeatmaps.UI
                                        "3) While testing, the beatmap should automatically reload when you make changes and save in OSU"
                             );
                         MetadataUI.Render(_selectedBeatmap);
-                    },
-                    () =>
-                    {
-                        if (GUILayout.Button($"Init Packages"))
+                        if (GUILayout.Button($"Init OSU Packages"))
                         {
                             CustomBeatmaps.OSUSongManager.GenerateCorePackages();
                             //CustomBeatmaps.LocalServerPackages.GenerateCorePackages();
                         }
+                        if (GUILayout.Button($"Init ALL Packages"))
+                        {
+                            CustomBeatmaps.OSUSongManager.GenerateCorePackages();
+                            CustomBeatmaps.LocalServerPackages.GenerateCorePackages();
+                            CustomBeatmaps.LocalUserPackages.GenerateCorePackages();
+                        }
+                    },
+                    () =>
+                    {
                         _overrideCountdown = GUILayout.Toggle(_overrideCountdown, "Do Countdown?");
                         if (GUILayout.Button($"EXPORT"))
                         {
@@ -85,6 +91,9 @@ namespace CustomBeatmaps.UI
         
         protected override void MapPackages()
         {
+            if (_pkgHeaders.Count < 1)
+                return;
+
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
             _selectedPackage = _pkgHeaders[SelectedPackageIndex];

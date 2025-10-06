@@ -93,12 +93,15 @@ namespace CustomBeatmaps.Util
         }
 
         private static bool _loadingSongs = false;
-        public static void LoadCustomSongs()
+        public static async void LoadCustomSongs()
         {
             while (_loadingSongs) { }
             _loadingSongs = true;
 
-            CleanSongs();
+            //Task.Run(CleanSongs).Wait();
+            await Task.Run(CleanSongs);
+
+            //Task.WaitAll(CleanSongs);
             var fetch = PackageHelper.GetAllCustomSongInfos.ToList();
             lock (fetch)
             {
@@ -122,9 +125,8 @@ namespace CustomBeatmaps.Util
         }
 
         // Remove all modded songs for when we want to reload the database
-        private static void CleanSongs()
+        private static Action CleanSongs = (() =>
         {
-
             var killList = songs.Where(s => s is CustomSong).Select(s => s.name).ToList();
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
@@ -135,8 +137,8 @@ namespace CustomBeatmaps.Util
                 _songs.Remove(k);
                 songNames.Remove(k);
             }
-        }
-
+        });
+        
         public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;
         public static ArcadeSongList SongList => ArcadeSongList.Instance;
         public static ArcadeBGMManager BGM => ArcadeBGMManager.Instance;

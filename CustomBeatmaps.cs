@@ -38,7 +38,8 @@ namespace CustomBeatmaps
         public static UserSession UserSession { get; private set; }
 
         //public static List<LocalPackageManager> LocalUserPackages { get; private set; }
-        public static PackageManagerLocal LocalUserPackages { get; private set; }
+        public static PackageManagerMulti LocalUserPackages { get; private set; }
+        //public static PackageManagerMulti MultiManager { get; private set; }
         public static PackageManagerServer LocalServerPackages { get; private set; }
         public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
         public static PackageManagerLocal OSUSongManager { get; private set; }
@@ -66,7 +67,9 @@ namespace CustomBeatmaps
             PackageHelper.TryAddCustomCategory();
 
             // Anything with Static access should be ALWAYS present.
-            LocalUserPackages = new PackageManagerLocal(OnError);
+            //LocalUserPackages = new PackageManagerLocal(OnError);
+            LocalUserPackages = new PackageManagerMulti(OnError);
+            //MultiManager = new PackageManagerMulti(OnError);
             LocalServerPackages = new PackageManagerServer(OnError);
             SubmissionPackageManager = new SubmissionPackageManager(OnError);
             OSUSongManager = new PackageManagerLocal(OnError);
@@ -91,7 +94,9 @@ namespace CustomBeatmaps
                     LocalUserPackages.Last().SetFolder(config.UserPackagesDir[i], 7);
                 }
                 */
-                LocalUserPackages.SetFolder(config.UserPackagesDir[0], new CCategory(7));
+                LocalUserPackages.SetFolders(config.UserPackagesDir, new CCategory(7));
+                //MultiManager.SetFolders(config.UserPackagesDir, new CCategory(7));
+                //LocalUserPackages.SetFolders(config.UserPackagesDir, new CCategory(7));
                 LocalServerPackages.SetFolder(config.ServerPackagesDir, new CCategory(10));
                 OSUSongManager.SetFolder(config.OsuSongsOverrideDirectory, new CCategory(9));
                 PlayedPackageManager = new PlayedPackageManager(config.PlayedBeatmapList);
