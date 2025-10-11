@@ -17,8 +17,6 @@ namespace CustomBeatmaps.CustomData
 {
     public class PackageManagerServer : PackageManagerGeneric<CustomPackageServer>
     {
-        //protected readonly Action<BeatmapException> _onLoadException;
-
         public PackageManagerServer(Action<BeatmapException> onLoadException) : base(onLoadException)
         {
         }
@@ -279,36 +277,6 @@ namespace CustomBeatmaps.CustomData
 
         private List<OnlinePackage> _onlinePackages;
         public List<OnlinePackage> OnlinePackages => _onlinePackages;
-
-        public override List<CustomPackageServer> Packages
-        {
-            get
-            {
-                if (InitialLoadState.Loading)
-                {
-                    return new List<CustomPackageServer>();
-                }
-                lock (_packages)
-                {
-                    return _packages;
-                }
-            }
-        }
-
-        public override List<SongData> Songs
-        {
-            get
-            {
-                if (InitialLoadState.Loading)
-                {
-                    return new List<SongData>();
-                }
-                lock (_packages)
-                {
-                    return _packages.SelectMany(p => p.SongDatas).ToList();
-                }
-            }
-        }
 
         public void GenerateCorePackages()
         {

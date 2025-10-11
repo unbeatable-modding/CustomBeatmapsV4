@@ -20,6 +20,7 @@ using File = Pri.LongPath.File;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util.CustomData;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CustomBeatmaps.Util
 {
@@ -32,7 +33,6 @@ namespace CustomBeatmaps.Util
         private static Dictionary<string, Song> _songs = traverse.Field("_songs").GetValue<Dictionary<string, Song>>();
         private static List<Song> _visibleSongs = traverse.Field("_visibleSongs").GetValue<List<Song>>();
         private static Dictionary<Category, List<Song>> _categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
-        private static List<Song> songList = new();
 
         //static OsuBeatmapHotLoader HotLoader = new OsuBeatmapHotLoader();
         public static CustomBeatmapRoom[] Rooms
@@ -93,15 +93,32 @@ namespace CustomBeatmaps.Util
         }
 
         private static bool _loadingSongs = false;
-        public static async void LoadCustomSongs()
+        public static void LoadCustomSongs()
         {
-            while (_loadingSongs) { }
+            while (_loadingSongs) { Thread.Sleep(200); }
+            
             _loadingSongs = true;
 
             //Task.Run(CleanSongs).Wait();
-            await Task.Run(CleanSongs);
+            //await Task.Run(CleanSongs);
 
-            //Task.WaitAll(CleanSongs);
+            var killList = songs.Where(s => s is CustomSong).Select(s => s.name);
+
+            // Make clones
+            var songsTmp = songs.ToList();
+            var _visibleSongsTmp = _visibleSongs.ToList();
+            var _songsTmp = new Dictionary<string, Song>(_songs.AsEnumerable());
+            var songNamesTmp = songNames.ToList();
+
+            foreach (string k in killList)
+            {
+                songsTmp.Remove(_songsTmp[k]);
+                _visibleSongsTmp.Remove(_songsTmp[k]);
+                _songsTmp.Remove(k);
+                songNamesTmp.Remove(k);
+            }
+
+            
             var fetch = PackageHelper.GetAllCustomSongInfos.ToList();
             lock (fetch)
             {
@@ -109,17 +126,29 @@ namespace CustomBeatmaps.Util
                 {
                     //CustomBeatmaps.Log.LogDebug($"{s.name}");
 
-                    if (!_songs.ContainsKey(s.name))
+                    if (!_songsTmp.ContainsKey(s.name))
                     {
-                        songs.Add(s);
-                        _songs.Add(s.name, s);
-                        _visibleSongs.Add(s);
-                        songNames.Add(s.name);
-                        songList.Add(s);
+                        songsTmp.Add(s);
+                        _songsTmp.Add(s.name, s);
+                        _visibleSongsTmp.Add(s);
+                        songNamesTmp.Add(s.name);
                         //_categorySongs[s.Category].Add(s);
                     }
                 }
-                _loadingSongs = false;
+                Task.Run(() =>
+                {
+                    traverse.Field("songs").SetValue(songsTmp);
+                    traverse.Field("_songs").SetValue(_songsTmp);
+                    traverse.Field("_visibleSongs").SetValue(_visibleSongsTmp);
+                    traverse.Field("songNames").SetValue(songNamesTmp);
+                    //songs = songsTmp;
+                    //_songs = _songsTmp;
+                    //_visibleSongs = _visibleSongsTmp;
+                    //songNames = songNamesTmp;
+
+                    _loadingSongs = false;
+                });
+                
             }
             
         }
@@ -128,6 +157,12 @@ namespace CustomBeatmaps.Util
         private static Action CleanSongs = (() =>
         {
             var killList = songs.Where(s => s is CustomSong).Select(s => s.name).ToList();
+
+            // Make clones
+            var songsTmp = songs.ToList();
+            var _visibleSongsTmp = songs.ToList();
+            var _songsTmp = songs.ToList();
+            var songNamesTmp = songs.ToList();
 
             //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
             foreach (string k in killList)

@@ -17,13 +17,11 @@ namespace CustomBeatmaps.CustomData
 {
     public class PackageManagerMulti : PackageManagerGeneric<CustomPackageLocal>
     {
-        public PackageManagerMulti(Action<BeatmapException> onLoadException) : base(onLoadException)
-        {
-        }
+        public PackageManagerMulti(Action<BeatmapException> onLoadException) : base(onLoadException) { }
 
-        private List<string> _folders = new();
+        private string[] _folders = [];
 
-        private Dictionary<string, FileSystemWatcher> _watchers = new();
+        private FileSystemWatcher[] _watchers = [];
 
         public override void ReloadAll()
         {
@@ -38,7 +36,9 @@ namespace CustomBeatmaps.CustomData
                     InitialLoadState.Loading = true;
                     InitialLoadState.Loaded = 0;
                     InitialLoadState.Total = 0;
-                    _folders.ForEach(f => InitialLoadState.Total += PackageHelper.EstimatePackageCount(f));
+                    foreach (var f in _folders)
+                        InitialLoadState.Total += PackageHelper.EstimatePackageCount(f);
+                    //_folders.ForEach(f => InitialLoadState.Total += PackageHelper.EstimatePackageCount(f));
                     //InitialLoadState.Total += PackageHelper.EstimatePackageCount(_folders[0]);
                     ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folders[0]}");
 
@@ -89,21 +89,33 @@ namespace CustomBeatmaps.CustomData
 
         protected override void UpdatePackage(string folderPath)
         {
-            if (!Directory.Exists(folderPath))
-                return;
+            //if (!Directory.Exists(folderPath))
+            //    return;
 
             // Remove old package if there was one and update
             lock (_packages)
             {
-                int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
-                if (toRemove != -1)
-                    _packages.RemoveAt(toRemove);
+                //int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
+                //if (toRemove != -1)
+                //    _packages.RemoveAt(toRemove);
+                if (_packages.Exists(p => p.BaseDirectory == folderPath))
+                    RemovePackage(folderPath);
+            }
+
+            if (!Directory.Exists(folderPath))
+            {
+                ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning("Directory not real???"));
+                return;
             }
 
             // ???
-            if (!_folders.Where(f => folderPath.Contains(f)).Any())
+            if (!_folders.ToList().Exists(f => folderPath.Contains(f)))
+            {
+                ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning("folderPath not real???"));
                 return;
-            var folder = _folders.Where(f => folderPath.Contains(f)).First();
+            }
+                
+            var folder = _folders.ToList().First(f => folderPath.Contains(f));
 
             foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
             {
@@ -120,6 +132,7 @@ namespace CustomBeatmaps.CustomData
                             _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                         }
                     }
+                    ArcadeHelper.ReloadArcadeList();
                     PackageUpdated?.Invoke(package);
                 }
                 else
@@ -135,18 +148,19 @@ namespace CustomBeatmaps.CustomData
         {
             lock (_packages)
             {
-                string fullPath = Path.GetFullPath(folderPath);
-                int toRemove = _packages.FindIndex(check => check.BaseDirectory == fullPath);
+                //string fullPath = Path.GetFullPath(folderPath);
+                int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
                 if (toRemove != -1)
                 {
                     var p = _packages[toRemove];
                     _packages.RemoveAt(toRemove);
                     lock (_downloadedFolders)
                     {
-                        _downloadedFolders.Remove(fullPath);
+                        _downloadedFolders.Remove(folderPath);
                     }
 
-                    ScheduleHelper.SafeLog($"REMOVED PACKAGE: {fullPath}");
+                    ScheduleHelper.SafeLog($"REMOVED PACKAGE: {folderPath}");
+                    ArcadeHelper.ReloadArcadeList();
                     PackageUpdated?.Invoke(p);
                 }
                 else
@@ -167,40 +181,35 @@ namespace CustomBeatmaps.CustomData
 
         public void SetFolders(string[] folders, CCategory category)
         {
+            if (folders == null || folders.Length < 1)
+                return;
+
             _category = category;
 
-            foreach (var f in folders)
+            // Clear previous watchers
+            foreach (var w in _watchers)
+                w.Dispose();
+            _watchers = [];
+
+            folders.First(f => true);
+
+            for (var i = 0; i < folders.Length; i++)
             {
-                if (f == null)
-                    continue;
-                string folder = Path.GetFullPath(f);
-                if (_folders.Contains(folder))
-                    continue;
+                folders[i] = Path.GetFullPath(folders[i]);
 
-                _folders.Add(folder);
-
-
-                if (!Directory.Exists(folder))
-                {
-                    Directory.CreateDirectory(folder);
-                }
-
-                // Clear previous watcher
-                if (_watchers.TryGetValue(folder, out var watcher))
-                {
-                    watcher.Dispose();
-                    _watchers.Remove(folder);
-                }
-
+                if (!Directory.Exists(folders[i]))
+                    Directory.CreateDirectory(folders[i]);
             }
+
+            _folders = folders;
 
             GenerateCorePackages();
 
             // Watch for changes
-            foreach (var f in _folders)
+            _watchers = new FileSystemWatcher[_folders.Length];
+            for (var i = 0; i < _folders.Length; i++)
             {
-                if (!_watchers.TryAdd(f, FileWatchHelper.WatchFolder(f, true, OnFileChange)))
-                    ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning($"FAILED TO MAKE {f} A WATCHER"));
+                _watchers[i] = FileWatchHelper.WatchFolder(_folders[i], true, OnFileChange);
             }
 
             ReloadAll();
@@ -208,35 +217,7 @@ namespace CustomBeatmaps.CustomData
 
         public override void SetFolder(string folder, CCategory category)
         {
-            if (folder == null)
-                return;
-            folder = Path.GetFullPath(folder);
-            if (_folders.Contains(folder))
-                return;
-            
-            _folders.Add(folder);
-            _category = category;
-            
-
-            if (!Directory.Exists(folder))
-            {
-                Directory.CreateDirectory(folder);
-            }
-            
-            // Clear previous watcher
-            if (_watchers.TryGetValue(folder, out var watcher))
-            {
-                watcher.Dispose();
-                _watchers.Remove(folder);
-            }
-
-            //GenerateCorePackages();
-
-            // Watch for changes
-            _watchers.Add(folder, FileWatchHelper.WatchFolder(folder, true, OnFileChange));
-            //_watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
-            // Reload now
-            //ReloadAll();
+            SetFolders([folder], category);
         }
 
         protected override void OnFileChange(FileSystemEventArgs evt)
@@ -244,9 +225,9 @@ namespace CustomBeatmaps.CustomData
             string changedFilePath = Path.GetFullPath(evt.FullPath);
 
             // ???
-            if (!_folders.Where(f => changedFilePath.Contains(f)).Any())
+            if (!_folders.First(f => changedFilePath.Contains(f)).Any())
                 return;
-            var folder = _folders.Where(f => changedFilePath.Contains(f)).First();
+            var folder = _folders.First(f => changedFilePath.Contains(f));
 
             // The root folder within the packages folder we consider to be a "package"
             string basePackageFolder = Path.GetFullPath(Path.Combine(folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(folder.Length + 1))));
@@ -254,7 +235,8 @@ namespace CustomBeatmaps.CustomData
             ScheduleHelper.SafeLog($"Base Package Folder IN LOCAL: {basePackageFolder}");
 
             // Special case: Root package folder is deleted, we delete a package.
-            if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)
+            //if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)
+            if (false)
             {
                 ScheduleHelper.SafeLog($"Local Package DELETE: {basePackageFolder}");
                 RemovePackage(basePackageFolder);
@@ -281,46 +263,11 @@ namespace CustomBeatmaps.CustomData
                         await Task.Delay(400);
                         RefreshQueuedPackages();
 
-                    })
-                        .ContinueWith(task => {
-                            // VERY hacky
-                            task.RunSynchronously();
-                            ArcadeHelper.ReloadArcadeList();
-                        });
+                    });
 
                 }
             }
 
-        }
-
-        public override List<CustomPackageLocal> Packages
-        {
-            get
-            {
-                if (InitialLoadState.Loading)
-                {
-                    return new List<CustomPackageLocal>();
-                }
-                lock (_packages)
-                {
-                    return _packages;
-                }
-            }
-        }
-
-        public override List<SongData> Songs
-        {
-            get
-            {
-                if (InitialLoadState.Loading)
-                {
-                    return new List<SongData>();
-                }
-                lock (_packages)
-                {
-                    return _packages.SelectMany(p => p.SongDatas).ToList();
-                }
-            }
         }
 
     }

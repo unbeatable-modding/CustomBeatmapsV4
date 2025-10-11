@@ -47,16 +47,43 @@ namespace CustomBeatmaps.CustomData
         public abstract void ReloadAll();
         protected abstract void UpdatePackage(string folderPath = null);
         protected abstract void RemovePackage(string folderPath);
-        
+
         /// <summary>
         /// List of all Packages this manager can see
         /// </summary>
-        public abstract List<P> Packages { get; }
+        public virtual List<P> Packages
+        {
+            get
+            {
+                if (InitialLoadState.Loading)
+                {
+                    return new List<P>();
+                }
+                lock (_packages)
+                {
+                    return _packages;
+                }
+            }
+        }
+
         /// <summary>
         /// List of all Songs inside all Packages this manager can see
         /// (Songs contain beatmaps)
         /// </summary>
-        public abstract List<SongData> Songs { get; }
+        public virtual List<SongData> Songs
+        {
+            get
+            {
+                if (InitialLoadState.Loading)
+                {
+                    return new List<SongData>();
+                }
+                lock (_packages)
+                {
+                    return _packages.SelectMany(p => p.SongDatas).ToList();
+                }
+            }
+        }
 
         public abstract bool PackageExists(string folder);
 

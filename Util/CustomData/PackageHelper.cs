@@ -170,7 +170,7 @@ namespace CustomBeatmaps.Util.CustomData
             return result.ToArray();
         }
 
-        public static CustomPackageLocal[] LoadLocalPackagesMulti(List<string> folderPaths, CCategory category,
+        public static CustomPackageLocal[] LoadLocalPackagesMulti(string[] folderPaths, CCategory category,
             Action<CustomPackage> onLoadPackage = null, Action<BeatmapException> onBeatmapFail = null)
         {
             var result = new List<CustomPackageLocal>();

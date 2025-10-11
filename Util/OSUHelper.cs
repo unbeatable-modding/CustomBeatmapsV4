@@ -17,45 +17,6 @@ namespace CustomBeatmaps.Util
 {
     public static class OSUHelper
     {
-        /*
-        public static CustomSong[] LoadOsuBeatmaps(string path, int category, out string failMessage)
-        {
-            failMessage = "";
-            path = GetOsuPath(path);
-            if (Directory.Exists(path))
-            {
-                List<CustomSong> songs = new List<CustomSong>();
-                foreach (string osuProjectDir in Directory.EnumerateDirectories(path))
-                {
-                    foreach (string file in Directory.EnumerateFiles(osuProjectDir, "*.*", SearchOption.AllDirectories))
-                    {
-                        if (file.EndsWith(".osu"))
-                        {
-                            try
-                            {
-                                var toLoad = new CustomSong(file, category);
-                                //CustomPackageHelper.AddSongToList(toLoad, ref songs);
-                            }
-                            catch (Exception e)
-                            {
-                                failMessage += e.Message + "\n";
-                            }
-                        }
-                    }
-                }
-
-                double TimeSinceLastWrite(string filename)
-                {
-                    return (DateTime.Now - File.GetLastWriteTime(filename)).TotalSeconds;
-                }
-
-                // Sort by newest access
-                //beatmaps.Sort((left, right) => Math.Sign(TimeSinceLastWrite(left.OsuPath) - TimeSinceLastWrite(right.OsuPath)));
-                return songs.ToArray();
-            }
-            return null;
-        }
-        */
         public static string GetOsuPath(string overridePath)
         {
             if (string.IsNullOrEmpty(overridePath))
@@ -85,6 +46,24 @@ namespace CustomBeatmaps.Util
 
             string zipTarget = $"{temporaryFolderLocation}/{packageName}.zip";
             
+            ZipHelper.CreateFromDirectory(osuParentDir, zipTarget);
+
+            return zipTarget;
+        }
+
+        public static string CreateExportZipFile(CustomPackage pkg, string temporaryFolderLocation)
+        {
+            if (!Directory.Exists(temporaryFolderLocation))
+                Directory.CreateDirectory(temporaryFolderLocation);
+
+            // Zip
+            string packageName = pkg.Name;
+            string osuFullPath = Path.GetFullPath(pkg.BaseDirectory);
+            int lastSlash = osuFullPath.LastIndexOf("\\", StringComparison.Ordinal);
+            string osuParentDir = lastSlash != -1 ? osuFullPath.Substring(0, lastSlash) : "";
+
+            string zipTarget = $"{temporaryFolderLocation}/{packageName}.zip";
+
             ZipHelper.CreateFromDirectory(osuParentDir, zipTarget);
 
             return zipTarget;

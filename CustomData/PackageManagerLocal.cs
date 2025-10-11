@@ -232,35 +232,5 @@ namespace CustomBeatmaps.CustomData
 
         }
 
-        public override List<CustomPackageLocal> Packages
-        {
-            get
-            {
-                if (InitialLoadState.Loading)
-                {
-                    return new List<CustomPackageLocal>();
-                }
-                lock (_packages)
-                {
-                    return _packages;
-                }
-            }
-        }
-
-        public override List<SongData> Songs
-        {
-            get
-            {
-                if (InitialLoadState.Loading)
-                {
-                    return new List<SongData>();
-                }
-                lock (_packages)
-                {
-                    return _packages.SelectMany(p => p.SongDatas).ToList();
-                }
-            }
-        }
-
     }
 }
