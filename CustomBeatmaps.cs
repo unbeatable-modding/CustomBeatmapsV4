@@ -8,6 +8,7 @@ using CustomBeatmaps.Util;
 using CustomBeatmaps.Util.CustomData;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
@@ -144,6 +145,8 @@ namespace CustomBeatmaps
             PackageHelper.TryAddCustomCategory();
         }
 
+        public static bool CanGetTexture = false;
+
         public void Start()
         {
             // Disclaimer screen
@@ -164,6 +167,8 @@ namespace CustomBeatmaps
                 };
             }
 
+            CanGetTexture = true;
+            ScheduleHelper.SafeInvoke(() => PackageHelper.GetAllCustomSongs.ForEach(s => s.GetTexture()));
         }
 
         private static bool _quitted;

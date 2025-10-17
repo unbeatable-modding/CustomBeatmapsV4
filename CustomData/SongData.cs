@@ -180,9 +180,13 @@ namespace CustomBeatmaps.CustomData
         }
 
         // Custom Images Stuff
-        // Note: This has been copied from before the refactor, make sure it's not breaking things
+        // Note: this will crash if not SafeInvoke'd
+        // (I have no idea why)
         public void GetTexture()
         {
+            if (!CustomBeatmaps.CanGetTexture)
+                return;
+
             var traverse = Traverse.Create(this);
 
             if (Data.CoverPath != null && File.Exists($"{Data.DirectoryPath}\\{Data.CoverPath}"))

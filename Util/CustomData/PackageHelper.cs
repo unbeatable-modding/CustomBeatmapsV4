@@ -245,7 +245,7 @@ namespace CustomBeatmaps.Util.CustomData
         /// <summary>
         /// Return a list of all Custom Songs
         /// </summary>
-        public static List<SongData> GetAllCustomSongs
+        public static List<SongData> GetAllSongDatas
         {
             get
             {
@@ -262,7 +262,7 @@ namespace CustomBeatmaps.Util.CustomData
         /// <summary>
         /// Return a list of all Custom SongInfos
         /// </summary>
-        public static List<CustomSong> GetAllCustomSongInfos
+        public static List<CustomSong> GetAllCustomSongs
         {
             get
             {

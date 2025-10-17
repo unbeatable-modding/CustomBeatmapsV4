@@ -9,9 +9,9 @@ namespace CustomBeatmaps.UI
 {
     public static class CustomBeatmapsUI
     {
-        private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
-        private static PackageListUILocal LocalPackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
-        private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
+        private static PackageTabUIOnline OnlinePackageList = new PackageTabUIOnline(CustomBeatmaps.LocalServerPackages);
+        private static PackageTabUILocal LocalPackageList = new PackageTabUILocal(CustomBeatmaps.LocalUserPackages);
+        private static PackageTabUIOSU OsuPackageList = new PackageTabUIOSU(CustomBeatmaps.OSUSongManager);
 
         public static void Render()
         {

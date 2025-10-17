@@ -36,7 +36,6 @@ namespace CustomBeatmaps.Util.CustomData
 
             // Get online Packages first (if we can)
             ScheduleHelper.SafeLog("step A (Loading Online)");
-            //var r = FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList);
             foreach (var opkg in opkgs)
             {
                 if (TryLoadOnlineServerPackage(opkg, out var potentialNewPackage, category, onBeatmapFail, getPkgs))

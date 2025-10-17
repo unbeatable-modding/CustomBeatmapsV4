@@ -33,7 +33,9 @@ namespace CustomBeatmaps.CustomData
                     ScheduleHelper.SafeLog($"RELOADING ALL PACKAGES FROM {_folder}");
 
                     _packages.Clear();
-                    _onlinePackages = PackageServerHelper.FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList).Result.ToList();
+                    // Don't fetch for beta update
+                    _onlinePackages = new();
+                    //_onlinePackages = PackageServerHelper.FetchOnlinePackageList(CustomBeatmaps.BackendConfig.ServerPackageList).Result.ToList();
                     var packages = PackageServerHelper.LoadServerPackages(_folder, _category, OnlinePackages, loadedPackage =>
                     {
                         InitialLoadState.Loaded++;
@@ -53,21 +55,21 @@ namespace CustomBeatmaps.CustomData
                     InitialLoadState.Loading = false;
                 }
 
+                ArcadeHelper.ReloadArcadeList();
                 ScheduleHelper.SafeInvoke(() =>
-                {
-                    Songs.ForEach(s =>
                     {
-                        if (s.Local)
-                            s.Song.GetTexture();
+                        Songs.ForEach(s =>
+                        {
+                            if (s.Local)
+                                s.Song.GetTexture();
+                        });
                     });
-                    ArcadeHelper.LoadCustomSongs();
-                });
+                
             }).Start();
         }
 
         protected override void UpdatePackage(string folderPath)
         {
-            ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning($"USING {folderPath} to check"));
             try
             {
                 // Remove old package if there was one and update
@@ -81,19 +83,20 @@ namespace CustomBeatmaps.CustomData
                 if (!Directory.Exists(folderPath))
                         return;
 
-                foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
+                // Weird fix for also getting the top folder
+                List<string> dirs = Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories).ToList();
+                dirs.Add(folderPath);
+
+                foreach (string subDir in dirs)
                 {
                     if (PackageServerHelper.TryLoadLocalServerPackage(subDir, _folder, out CustomPackageServer package, _category, false,
-                     _onLoadException, null))
-                    //_onLoadException, () => _packages.ToDictionary(p => p.GUID)))
+                    _onLoadException, () => { return Packages.Where(p => p.DownloadStatus == BeatmapDownloadStatus.Downloaded).ToDictionary(p => p.GUID); } ))
                     {
-                        
-
                         ScheduleHelper.SafeInvoke(() => package.SongDatas.ForEach(s => s.Song.GetTexture()));
                         ScheduleHelper.SafeLog($"UPDATING PACKAGE: {subDir}");
                         lock (_packages)
                         {
-                            /*
+                            
                             if (OnlinePackages.Any(o => o.GUID == package.GUID))
                             {
                                 var opkg = OnlinePackages.First(o => o.GUID == package.GUID);
@@ -101,17 +104,14 @@ namespace CustomBeatmaps.CustomData
                                 package.Time = opkg.UploadTime;
 
                                 var toReplace = _packages.FindIndex(o => o.GUID == package.GUID);
-                                _packages.RemoveAt(toReplace);
-                                _packages.Add(package);
-                                //_packages[toReplace] = package;
+                                _packages[toReplace] = package;
                             }
                             else
                             {
                                 _packages.Add(package);
                             }
-                            */
-
-                            _packages.Add(package);
+                            
+                            //_packages.Add(package);
 
                             lock (_downloadedFolders)
                             {
@@ -119,8 +119,8 @@ namespace CustomBeatmaps.CustomData
                                     _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                             }
                         }
+                        ArcadeHelper.ReloadArcadeList();
                         PackageUpdated?.Invoke(package);
-                        Task.Run(() => ArcadeHelper.ReloadArcadeList());
                     }
                     else
                     {
@@ -134,40 +134,42 @@ namespace CustomBeatmaps.CustomData
             }
             
         }
+
         protected override void RemovePackage(string folderPath)
         {
-            lock (_packages)
+            try
             {
-                string fullPath = Path.GetFullPath(folderPath);
-                int toRemove = _packages.FindIndex(check => check.BaseDirectory == fullPath);
-                if (toRemove != -1)
+                lock (_packages)
                 {
-                    var p = _packages[toRemove];
-                    //_packages.RemoveAt(toRemove);
-                    //string.IsNullOrEmpty(p.ServerURL);
-
-                    if (PackageServerHelper.TryLoadOnlineServerPackage(OnlinePackages.First(o => o.GUID == p.GUID), out var package, _category, _onLoadException))
+                    int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
+                    if (toRemove != -1)
                     {
-                        _packages[toRemove] = package;
+                        var p = _packages[toRemove];
+                        _packages.RemoveAt(toRemove);
+                        lock (_downloadedFolders)
+                        {
+                            _downloadedFolders.Remove(folderPath);
+                        }
+
+                        if (OnlinePackages.Exists(o => o.GUID == p.GUID) &&
+                            PackageServerHelper.TryLoadOnlineServerPackage(OnlinePackages.First(o => o.GUID == p.GUID), out var package, _category, _onLoadException))
+                        {
+                            _packages.Add(package);
+                        }
+
+                        ScheduleHelper.SafeLog($"REMOVED PACKAGE: {folderPath}");
+                        PackageUpdated?.Invoke(p);
                     }
                     else
                     {
-                        _packages.RemoveAt(toRemove);
+                        ScheduleHelper.SafeLog($"CANNOT find package to remove: {folderPath}");
                     }
-
-                    lock (_downloadedFolders)
-                    {
-                        _downloadedFolders.Remove(fullPath);
-                    }
-
-                    ScheduleHelper.SafeLog($"REMOVED PACKAGE: {fullPath}");
-                    PackageUpdated?.Invoke(p);
-                }
-                else
-                {
-                    ScheduleHelper.SafeLog($"CANNOT find package to remove: {folderPath}");
                 }
             }
+            catch (Exception e)
+            {
+                CustomBeatmaps.Log.LogError(e);
+            } 
         }
 
         public override bool PackageExists(string folder)
@@ -200,6 +202,8 @@ namespace CustomBeatmaps.CustomData
                 _watcher.Dispose();
             }
 
+            GenerateCorePackages();
+
             // Watch for changes
             _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
             // Reload now
@@ -212,17 +216,18 @@ namespace CustomBeatmaps.CustomData
             // The root folder within the packages folder we consider to be a "package"
             string basePackageFolder = Path.GetFullPath(Path.Combine(_folder, StupidMissingTypesHelper.GetPathRoot(changedFilePath.Substring(_folder.Length + 1))));
 
-            ScheduleHelper.SafeLog($"Base Package Folder IN LOCAL: {basePackageFolder}");
+            ScheduleHelper.SafeLog($"Base Package Folder IN SERVER: {basePackageFolder}");
 
             // Special case: Root package folder is deleted, we delete a package.
             if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)
             {
-                ScheduleHelper.SafeLog($"Local Package DELETE: {basePackageFolder}");
+                ScheduleHelper.SafeLog($"Server Package DELETE: {basePackageFolder}");
                 RemovePackage(basePackageFolder);
+                _dontLoad.Add(basePackageFolder);
                 return;
             }
 
-            ScheduleHelper.SafeLog($"Local Package Change: {evt.ChangeType}: {basePackageFolder} ");
+            ScheduleHelper.SafeLog($"Server Package Change: {evt.ChangeType}: {basePackageFolder} ");
 
             lock (_loadQueue)
             {
@@ -230,7 +235,6 @@ namespace CustomBeatmaps.CustomData
                 bool isFirst = _loadQueue.Count == 0;
                 if (!_loadQueue.Contains(basePackageFolder))
                 {
-                    //ScheduleHelper.SafeLog($"adding {basePackageFolder} to queue");
                     _loadQueue.Enqueue(basePackageFolder);
                 }
 
@@ -241,14 +245,7 @@ namespace CustomBeatmaps.CustomData
                     {
                         await Task.Delay(400);
                         RefreshQueuedPackages();
-
-                    })
-                        .ContinueWith(task => {
-                            // VERY hacky
-                            //task.RunSynchronously();
-                            //ArcadeHelper.ReloadArcadeList();
-                        });
-
+                    });
                 }
             }
 

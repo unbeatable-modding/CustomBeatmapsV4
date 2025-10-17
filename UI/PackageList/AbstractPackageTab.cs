@@ -12,7 +12,7 @@ using static CustomBeatmaps.Util.ArcadeHelper;
 namespace CustomBeatmaps.UISystem
 {
     // the horror
-    public abstract class AbstractPackageList<P>
+    public abstract class AbstractPackageTab<P>
         where P : CustomPackage
     {
         protected PackageManagerGeneric<P> Manager;
@@ -38,7 +38,7 @@ namespace CustomBeatmaps.UISystem
         protected Difficulty _difficulty = Difficulty.All;
         protected Action<Difficulty> SetDifficulty;
 
-        protected List<BeatmapData> _selectedBeatmaps;
+        protected List<BeatmapData> _selectableBeatmaps;
         protected BeatmapData _selectedBeatmap;
         protected P _selectedPackage;
 
@@ -48,7 +48,7 @@ namespace CustomBeatmaps.UISystem
         protected Action[] RightRenders;
         protected string _searchQuery;
 
-        public AbstractPackageList(PackageManagerGeneric<P> manager)
+        public AbstractPackageTab(PackageManagerGeneric<P> manager)
         {
             Manager = manager;
             Init(manager);
@@ -135,7 +135,6 @@ namespace CustomBeatmaps.UISystem
                 if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
                     continue;
 
-                //var toAdd = new CustomPackage(package: p);
                 headers.Add(p);
             }
 
@@ -143,7 +142,22 @@ namespace CustomBeatmaps.UISystem
             _pkgHeaders = headers;
         }
 
-        protected abstract void MapPackages();
+        protected virtual void MapPackages()
+        {
+            if (_pkgHeaders.Count < 1)
+                return;
+
+            if (SelectedPackageIndex >= _pkgHeaders.Count)
+                SetSelectedPackageIndex(_pkgHeaders.Count - 1);
+            _selectedPackage = _pkgHeaders[SelectedPackageIndex];
+
+            _selectableBeatmaps = _selectedPackage.BeatmapDatas.ToList();
+
+            if (SelectedBeatmapIndex >= _selectableBeatmaps.Count)
+                SetSelectedBeatmapIndex?.Invoke(_selectableBeatmaps.Count - 1);
+            _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
+        }
+
         protected virtual void RenderSearchbar()
         {
             Searchbar.Render(_searchQuery, searchTextInput =>
@@ -174,14 +188,14 @@ namespace CustomBeatmaps.UISystem
             RightRenders = [
                 () =>
                 {
-                    PackageInfoTopUI.Render(_selectedBeatmaps, SelectedBeatmapIndex);
+                    PackageInfoTopUI.Render(_selectableBeatmaps, SelectedBeatmapIndex);
                 },
                 () =>
                 {
                 },
                 () =>
                 {
-                    PackageBeatmapPickerUI.Render(_selectedBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
+                    PackageBeatmapPickerUI.Render(_selectableBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
 
                     if (PlayButtonUI.Render("Play", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                     {
@@ -192,7 +206,10 @@ namespace CustomBeatmaps.UISystem
                 }
             ];
         }
-        protected abstract void RunSong();
+        protected virtual void RunSong()
+        {
+            ArcadeHelper.PlaySong(_selectedBeatmap);
+        }
         public virtual void Render(Action onRenderAboveList)
         {
             var loadState = LoadState;
@@ -235,7 +252,7 @@ namespace CustomBeatmaps.UISystem
 
         protected void PreviewAudio()
         {
-            if (ArcadeHelper.LoadingArcade)
+            if (LoadingArcade)
                 return;
             if (_selectedBeatmap.BeatmapPointer != null)
             {

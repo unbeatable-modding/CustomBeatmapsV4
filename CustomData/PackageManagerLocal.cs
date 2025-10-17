@@ -49,14 +49,10 @@ namespace CustomBeatmaps.CustomData
                     InitialLoadState.Loading = false;
                 }
 
-                ScheduleHelper.SafeInvoke(() =>
-                {
-                    //Songs.ForEach(s => s.Song.GetTexture());
-                    //ArcadeHelper.LoadCustomSongs();
-                });
-            }).Start();
+                ArcadeHelper.LoadCustomSongs();
+                ScheduleHelper.SafeInvoke(() => Songs.ForEach(s => s.Song.GetTexture()));
 
-            //GenerateCorePackages();
+            }).Start();
         }
 
         public void GenerateCorePackages()
@@ -70,8 +66,6 @@ namespace CustomBeatmaps.CustomData
                 {
                     await PackageHelper.PopulatePackageCores(_folder);
                 }).Wait();
-                
-
             }
         }
 
@@ -80,7 +74,7 @@ namespace CustomBeatmaps.CustomData
             // Remove old package if there was one and update
             lock (_packages)
             {
-                int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
+                int toRemove = _packages.FindIndex(p => p.BaseDirectory == folderPath);
                 if (toRemove != -1)
                     _packages.RemoveAt(toRemove);
             }
@@ -115,8 +109,6 @@ namespace CustomBeatmaps.CustomData
                     ScheduleHelper.SafeLog($"CANNOT find package: {subDir}");
                 }
             }
-
-            
         }
 
         protected override void RemovePackage(string folderPath)
@@ -176,7 +168,7 @@ namespace CustomBeatmaps.CustomData
                 _watcher.Dispose();
             }
 
-            //GenerateCorePackages();
+            GenerateCorePackages();
 
             // Watch for changes
             _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
@@ -197,6 +189,7 @@ namespace CustomBeatmaps.CustomData
             {
                 ScheduleHelper.SafeLog($"Local Package DELETE: {basePackageFolder}");
                 RemovePackage(basePackageFolder);
+                _dontLoad.Add(basePackageFolder);
                 return;
             }
 
@@ -219,12 +212,6 @@ namespace CustomBeatmaps.CustomData
                     {
                         await Task.Delay(400);
                         RefreshQueuedPackages();
-
-                    })
-                        .ContinueWith(task => {
-                        // VERY hacky
-                        task.RunSynchronously();
-                        ArcadeHelper.ReloadArcadeList();
                     });
 
                 }

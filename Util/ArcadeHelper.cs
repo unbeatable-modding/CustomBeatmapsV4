@@ -65,17 +65,21 @@ namespace CustomBeatmaps.Util
             return Rooms[index].SceneName;
         }
 
-        public static bool LoadingArcade = false;
+        public static bool LoadingArcade { get; private set; } = false;
 
         /// <summary>
         /// Forcefully reload the arcade
         /// </summary>
         public static void ReloadArcadeList()
         {
+            while (LoadingArcade) { Thread.Sleep(200); }
             LoadingArcade = true;
             LoadCustomSongs();
             if (SceneManager.GetActiveScene().name != "ArcadeModeMenu")
+            {
+                LoadingArcade = false;
                 return;
+            }
             var currentArcade = ArcadeSongDatabase.Instance;
             var arcade = Traverse.Create(currentArcade);
             var _songDatabase = arcade.Field("_songDatabase").GetValue<Dictionary<string, ArcadeSongDatabase.BeatmapItem>>();
@@ -110,7 +114,7 @@ namespace CustomBeatmaps.Util
             }
 
             
-            var fetch = PackageHelper.GetAllCustomSongInfos.ToList();
+            var fetch = PackageHelper.GetAllCustomSongs.ToList();
             lock (fetch)
             {
                 foreach (Song s in fetch)
@@ -136,8 +140,62 @@ namespace CustomBeatmaps.Util
                     _loadingSongs = false;
                 });
                 
+            } 
+        }
+
+        public static void LoadCustomSongs(List<CustomSong> fetch)
+        {
+            // Weird logic to not freak out when called multiple times in quick succession
+            while (_loadingSongs) { Thread.Sleep(200); }
+
+            _loadingSongs = true;
+
+            fetch.ForEach(s => s.GetTexture());
+
+            var killList = songs.Where(s => s is CustomSong).Select(s => s.name);
+
+            // Make clones
+            var songsTmp = songs.ToList();
+            var _visibleSongsTmp = _visibleSongs.ToList();
+            var _songsTmp = new Dictionary<string, Song>(_songs.AsEnumerable());
+            var songNamesTmp = songNames.ToList();
+
+            foreach (string k in killList)
+            {
+                songsTmp.Remove(_songsTmp[k]);
+                _visibleSongsTmp.Remove(_songsTmp[k]);
+                _songsTmp.Remove(k);
+                songNamesTmp.Remove(k);
             }
-            
+
+
+            //var fetch = PackageHelper.GetAllCustomSongInfos.ToList();
+            lock (fetch)
+            {
+                foreach (Song s in fetch)
+                {
+                    //CustomBeatmaps.Log.LogDebug($"{s.name}");
+
+                    if (!_songsTmp.ContainsKey(s.name))
+                    {
+                        songsTmp.Add(s);
+                        _songsTmp.Add(s.name, s);
+                        _visibleSongsTmp.Add(s);
+                        songNamesTmp.Add(s.name);
+                        //_categorySongs[s.Category].Add(s);
+                    }
+                }
+                Task.Run(() =>
+                {
+                    traverse.Field("songs").SetValue(songsTmp);
+                    traverse.Field("_songs").SetValue(_songsTmp);
+                    traverse.Field("_visibleSongs").SetValue(_visibleSongsTmp);
+                    traverse.Field("songNames").SetValue(songNamesTmp);
+
+                    _loadingSongs = false;
+                });
+
+            }
         }
 
         public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;

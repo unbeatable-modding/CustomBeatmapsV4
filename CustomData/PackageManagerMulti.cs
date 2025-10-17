@@ -64,11 +64,9 @@ namespace CustomBeatmaps.CustomData
                     InitialLoadState.Loading = false;
                 }
 
-                ScheduleHelper.SafeInvoke(() =>
-                {
-                    Songs.ForEach(s => s.Song.GetTexture());
-                    ArcadeHelper.LoadCustomSongs();
-                });
+                ArcadeHelper.LoadCustomSongs();
+                ScheduleHelper.SafeInvoke(() => Songs.ForEach(s => s.Song.GetTexture()));
+
             }).Start();
         }
 
@@ -137,8 +135,6 @@ namespace CustomBeatmaps.CustomData
                     ScheduleHelper.SafeLog($"CANNOT find package: {subDir}");
                 }
             }
-
-
         }
 
         protected override void RemovePackage(string folderPath)
@@ -246,7 +242,7 @@ namespace CustomBeatmaps.CustomData
             {
                 // We should refresh queued packages in bulk.
                 bool isFirst = _loadQueue.Count == 0;
-                if (!_loadQueue.Contains(basePackageFolder) && !_dontLoad.Contains(basePackageFolder))
+                if (!_loadQueue.Contains(basePackageFolder))
                 {
                     _loadQueue.Enqueue(basePackageFolder);
                 }

@@ -7,15 +7,15 @@ using UnityEngine;
 
 namespace CustomBeatmaps.UI
 {
-    public class PackageListUIOSU : AbstractPackageList<CustomPackageLocal>
+    public class PackageTabUIOSU : AbstractPackageTab<CustomPackageLocal>
     {
         private static bool _overrideCountdown = true;
-        public PackageListUIOSU(PackageManagerLocal pkgManager) : base(pkgManager)
+        public PackageTabUIOSU(PackageManagerLocal pkgManager) : base(pkgManager)
         {
             RightRenders = [
                 () =>
                     {
-                        PackageInfoTopUI.Render(_selectedBeatmaps, SelectedBeatmapIndex);
+                        PackageInfoTopUI.Render(_selectableBeatmaps, SelectedBeatmapIndex);
                     },
                     () =>
                     {
@@ -46,7 +46,7 @@ namespace CustomBeatmaps.UI
                             string exportName = _selectedBeatmap.SongName;
                             OSUHelper.CreateExportZipFile(_selectedPackage, exportFolder);
                         }
-                        PackageBeatmapPickerUI.Render(_selectedBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
+                        PackageBeatmapPickerUI.Render(_selectableBeatmaps, SelectedBeatmapIndex, SetSelectedBeatmapIndex);
                         if (PlayButtonUI.Render("EDIT", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                         {
                             // Play a local beatmap
@@ -56,53 +56,10 @@ namespace CustomBeatmaps.UI
                     }
             ];
         }
-        /*
-        protected override void RegenerateHeaders()
-        {
-            var headers = new List<CustomPackage>(_localPackages.Count);
-            //var headersMap = new Dictionary<PackageHeader, CustomLocalPackage>(_localPackages.Count);
-            foreach (var p in _localPackages)
-            {
 
-                if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
-                    continue;
-
-                if (!UIConversionHelper.PackageMatchesFilter(p, _searchQuery))
-                    continue;
-
-                //var toAdd = new PackageHeader(p, false);
-                headers.Add(p);
-                //headersMap.Add(toAdd, p);
-            }
-
-            _pkgHeaders = headers;
-            //_pkgHeadersMap = headersMap;
-        }
-        */
         protected override void SortPackages()
         {
             UIConversionHelper.SortPackages(_localPackages, SortMode);
-        }
-        
-        protected override void MapPackages()
-        {
-            if (_pkgHeaders.Count < 1)
-                return;
-
-            if (SelectedPackageIndex >= _pkgHeaders.Count)
-                SetSelectedPackageIndex(_pkgHeaders.Count - 1);
-            _selectedPackage = _pkgHeaders[SelectedPackageIndex];
-
-            //_selectedBeatmaps =
-            //    UIConversionHelper.CustomBeatmapInfosToBeatmapHeaders(_selectedPackage.PkgSongs);
-            _selectedBeatmaps = _selectedPackage.BeatmapDatas.ToList();
-
-            if (SelectedBeatmapIndex >= _selectedBeatmaps.Count)
-            {
-                SetSelectedBeatmapIndex?.Invoke(_selectedBeatmaps.Count - 1);
-            }
-
-            _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
         }
 
         protected override void RunSong()
