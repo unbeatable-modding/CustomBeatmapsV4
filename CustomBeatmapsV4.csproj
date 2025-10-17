@@ -23,11 +23,8 @@
       <Reference Include="Assembly-CSharp">
         <HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath>
       </Reference>
-      <Reference Include="Assembly-CSharp-firstpass">
-        <HintPath>$(ManagedPath)\Assembly-CSharp-firstpass.dll</HintPath>
-      </Reference>
       <Reference Include="BepInEx.Preloader">
-        <HintPath>C:\Program Files (x86)\Steam\steamapps\common\UNBEATABLE Demo\BepInEx\core\BepInEx.Preloader.dll</HintPath>
+        <HintPath>$(GamePath)\BepInEx\core\BepInEx.Preloader.dll</HintPath>
       </Reference>
       <Reference Include="DOTween">
         <HintPath>$(ManagedPath)\DOTween.dll</HintPath>

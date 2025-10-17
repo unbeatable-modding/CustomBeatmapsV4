@@ -1,12 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Arcade.UI;
+﻿using System.Linq;
 using CustomBeatmaps.CustomData;
-using CustomBeatmaps.CustomPackages;
-using Rhythm;
 using UnityEngine;
-using static Arcade.UI.ArcadeBeatmapProvider;
 
 namespace CustomBeatmaps.UI.PackageList
 {

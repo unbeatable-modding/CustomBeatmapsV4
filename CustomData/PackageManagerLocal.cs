@@ -1,16 +1,14 @@
-﻿using System;
+﻿using CustomBeatmaps.CustomPackages;
+using CustomBeatmaps.Util;
+using CustomBeatmaps.Util.CustomData;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CustomBeatmaps.Util;
-using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
-using CustomBeatmaps.CustomPackages;
-using CustomBeatmaps.Util.CustomData;
+using Path = Pri.LongPath.Path;
 
 namespace CustomBeatmaps.CustomData
 {
@@ -70,7 +68,7 @@ namespace CustomBeatmaps.CustomData
             {
                 Task.Run(async () =>
                 {
-                    await PackageHelper.PopulatePackageCoresNew(_folder);
+                    await PackageHelper.PopulatePackageCores(_folder);
                 }).Wait();
                 
 
@@ -90,7 +88,11 @@ namespace CustomBeatmaps.CustomData
             if (!Directory.Exists(folderPath))
                 return;
 
-            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
+            // Weird fix for also getting the top folder
+            List<string> dirs = Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories).ToList();
+            dirs.Add(folderPath);
+
+            foreach (string subDir in dirs)
             {
                 if (PackageHelper.TryLoadLocalPackage(subDir, _folder, out CustomPackageLocal package, _category, false,
                     _onLoadException, () => { return Packages.Select(s => s.GUID).ToHashSet(); }))
@@ -99,16 +101,13 @@ namespace CustomBeatmaps.CustomData
                     ScheduleHelper.SafeLog($"UPDATING PACKAGE: {subDir}");
                     lock (_packages)
                     {
-                        // Remove old package if there was one and update
-                        //int toRemove = _packages.FindIndex(check => check.FolderName == package.FolderName);
-                        //if (toRemove != -1)
-                        //    _packages.RemoveAt(toRemove);
                         _packages.Add(package);
                         lock (_downloadedFolders)
                         {
                             _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                         }
                     }
+                    ArcadeHelper.ReloadArcadeList();
                     PackageUpdated?.Invoke(package);
                 }
                 else
@@ -136,6 +135,7 @@ namespace CustomBeatmaps.CustomData
                     }
 
                     ScheduleHelper.SafeLog($"REMOVED PACKAGE: {fullPath}");
+                    ArcadeHelper.ReloadArcadeList();
                     PackageUpdated?.Invoke(p);
                 }
                 else

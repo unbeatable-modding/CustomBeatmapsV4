@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using CustomBeatmaps.CustomData;
-using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
-using RJBuildScripts;
 using UnityEngine;
 
 namespace CustomBeatmaps.UI

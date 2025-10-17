@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CustomBeatmaps.UI;
+﻿using CustomBeatmaps.UI;
 using CustomBeatmaps.UI.Highscore;
 using HarmonyLib;
 using UnityEngine;

@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using Arcade.UI.SongSelect;
 using CustomBeatmaps.CustomData;
-using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util.CustomData;
 using UnityEngine;

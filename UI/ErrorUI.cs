@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using CustomBeatmaps.UISystem;
-using RJBuildScripts;
 using UnityEngine;
 
 namespace CustomBeatmaps.UI

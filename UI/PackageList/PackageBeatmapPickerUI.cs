@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using CustomBeatmaps.CustomData;
-using CustomBeatmaps.Util;
 using UnityEngine;
 
 namespace CustomBeatmaps.UI.PackageList

@@ -5,12 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 using Directory = Pri.LongPath.Directory;
-using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 
 namespace CustomBeatmaps.CustomData
@@ -287,7 +284,7 @@ namespace CustomBeatmaps.CustomData
             {
                 Task.Run(async () =>
                 {
-                    await PackageHelper.PopulatePackageCoresNew(_folder);
+                    await PackageHelper.PopulatePackageCores(_folder);
                 }).Wait();
             }
         }

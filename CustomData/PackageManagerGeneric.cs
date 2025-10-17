@@ -2,13 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using CustomBeatmaps.Util;
-using static CustomBeatmaps.Util.CustomData.PackageHelper;
-
-using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 using CustomBeatmaps.CustomPackages;
 
 namespace CustomBeatmaps.CustomData
@@ -91,6 +85,7 @@ namespace CustomBeatmaps.CustomData
 
         protected abstract void OnFileChange(FileSystemEventArgs evt);
 
+        protected List<string> _dontLoad = new();
         protected void RefreshQueuedPackages()
         {
             while (true)
@@ -98,7 +93,15 @@ namespace CustomBeatmaps.CustomData
                 lock (_loadQueue)
                 {
                     if (_loadQueue.Count <= 0)
+                    {
+                        _dontLoad.Clear();
                         break;
+                    }
+                    if (_dontLoad.Contains(_loadQueue.Peek()))
+                    {
+                        _loadQueue.Dequeue();
+                        continue;
+                    }
                     UpdatePackage(_loadQueue.Dequeue());
                 }
             }

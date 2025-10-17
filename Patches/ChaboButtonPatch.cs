@@ -1,23 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using Arcade.UI;
+﻿using Arcade.UI;
 using Arcade.UI.MenuStates;
 using Arcade.UI.SongSelect;
 using CustomBeatmaps.UI;
-using CustomBeatmaps.Util;
 using FMOD.Studio;
 using HarmonyLib;
-using InGameCutsceneStuff.Runtime;
 using Rewired;
-using TMPro;
 using UI;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace CustomBeatmaps.Patches
 {

@@ -1,26 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using HarmonyLib;
 using Rhythm;
-using UnityEngine;
-using Utilities;
-using CustomBeatmaps.CustomPackages;
 using Arcade.UI.SongSelect;
 using UnityEngine.SceneManagement;
 using Arcade.UI;
 using FMODUnity;
-using CustomBeatmaps.Patches;
-
-using static Rhythm.BeatmapIndex;
-using File = Pri.LongPath.File;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util.CustomData;
 using System.Threading.Tasks;
 using System.Threading;
+
+using static Rhythm.BeatmapIndex;
 
 namespace CustomBeatmaps.Util
 {
@@ -73,34 +65,33 @@ namespace CustomBeatmaps.Util
             return Rooms[index].SceneName;
         }
 
+        public static bool LoadingArcade = false;
+
         /// <summary>
         /// Forcefully reload the arcade
         /// </summary>
         public static void ReloadArcadeList()
         {
+            LoadingArcade = true;
             LoadCustomSongs();
             if (SceneManager.GetActiveScene().name != "ArcadeModeMenu")
                 return;
             var currentArcade = ArcadeSongDatabase.Instance;
             var arcade = Traverse.Create(currentArcade);
             var _songDatabase = arcade.Field("_songDatabase").GetValue<Dictionary<string, ArcadeSongDatabase.BeatmapItem>>();
-            //var allCategory = arcade.Field("allCategory").GetValue<BeatmapIndex.Category>();
-            //var SelectableCategories = arcade.Field("allCategory").GetValue<List<BeatmapIndex.Category>>();
-            //SelectableCategories = BeatmapIndex.defaultIndex.GetVisibleCategories().Prepend(allCategory).ToList();
             _songDatabase.Clear();
             arcade.Method("LoadDatabase").GetValue();
             arcade.Method("RefreshSongList").GetValue();
+            LoadingArcade = false;
         }
 
         private static bool _loadingSongs = false;
         public static void LoadCustomSongs()
         {
+            // Weird logic to not freak out when called multiple times in quick succession
             while (_loadingSongs) { Thread.Sleep(200); }
             
             _loadingSongs = true;
-
-            //Task.Run(CleanSongs).Wait();
-            //await Task.Run(CleanSongs);
 
             var killList = songs.Where(s => s is CustomSong).Select(s => s.name);
 
@@ -141,10 +132,6 @@ namespace CustomBeatmaps.Util
                     traverse.Field("_songs").SetValue(_songsTmp);
                     traverse.Field("_visibleSongs").SetValue(_visibleSongsTmp);
                     traverse.Field("songNames").SetValue(songNamesTmp);
-                    //songs = songsTmp;
-                    //_songs = _songsTmp;
-                    //_visibleSongs = _visibleSongsTmp;
-                    //songNames = songNamesTmp;
 
                     _loadingSongs = false;
                 });
@@ -153,27 +140,6 @@ namespace CustomBeatmaps.Util
             
         }
 
-        // Remove all modded songs for when we want to reload the database
-        private static Action CleanSongs = (() =>
-        {
-            var killList = songs.Where(s => s is CustomSong).Select(s => s.name).ToList();
-
-            // Make clones
-            var songsTmp = songs.ToList();
-            var _visibleSongsTmp = songs.ToList();
-            var _songsTmp = songs.ToList();
-            var songNamesTmp = songs.ToList();
-
-            //CustomBeatmaps.Log.LogDebug("Trying to kill songs");
-            foreach (string k in killList)
-            {
-                songs.Remove(_songs[k]);
-                _visibleSongs.Remove(_songs[k]);
-                _songs.Remove(k);
-                songNames.Remove(k);
-            }
-        });
-        
         public static ArcadeSongDatabase SongDatabase => ArcadeSongDatabase.Instance;
         public static ArcadeSongList SongList => ArcadeSongList.Instance;
         public static ArcadeBGMManager BGM => ArcadeBGMManager.Instance;

@@ -1,21 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
-using CustomBeatmaps.UI.Highscore;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
-using HarmonyLib;
-using Pri.LongPath;
 using UnityEngine;
 
 using static CustomBeatmaps.Util.ArcadeHelper;
-using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
 
 namespace CustomBeatmaps.UI

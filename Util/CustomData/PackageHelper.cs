@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using CustomBeatmaps.CustomData;
+﻿using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
-using System.IO;
-using System.Linq;
 using HarmonyLib;
 using Rhythm;
-using static Rhythm.BeatmapIndex;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Threading;
+using static CustomBeatmaps.Util.CustomData.BeatmapHelper;
+using static Rhythm.BeatmapIndex;
+using Directory = Pri.LongPath.Directory;
+using File = Pri.LongPath.File;
+using Path = Pri.LongPath.Path;
 
 namespace CustomBeatmaps.Util.CustomData
 {
@@ -70,12 +70,16 @@ namespace CustomBeatmaps.Util.CustomData
                         var pkgCore = SerializeHelper.LoadJSON<PackageCore>(packageCoreFile);
                         
                         // Duplicate Package Guid returns false
-                        if (GUIDs.Invoke().Contains(pkgCore.GUID))
+                        if (GUIDs != null)
                         {
-                            package = new CustomPackageLocal();
-                            onBeatmapFail.Invoke(new BeatmapException("Package Guid already exists...", packageCoreFile));
-                            return false;
+                            if (GUIDs.Invoke().Contains(pkgCore.GUID))
+                            {
+                                package = new CustomPackageLocal();
+                                onBeatmapFail.Invoke(new BeatmapException("Package Guid already exists...", packageCoreFile));
+                                return false;
+                            }
                         }
+                        
 
                         package.GUID = pkgCore.GUID;
 
@@ -84,7 +88,7 @@ namespace CustomBeatmaps.Util.CustomData
                         {
                             foreach (var song in pkgCore.Songs[i])
                             {
-                                var bmapInfo = new BeatmapData($"{pkgCore.GUID}-{i}", song.Key, $"{packageFolder}\\{song.Value}", category);
+                                var bmapInfo = new BeatmapData(pkgCore.GUID, i, song.Key, $"{packageFolder}\\{song.Value}", category);
 
                                 if (songs.TryGetValue(bmapInfo.InternalName, out _))
                                 {
@@ -222,8 +226,7 @@ namespace CustomBeatmaps.Util.CustomData
                 var traverse = Traverse.Create(BeatmapIndex.defaultIndex);
                 var categories = traverse.Field("categories").GetValue<List<Category>>();
                 var categorySongs = traverse.Field("_categorySongs").GetValue<Dictionary<Category, List<Song>>>();
-                // hidden category is submissions for now
-                traverse.Field("hiddenCategory").SetValue(8);
+
 
                 // Check if the custom category already exists
                 if (!categories.Contains(customCategory))
@@ -256,22 +259,8 @@ namespace CustomBeatmaps.Util.CustomData
             }
         }
 
-        public static HashSet<Guid> GetAllGUIDs
-        {
-            get
-            {
-                var songl = new List<Guid>();
-                //songl.AddRange(CustomBeatmaps.LocalUserPackages.SelectMany(p => p.Songs));
-                songl.AddRange(CustomBeatmaps.LocalUserPackages.Packages.Select(s => s.GUID));
-                //songl.AddRange(CustomBeatmaps.SubmissionPackageManager.Songs);
-                songl.AddRange(CustomBeatmaps.LocalServerPackages.Packages.Select(s => s.GUID));
-                songl.AddRange(CustomBeatmaps.OSUSongManager.Packages.Select(s => s.GUID));
-                return songl.ToHashSet();
-            }
-        }
-
         /// <summary>
-        /// Return a list of all Custom Songs
+        /// Return a list of all Custom SongInfos
         /// </summary>
         public static List<CustomSong> GetAllCustomSongInfos
         {
@@ -297,7 +286,6 @@ namespace CustomBeatmaps.Util.CustomData
         /// </summary>
         /// <param name="folderPath">Directory to generate package from</param>
         /// <param name="recursive">Bool to check recursively for beatmaps</param>
-        /// <returns></returns>
         public static PackageCore GeneratePackageCore(string folderPath, bool recursive = true)
         {
             PackageCore pkgCore = new();
@@ -312,106 +300,57 @@ namespace CustomBeatmaps.Util.CustomData
             
             foreach (var file in subFiles)
             {
-                var bmap = new BeatmapData(file, new CCategory(0));
-                var diffIndex = new Dictionary<string, InternalDifficulty>
+                var contents = File.ReadAllText(file);
+                var relative = Path.GetFullPath(file).Substring(Path.GetFullPath(folderPath).Length + 1);
+                var songName = GetBeatmapProp(contents, "TitleUnicode", file);
+
+                // Get difficulty
+                var difficulty = InternalDifficulty.Star; // Default to Star difficulty
+                var bmapVer = GetBeatmapProp(contents, "Version", file).ToLower();
+                Dictionary<string, InternalDifficulty> difficultyIndex = new Dictionary<string, InternalDifficulty>
                 {
-                    {"Beginner", InternalDifficulty.Beginner},
-                    {"Easy", InternalDifficulty.Normal},
-                    {"Normal", InternalDifficulty.Hard},
-                    {"Hard", InternalDifficulty.Expert},
-                    {"UNBEATABLE", InternalDifficulty.UNBEATABLE},
-                    {"Star", InternalDifficulty.Star},
+                    {"beginner", InternalDifficulty.Beginner},
+                    {"easy", InternalDifficulty.Normal}, // easy is a lie shove the song into normal
+                    {"normal", InternalDifficulty.Normal},
+                    {"hard", InternalDifficulty.Hard},
+                    {"expert", InternalDifficulty.Expert},
+                    {"beatable", InternalDifficulty.Expert}, // A lot of maps like using this idk
+                    {"unbeatable", InternalDifficulty.UNBEATABLE}
                 };
-
-                var offset = 0;
-                while (true)
+                foreach (var i in difficultyIndex.Keys.ToArray())
                 {
-                    if (!songs.Contains($"{bmap.SongName}{offset}"))
+                    if (bmapVer.ToLower().StartsWith(i))
                     {
-                        songs.Add($"{bmap.SongName}{offset}");
-                        pkgCore.Songs.Add(new());
-                    }
-
-                    try
-                    {
-                        var relative = Path.GetFullPath(file).Substring(Path.GetFullPath(folderPath).Length + 1);
-                        pkgCore.Songs[songs.IndexOf($"{bmap.SongName}{offset}")].Add(diffIndex[bmap.InternalDifficulty], relative);
+                        difficulty = difficultyIndex[i];
                         break;
                     }
-                    catch
+                }
+
+                int offset = 0;
+                bool attached = false;
+                while (!attached)
+                {
+                    int index = songs.IndexOf($"{songName}-{offset}");
+                    if (index != -1)
                     {
+                        // Song exists in list, try to add it
+                        attached = pkgCore.Songs[index].TryAdd(difficulty, relative);
                         offset++;
-                        continue;
+                    }
+                    else
+                    {
+                        // We can't find the song, add it to the list
+                        pkgCore.Songs.Add(new());
+                        songs.Add($"{songName}-{offset}");
                     }
                 }
                 
-
             }
 
             return pkgCore;
         }
 
-        /// <summary>
-        /// Auto generate a new valid PackageCore from an existing CustomPackage
-        /// </summary>
-        /// <param name="pkg">A loaded CustomPackage</param>
-        /// <returns></returns>
-        public static PackageCore GeneratePackageCore(CustomPackage pkg)
-        {
-            var pkgCore = new PackageCore();
-            pkgCore.GUID = Guid.NewGuid();
-            pkgCore.Songs = new();
-            //var offset = 0;
-
-
-            List<string> diffIndextmp = ["Beginner", "Easy", "Normal", "Hard", "UNBEATABLE", "Star"];
-            foreach (var s in pkg.SongDatas)
-            {
-                pkgCore.Songs.Add(new());
-                foreach (var b in s.BeatmapDatas)
-                {
-                    var relative = Path.GetFullPath(b.BeatmapPath).Substring(pkg.BaseDirectory.Length + 1);
-                    InternalDifficulty diff = (InternalDifficulty)diffIndextmp.IndexOf(b.InternalDifficulty);
-                    pkgCore.Songs.Last().Add(diff, relative);
-                }
-            }
-            /*
-            var diffIndex = new Dictionary<string, InternalDifficulty>
-                {
-                    {"Beginner", InternalDifficulty.Beginner},
-                    {"Easy", InternalDifficulty.Normal},
-                    {"Normal", InternalDifficulty.Hard},
-                    {"Hard", InternalDifficulty.Expert},
-                    {"UNBEATABLE", InternalDifficulty.UNBEATABLE},
-                    {"Star", InternalDifficulty.Star},
-                };
-
-            foreach (var s in pkg.SongDatas)
-            {
-                pkgCore.Songs.Add(new());
-                foreach (var b in s.BeatmapDatas)
-                {
-                    var relative = Path.GetFullPath(b.BeatmapPath).Substring(pkg.BaseDirectory.Length + 1);
-                    pkgCore.Songs.Last().Add(diffIndex[b.InternalDifficulty], relative);
-                }
-            }
-            */
-            return pkgCore;
-        }
-
-        public static void PopulatePackageCores(string folderPath, Action onLoadPackage = null)
-        {
-            folderPath = Path.GetFullPath(folderPath);
-
-            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*.*", SearchOption.AllDirectories))
-            {
-                if (TryPopulatePackageCore(subDir, folderPath))
-                    continue;
-                    //onLoadPackage.Invoke();
-            }
-        }
-
-        public static async Task PopulatePackageCoresNew(string folderPath)
+        public static async Task PopulatePackageCores(string folderPath)
         {
             await Task.Delay(0);
             folderPath = Path.GetFullPath(folderPath);

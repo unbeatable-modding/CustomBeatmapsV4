@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using CustomBeatmaps.CustomPackages;
 
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
-using HarmonyLib;
-using Rhythm;
-using static Rhythm.BeatmapIndex;
-using System.Linq;
-using CustomBeatmaps.CustomData;
 using CustomBeatmaps.Util.CustomData;
 
 namespace CustomBeatmaps.Util

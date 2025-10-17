@@ -4,7 +4,6 @@ using Rhythm;
 using UnityEngine;
 using static Rhythm.BeatmapIndex;
 using CustomBeatmaps.Util;
-using UnityEngine.SocialPlatforms;
 
 namespace CustomBeatmaps.Patches
 {

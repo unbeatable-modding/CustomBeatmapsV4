@@ -6,6 +6,7 @@ namespace CustomBeatmaps.CustomPackages
 {
     public class SubmissionPackageManager
     {
+        /*
         private readonly List<ServerSubmissionPackage> _submissionPackages = new List<ServerSubmissionPackage>();
         private bool _fetching = false;
 
@@ -84,5 +85,6 @@ namespace CustomBeatmaps.CustomPackages
                 _fetching = false; // Impromptu mutex :P
             }
         }
+        */
     }
 }

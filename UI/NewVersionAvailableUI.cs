@@ -38,12 +38,12 @@ namespace CustomBeatmaps.UI
                     Application.OpenURL(Config.Backend.DownloadLatestReleaseLink);
                 }
 
-                /*
+                
                 if (GUILayout.Button("x", GUILayout.ExpandWidth(false)))
                 {
                     _closed = true;
                 }
-                */
+                
 
                 GUILayout.EndHorizontal();
             }

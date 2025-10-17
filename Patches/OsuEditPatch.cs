@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI.OSUEditMode;
 using CustomBeatmaps.Util;
 using HarmonyLib;

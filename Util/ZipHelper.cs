@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 
 namespace CustomBeatmaps.Util
 {

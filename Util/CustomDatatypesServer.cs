@@ -1,14 +1,9 @@
-﻿using CustomBeatmaps.CustomData;
-using CustomBeatmaps.CustomPackages;
+﻿using CustomBeatmaps.CustomPackages;
 using HarmonyLib;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 
 namespace CustomBeatmaps.Util
 {
@@ -78,77 +73,6 @@ namespace CustomBeatmaps.Util
 
         [JsonProperty("tags")]
         public string Tags;
-    }
-
-    [Obsolete]
-    public struct CustomServerPackageList
-    {
-        [JsonProperty("packages")]
-        public CustomServerPackage[] Packages;
-        /*
-        public override string ToString()
-        {
-            return string.Join(",\n", Packages);
-        }
-        */
-    }
-
-    [Obsolete]
-    public class CustomServerPackage : ICustomLocalPackage<CustomServerBeatmap>
-    {
-        [JsonProperty("filePath")]
-        public string ServerURL;
-        [JsonProperty("time")]
-        public DateTime UploadTime;
-        [JsonProperty("beatmaps")]
-        public Dictionary<string, CustomServerBeatmap> Beatmaps;
-
-        public string FolderName { get; set; }
-        public CustomServerBeatmap[] CustomBeatmaps => Beatmaps.Values.ToArray();
-
-        public List<string> Difficulties
-        {
-            get
-            {
-                return CustomBeatmaps.Select(b => b.Difficulty).ToList();
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{{[{string.Join(", ", Beatmaps)}] at {ServerURL} on {UploadTime}}}";
-        }
-
-        public string GetServerPackageURL()
-        {
-            return ServerURL;
-        }
-    }
-
-    [Obsolete]
-    public class CustomServerBeatmap : ICustomBeatmap
-    {
-        [JsonProperty("name")]
-        public string SongName { get; set; }
-        [JsonProperty("artist")]
-        public string Artist { get; set; }
-        [JsonProperty("creator")]
-        public string Creator { get; set; }
-        [JsonProperty("difficulty")]
-        public string Difficulty { get; set; }
-        [JsonProperty("audioFileName")]
-        public string AudioFileName { get; set; }
-        [JsonProperty("level")]
-        public int Level { get; set; }
-        [JsonProperty("flavorText")]
-        public string FlavorText { get; set; }
-
-        public string SongPath => null;
-
-        public override string ToString()
-        {
-            return $"{{{SongName} ({Difficulty}) by {Artist}: mapped by {Creator}}}";
-        }
     }
 
     public struct ServerSubmissionPackage

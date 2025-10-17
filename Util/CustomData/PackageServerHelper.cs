@@ -3,16 +3,11 @@ using CustomBeatmaps.CustomPackages;
 using HarmonyLib;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Rhythm.BeatmapIndex;
 using Directory = Pri.LongPath.Directory;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
@@ -109,7 +104,7 @@ namespace CustomBeatmaps.Util.CustomData
                         {
                             foreach (var song in pkgCore.Songs[i])
                             {
-                                var bmapInfo = new BeatmapData($"{pkgCore.GUID}-{i}", song.Key, $"{packageFolder}\\{song.Value}", category);
+                                var bmapInfo = new BeatmapData(pkgCore.GUID, i, song.Key, $"{packageFolder}\\{song.Value}", category);
                                 
                                 if (songs.TryGetValue(bmapInfo.InternalName, out _))
                                 {

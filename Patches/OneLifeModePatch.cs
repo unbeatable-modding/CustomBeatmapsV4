@@ -1,7 +1,5 @@
 ﻿using System;
-using CustomBeatmaps.Util;
 using HarmonyLib;
-using UnityEngine;
 
 namespace CustomBeatmaps.Patches
 {
@@ -30,14 +28,5 @@ namespace CustomBeatmaps.Patches
             }
         }
 
-        //[HarmonyPatch(typeof(BeatmapOptionsMenu), "Start")]
-        //[HarmonyPostfix]
-        private static void AddNoMissOption(BeatmapOptionsMenu __instance)
-        {
-            // Add a new option at the END
-            //var noFail = ArcadeHelper.InsertBeatmapOptionInMenu(__instance, size => size, "<i>ONE LIFE</i>");
-            //noFail.GetValue += () => CustomBeatmaps.Memory.OneLifeMode ? 1 : 0;
-            //noFail.SetValue += ind => CustomBeatmaps.Memory.OneLifeMode = (ind == 1);
-        }
     }
 }

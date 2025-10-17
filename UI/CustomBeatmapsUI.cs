@@ -1,11 +1,6 @@
 ﻿
 using System;
-using System.Collections.Generic;
-using CustomBeatmaps.CustomPackages;
-using CustomBeatmaps.Patches;
-using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
-using FMOD;
 using UnityEngine;
 
 using static CustomBeatmaps.Util.ArcadeHelper;
@@ -14,14 +9,8 @@ namespace CustomBeatmaps.UI
 {
     public static class CustomBeatmapsUI
     {
-        //private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
-        //private static PackageListUILocal LocalPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
-        ////private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
-        //private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
-
         private static PackageListUIOnline OnlinePackageList = new PackageListUIOnline(CustomBeatmaps.LocalServerPackages);
         private static PackageListUILocal LocalPackageList = new PackageListUILocal(CustomBeatmaps.LocalUserPackages);
-        //private static PackageListUILocal LocalPackageList = new PackageListUILocal(new CustomPackageHandler(CustomBeatmaps.LocalUserPackages));
         private static PackageListUIOSU OsuPackageList = new PackageListUIOSU(CustomBeatmaps.OSUSongManager);
 
         public static void Render()
@@ -80,7 +69,7 @@ namespace CustomBeatmaps.UI
             {
                 // NOTE: there are a fuck ton of errors, but somehow it still works
                 
-                //CustomBeatmaps.Log.LogError(e);
+                CustomBeatmaps.Log.LogError(e);
                 //setTab.Invoke(Tab.Local);
             }
 

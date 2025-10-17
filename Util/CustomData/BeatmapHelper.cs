@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CustomBeatmaps.CustomPackages;
+﻿using CustomBeatmaps.CustomPackages;
 using System.Text.RegularExpressions;
 using Arcade.UI;
 
 using File = Pri.LongPath.File;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 
 namespace CustomBeatmaps.Util.CustomData
 {
@@ -31,7 +26,6 @@ namespace CustomBeatmaps.Util.CustomData
                 return match.Groups[1].Value;
             }
             return null;
-            //throw new BeatmapException($"Image property not found.", beatmapPath);
         }
 
         public static bool IsBeatmapFile(string beatmapPath)

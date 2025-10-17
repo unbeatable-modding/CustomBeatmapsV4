@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Arcade.UI;
-using System.Text.RegularExpressions;
-using CustomBeatmaps.Util;
-using Rhythm;
 using CustomBeatmaps.CustomData;
 
 namespace CustomBeatmaps.CustomPackages

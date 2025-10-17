@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CustomBeatmaps.CustomData
 {
@@ -14,7 +13,7 @@ namespace CustomBeatmaps.CustomData
         
         public Guid GUID;
 
-        public List<Dictionary<InternalDifficulty, string>> Songs;
+        public List<SortedDictionary<InternalDifficulty, string>> Songs;
     }
     
     public enum InternalDifficulty

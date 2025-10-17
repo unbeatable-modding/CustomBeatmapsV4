@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Arcade.UI.SongSelect;
+﻿using System.Collections.Generic;
 using CustomBeatmaps.CustomData;
-using CustomBeatmaps.CustomPackages;
 using UnityEngine;
-using static Arcade.UI.SongSelect.ArcadeSongDatabase;
 
 namespace CustomBeatmaps.UI.PackageList
 {

@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Arcade.UI;
 using Arcade.UI.MenuStates;
-using CustomBeatmaps.Patches;
 using CustomBeatmaps.UISystem;
 using CustomBeatmaps.Util;
-using CustomBeatmaps.Util.CustomData;
 using DG.Tweening;
-using FMOD;
-using RJBuildScripts;
 using UnityEngine;
 
 namespace CustomBeatmaps.UI

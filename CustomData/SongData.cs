@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using CustomBeatmaps.Util;
 using static Rhythm.BeatmapIndex;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 using Rhythm;
 using System.Linq;
-using CustomBeatmaps.CustomPackages;
 using HarmonyLib;
-using RewiredConsts;
-using CustomBeatmaps.UI;
 using UnityEngine;
 using CustomBeatmaps.Util.CustomData;
 
@@ -65,9 +59,6 @@ namespace CustomBeatmaps.CustomData
         // LOCAL ONLY
         public string AudioPath { get; private set; }
         public string DirectoryPath { get; private set; }
-        // NOTE: CHANGE ME
-        public int TMPCategory { get; private set; }
-
         public CCategory Category { get; private set; }
 
         private bool isLocal = false;
@@ -102,7 +93,6 @@ namespace CustomBeatmaps.CustomData
             AudioPath = $"{DirectoryPath}\\{realPath}";
 
             InitLocalSong();
-            //AddMapToSong(bmapPath);
         }
 
         public SongData(BeatmapData bmapData)

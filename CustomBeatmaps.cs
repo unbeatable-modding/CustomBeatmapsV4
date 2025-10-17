@@ -8,18 +8,14 @@ using CustomBeatmaps.Util;
 using CustomBeatmaps.Util.CustomData;
 using HarmonyLib;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
+
 using Directory = Pri.LongPath.Directory;
 using File = Pri.LongPath.File;
 using Path = Pri.LongPath.Path;
-
 
 namespace CustomBeatmaps
 {
@@ -36,12 +32,9 @@ namespace CustomBeatmaps
         public static BackendConfig BackendConfig { get; private set; }
 
         public static UserSession UserSession { get; private set; }
-
-        //public static List<LocalPackageManager> LocalUserPackages { get; private set; }
         public static PackageManagerMulti LocalUserPackages { get; private set; }
-        //public static PackageManagerMulti MultiManager { get; private set; }
         public static PackageManagerServer LocalServerPackages { get; private set; }
-        public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
+        //public static SubmissionPackageManager SubmissionPackageManager { get; private set; }
         public static PackageManagerLocal OSUSongManager { get; private set; }
         public static PlayedPackageManager PlayedPackageManager { get; private set; }
         public static ServerHighScoreManager ServerHighScoreManager { get; private set; }
@@ -67,11 +60,9 @@ namespace CustomBeatmaps
             PackageHelper.TryAddCustomCategory();
 
             // Anything with Static access should be ALWAYS present.
-            //LocalUserPackages = new PackageManagerLocal(OnError);
             LocalUserPackages = new PackageManagerMulti(OnError);
-            //MultiManager = new PackageManagerMulti(OnError);
             LocalServerPackages = new PackageManagerServer(OnError);
-            SubmissionPackageManager = new SubmissionPackageManager(OnError);
+            //SubmissionPackageManager = new SubmissionPackageManager(OnError);
             OSUSongManager = new PackageManagerLocal(OnError);
             ServerHighScoreManager = new ServerHighScoreManager();
 
@@ -87,16 +78,7 @@ namespace CustomBeatmaps
             {
                 ModConfig = config;
                 // Local package folders
-                /*
-                for (int i = 0; i < config.UserPackagesDir.Count(); i++)
-                {
-                    LocalUserPackages.Add(new LocalPackageManager(OnError));
-                    LocalUserPackages.Last().SetFolder(config.UserPackagesDir[i], 7);
-                }
-                */
                 LocalUserPackages.SetFolders(config.UserPackagesDir, new CCategory(7));
-                //MultiManager.SetFolders(config.UserPackagesDir, new CCategory(7));
-                //LocalUserPackages.SetFolders(config.UserPackagesDir, new CCategory(7));
                 LocalServerPackages.SetFolder(config.ServerPackagesDir, new CCategory(10));
                 OSUSongManager.SetFolder(config.OsuSongsOverrideDirectory, new CCategory(9));
                 PlayedPackageManager = new PlayedPackageManager(config.PlayedBeatmapList);
@@ -138,9 +120,6 @@ namespace CustomBeatmaps
             Type[] classesToPatch = {
                 typeof(DebugLogPatch),
                 typeof(OsuEditorPatch),
-                //typeof(PauseMenuPatch),
-                //typeof(DisablePracticeRoomOpenerPatch),
-                //typeof(CursorUnhidePatch),
                 typeof(OneLifeModePatch),
                 typeof(FlipModePatch),
                 typeof(DisableRewiredMouseInputPatch),
@@ -184,11 +163,6 @@ namespace CustomBeatmaps
                     SceneManager.LoadScene(0);
                 };
             }
-
-            //ArcadeHelper.LoadCustomSongs();
-            //ArcadeHelper.LoadCustomSongs();
-            // Add images to songs at later timing because the game will crash if loaded any earlier
-
 
         }
 

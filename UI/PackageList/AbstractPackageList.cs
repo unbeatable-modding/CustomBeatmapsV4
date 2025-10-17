@@ -1,18 +1,11 @@
-﻿using Arcade.UI;
-using CustomBeatmaps.CustomData;
+﻿using CustomBeatmaps.CustomData;
 using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.UI;
 using CustomBeatmaps.UI.PackageList;
 using CustomBeatmaps.Util;
-using FMODUnity;
-using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using static CustomBeatmaps.Util.ArcadeHelper;
 
@@ -242,6 +235,8 @@ namespace CustomBeatmaps.UISystem
 
         protected void PreviewAudio()
         {
+            if (ArcadeHelper.LoadingArcade)
+                return;
             if (_selectedBeatmap.BeatmapPointer != null)
             {
                 if (_selectedBeatmap.SongPath != null)

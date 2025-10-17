@@ -1,7 +1,9 @@
 ﻿using CustomBeatmaps.CustomPackages;
 using CustomBeatmaps.Util;
 using CustomBeatmaps.Util.CustomData;
+using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -80,7 +82,7 @@ namespace CustomBeatmaps.CustomData
                 Task.Run(async () =>
                 {
                     foreach (var folder in _folders)
-                        await PackageHelper.PopulatePackageCoresNew(folder);
+                        await PackageHelper.PopulatePackageCores(folder);
                 }).Wait();
 
 
@@ -89,24 +91,15 @@ namespace CustomBeatmaps.CustomData
 
         protected override void UpdatePackage(string folderPath)
         {
-            //if (!Directory.Exists(folderPath))
-            //    return;
-
             // Remove old package if there was one and update
             lock (_packages)
             {
-                //int toRemove = _packages.FindIndex(check => check.BaseDirectory == folderPath);
-                //if (toRemove != -1)
-                //    _packages.RemoveAt(toRemove);
                 if (_packages.Exists(p => p.BaseDirectory == folderPath))
                     RemovePackage(folderPath);
             }
 
             if (!Directory.Exists(folderPath))
-            {
-                ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning("Directory not real???"));
                 return;
-            }
 
             // ???
             if (!_folders.ToList().Exists(f => folderPath.Contains(f)))
@@ -117,7 +110,11 @@ namespace CustomBeatmaps.CustomData
                 
             var folder = _folders.ToList().First(f => folderPath.Contains(f));
 
-            foreach (string subDir in Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories))
+            // Weird fix for also getting the top folder
+            List<string> dirs = Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories).ToList();
+            dirs.Add(folderPath);
+
+            foreach (string subDir in dirs)
             {
                 if (PackageHelper.TryLoadLocalPackage(subDir, folder, out CustomPackageLocal package, _category, false,
                     _onLoadException, () => { return Packages.Select(s => s.GUID).ToHashSet(); }))
@@ -235,11 +232,11 @@ namespace CustomBeatmaps.CustomData
             ScheduleHelper.SafeLog($"Base Package Folder IN LOCAL: {basePackageFolder}");
 
             // Special case: Root package folder is deleted, we delete a package.
-            //if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)
-            if (false)
+            if (evt.ChangeType == WatcherChangeTypes.Deleted && basePackageFolder == changedFilePath)
             {
                 ScheduleHelper.SafeLog($"Local Package DELETE: {basePackageFolder}");
                 RemovePackage(basePackageFolder);
+                _dontLoad.Add(basePackageFolder);
                 return;
             }
 
@@ -249,9 +246,8 @@ namespace CustomBeatmaps.CustomData
             {
                 // We should refresh queued packages in bulk.
                 bool isFirst = _loadQueue.Count == 0;
-                if (!_loadQueue.Contains(basePackageFolder))
+                if (!_loadQueue.Contains(basePackageFolder) && !_dontLoad.Contains(basePackageFolder))
                 {
-                    //ScheduleHelper.SafeLog($"adding {basePackageFolder} to queue");
                     _loadQueue.Enqueue(basePackageFolder);
                 }
 
