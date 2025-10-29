@@ -40,15 +40,12 @@ namespace CustomBeatmaps
         public static PlayedPackageManager PlayedPackageManager { get; private set; }
         public static ServerHighScoreManager ServerHighScoreManager { get; private set; }
         public static BeatmapDownloader Downloader { get; private set; }
-        public static Rhythm.BeatmapIndex DefaultBeatmapIndex { get; private set; }
         public static GameMemory Memory { get; private set; }
 
         private static readonly string MEMORY_LOCATION = "CustomBeatmapsV4-Data/.memory";
 
         // Check for config reload every 2 seconds
         private readonly Timer _checkConfigReload = new Timer(2000);
-
-        private static bool arcadePatched = false;
 
         private static readonly Harmony Harmony = new Harmony(modGUID);
 

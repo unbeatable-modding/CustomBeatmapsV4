@@ -69,7 +69,7 @@ namespace CustomBeatmaps.UI
             {
                 // NOTE: there are a fuck ton of errors, but somehow it still works
                 
-                CustomBeatmaps.Log.LogError(e);
+                //CustomBeatmaps.Log.LogError(e);
                 //setTab.Invoke(Tab.Local);
             }
 

@@ -25,7 +25,7 @@ namespace CustomBeatmaps.UI
                 GUILayout.BeginHorizontal();
                 // Render list
                 GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-                RenderReloadHeader($"Got {_localPackages.Count} Packages", () =>
+                RenderReloadHeader($"Got {_pkgHeaders.Count} Packages", () =>
                 {
                     GUILayout.FlexibleSpace();
                     DifficultyPickerUI.Render(_difficulty, SetDifficulty);
@@ -168,13 +168,18 @@ namespace CustomBeatmaps.UI
 
         protected override void SortPackages()
         {
-            UIConversionHelper.SortPackages(_localPackages, SortMode);
+            UIConversionHelper.SortPackages(_pkgHeaders, SortMode);
         }
 
-        protected override void MapPackages()
+        protected override bool MapPackages()
         {
-            base.MapPackages();
+            // Run base Method first and abort if No Packages (base returns false)
+            if (base.MapPackages())
+                return false;
+
             DLStatus = _selectedPackage.DownloadStatus;
+
+            return true;
         }
 
     }

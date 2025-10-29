@@ -17,9 +17,10 @@ namespace CustomBeatmaps.UISystem
     {
         protected PackageManagerGeneric<P> Manager;
 
-        protected List<P> _localPackages = new();
-
-        protected Dictionary<Guid, P> _pkgFetcher;
+        /// <summary>
+        /// List of Packages rendered by the UI
+        /// </summary>
+        protected List<P> _pkgHeaders = new();
         protected string Folder => Manager.Folder;
         protected InitialLoadStateData LoadState => Manager.InitialLoadState;
 
@@ -42,8 +43,6 @@ namespace CustomBeatmaps.UISystem
         protected BeatmapData _selectedBeatmap;
         protected P _selectedPackage;
 
-        protected List<P> _pkgHeaders = new();
-
         protected Action LeftRender;
         protected Action[] RightRenders;
         protected string _searchQuery;
@@ -56,9 +55,9 @@ namespace CustomBeatmaps.UISystem
 
         protected virtual void Init(PackageManagerGeneric<P> manager)
         {
-            Manager.PackageUpdated += package =>
+            Manager.PackageUpdated += () =>
             {
-                _localPackages = Manager.Packages;
+                _pkgHeaders = Manager.Packages;
                 SortPackages();
                 Reload(true);
             };
@@ -91,17 +90,24 @@ namespace CustomBeatmaps.UISystem
                 Reload(true);
             };
 
-            _localPackages = Manager.Packages;
+            _pkgHeaders = Manager.Packages;
             SortPackages();
             Reload(false);
         }
 
         // Load stuff
+        /// <summary>
+        /// Reload the Package List (for UI)
+        /// </summary>
+        /// <param name="retain">If true, this tries to remember the package currently selected by the user</param>
         public virtual void Reload(bool retain)
         {
+            // Abort if no packages
+            if (Manager.Packages.Count < 1)
+                return;
+
             var pkg = _selectedPackage;
-            _localPackages = Manager.Packages;
-            //SortPackages();
+            _pkgHeaders = Manager.Packages;
             RegenerateHeaders();
 
             // Try to keep the same package selected when retain is true
@@ -126,8 +132,8 @@ namespace CustomBeatmaps.UISystem
         protected abstract void SortPackages();
         protected virtual void RegenerateHeaders()
         {
-            var headers = new List<P>(_localPackages.Count);
-            foreach (P p in _localPackages)
+            var headers = new List<P>(_pkgHeaders.Count);
+            foreach (P p in _pkgHeaders)
             {
                 if (!UIConversionHelper.PackageHasDifficulty(p, _difficulty))
                     continue;
@@ -142,20 +148,26 @@ namespace CustomBeatmaps.UISystem
             _pkgHeaders = headers;
         }
 
-        protected virtual void MapPackages()
+        protected virtual bool MapPackages()
         {
+            // No packages
             if (_pkgHeaders.Count < 1)
-                return;
+                return false;
 
+            // Fix Package Index being out of bounds
             if (SelectedPackageIndex >= _pkgHeaders.Count)
                 SetSelectedPackageIndex(_pkgHeaders.Count - 1);
+
             _selectedPackage = _pkgHeaders[SelectedPackageIndex];
 
             _selectableBeatmaps = _selectedPackage.BeatmapDatas.ToList();
-
+            // Fix Beatmap Index being out of bounds
             if (SelectedBeatmapIndex >= _selectableBeatmaps.Count)
                 SetSelectedBeatmapIndex?.Invoke(_selectableBeatmaps.Count - 1);
+
             _selectedBeatmap = _selectedPackage.BeatmapDatas[SelectedBeatmapIndex];
+
+            return true;
         }
 
         protected virtual void RenderSearchbar()
@@ -164,7 +176,6 @@ namespace CustomBeatmaps.UISystem
             {
                 _searchQuery = searchTextInput;
                 Reload(true);
-
             });
         }
         protected void Fallbacks()
@@ -222,15 +233,12 @@ namespace CustomBeatmaps.UISystem
             }
 
             // No packages?
-
-            if (_pkgHeaders.Count == 0)
+            if (Manager.Packages.Count == 0)
             {
                 onRenderAboveList();
-                //RenderSearchbar();
-                LeftRender();
+                GUILayout.BeginHorizontal();
                 GUILayout.Label($"No Packages Found in {Folder}");
                 GUILayout.EndHorizontal();
-                
                 return;
             }
 

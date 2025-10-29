@@ -50,7 +50,7 @@ namespace CustomBeatmaps.UI
                         if (PlayButtonUI.Render("EDIT", $"{_selectedBeatmap.SongName}: {_selectedBeatmap.Difficulty}"))
                         {
                             // Play a local beatmap
-                            var package = _localPackages[SelectedPackageIndex];
+                            var package = _pkgHeaders[SelectedPackageIndex];
                             RunSong();
                         }
                     }
@@ -59,7 +59,7 @@ namespace CustomBeatmaps.UI
 
         protected override void SortPackages()
         {
-            UIConversionHelper.SortPackages(_localPackages, SortMode);
+            UIConversionHelper.SortPackages(_pkgHeaders, SortMode);
         }
 
         protected override void RunSong()

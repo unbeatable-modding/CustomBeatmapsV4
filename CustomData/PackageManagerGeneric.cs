@@ -1,9 +1,11 @@
-﻿using System;
+﻿using CustomBeatmaps.CustomPackages;
+using CustomBeatmaps.Util;
+using CustomBeatmaps.Util.CustomData;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CustomBeatmaps.Util;
-using CustomBeatmaps.CustomPackages;
+using System.Threading.Tasks;
 
 namespace CustomBeatmaps.CustomData
 {
@@ -16,9 +18,8 @@ namespace CustomBeatmaps.CustomData
         /// <summary>
         /// Action that is invoked after a package is updated
         /// </summary>
-        public Action<P> PackageUpdated;
-        public string Folder { get; protected set; }
-
+        public Action PackageUpdated;
+        
         protected readonly List<P> _packages = new List<P>();
         protected readonly HashSet<string> _downloadedFolders = new HashSet<string>();
 
@@ -27,6 +28,8 @@ namespace CustomBeatmaps.CustomData
         protected readonly Queue<string> _loadQueue = new Queue<string>();
 
         protected string _folder;
+        public string Folder => _folder;
+
         protected CCategory _category;
 
         protected FileSystemWatcher _watcher;
@@ -81,12 +84,40 @@ namespace CustomBeatmaps.CustomData
 
         public abstract bool PackageExists(string folder);
 
-        public abstract void SetFolder(string folder, CCategory category);
+        public virtual void SetFolder(string folder, CCategory category)
+        {
+            if (folder == null)
+                return;
+            folder = Path.GetFullPath(folder);
+            if (folder == _folder)
+                return;
+
+            _folder = folder;
+            _category = category;
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            // Clear previous watcher
+            if (_watcher != null)
+            {
+                _watcher.Dispose();
+            }
+
+            GenerateCorePackages();
+
+            // Watch for changes
+            _watcher = FileWatchHelper.WatchFolder(folder, true, OnFileChange);
+            // Reload now
+            ReloadAll();
+        }
 
         protected abstract void OnFileChange(FileSystemEventArgs evt);
 
         protected List<string> _dontLoad = new();
-        protected void RefreshQueuedPackages()
+        protected virtual void RefreshQueuedPackages()
         {
             while (true)
             {
@@ -106,5 +137,21 @@ namespace CustomBeatmaps.CustomData
                 }
             }
         }
+
+        public virtual void GenerateCorePackages()
+        {
+            if (_folder == null)
+                return;
+            ScheduleHelper.SafeLog($"LOADING CORES");
+            lock (_packages)
+            {
+                Task.Run(async () =>
+                {
+                    await PackageHelper.PopulatePackageCores(_folder);
+                }).Wait();
+            }
+        }
+
+
     }
 }

@@ -70,43 +70,37 @@ namespace CustomBeatmaps.CustomData
             }).Start();
         }
 
-        public void GenerateCorePackages()
-        {
-            if (!_folders.Any())
-                return;
-            ScheduleHelper.SafeLog($"LOADING CORES");
-            lock (_packages)
-            {
-                Task.Run(async () =>
-                {
-                    foreach (var folder in _folders)
-                        await PackageHelper.PopulatePackageCores(folder);
-                }).Wait();
-
-
-            }
-        }
-
         protected override void UpdatePackage(string folderPath)
         {
-            // Remove old package if there was one and update
-            lock (_packages)
-            {
-                if (_packages.Exists(p => p.BaseDirectory == folderPath))
-                    RemovePackage(folderPath);
-            }
-
-            if (!Directory.Exists(folderPath))
-                return;
+            string folder = _folders.FirstOrDefault(f => folderPath.Contains(f));
 
             // ???
-            if (!_folders.ToList().Exists(f => folderPath.Contains(f)))
+            if (folder == null)
             {
                 ScheduleHelper.SafeInvoke(() => CustomBeatmaps.Log.LogWarning("folderPath not real???"));
                 return;
             }
-                
-            var folder = _folders.ToList().First(f => folderPath.Contains(f));
+
+            // Remove old package if there was one
+            lock (_packages)
+            {
+                int toRemove = _packages.FindIndex(p => p.BaseDirectory == folderPath);
+                if (toRemove != -1)
+                {
+                    _packages.RemoveAt(toRemove);
+                    lock (_downloadedFolders)
+                        _downloadedFolders.Remove(folderPath);
+                }
+                    
+            }
+
+            if (!Directory.Exists(folderPath))
+            {
+                // Reload here as a failsafe
+                PackageUpdated?.Invoke();
+                ScheduleHelper.SafeInvoke(() => ArcadeHelper.ReloadArcadeList());
+                return;
+            }
 
             // Weird fix for also getting the top folder
             List<string> dirs = Directory.EnumerateDirectories(folderPath, "*", SearchOption.AllDirectories).ToList();
@@ -127,13 +121,15 @@ namespace CustomBeatmaps.CustomData
                             _downloadedFolders.Add(Path.GetFullPath(package.BaseDirectory));
                         }
                     }
-                    ArcadeHelper.ReloadArcadeList();
-                    PackageUpdated?.Invoke(package);
+
+                    PackageUpdated?.Invoke();
+                    ScheduleHelper.SafeInvoke(() => ArcadeHelper.ReloadArcadeList());
                 }
                 else
                 {
                     ScheduleHelper.SafeLog($"CANNOT find package: {subDir}");
                 }
+
             }
         }
 
@@ -153,8 +149,8 @@ namespace CustomBeatmaps.CustomData
                     }
 
                     ScheduleHelper.SafeLog($"REMOVED PACKAGE: {folderPath}");
-                    ArcadeHelper.ReloadArcadeList();
-                    PackageUpdated?.Invoke(p);
+                    PackageUpdated?.Invoke();
+                    ScheduleHelper.SafeInvoke(() => ArcadeHelper.ReloadArcadeList());
                 }
                 else
                 {
